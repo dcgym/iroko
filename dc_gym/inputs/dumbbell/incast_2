@@ -1,0 +1,3 @@
+src,dst,port,seed,start_time,stop_time,flow_size,flow_size_pattern,reps,flow_gap,random_gap
+10.1.0.1,10.2.0.1,12345,1,0.0,60.0,2147483647,exact,-1,0.0,exact
+10.1.0.2,10.2.0.2,12345,2,0.0,60.0,2147483647,exact,-1,0.0,exact

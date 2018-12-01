@@ -1,0 +1,9 @@
+[submodule "mininet"]
+    url = https://github.com/mininet/mininet
+    path = contrib/mininet
+    ignore = dirty
+
+[submodule "goben"]
+    url = https://github.com/fruffy/goben
+    path = contrib/goben
+    ignore = dirty
