@@ -17,10 +17,10 @@ PLOT_DIR = exec_dir + '/plots'
 RL_ALGOS = ["PPO", "DDPG", "PG"]
 TCP_ALGOS = ["TCP", "DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
+TRANSPORT = ["udp", "tcp"]
 RUNS = 5
-STEPS = 50000
+STEPS = 200000
 TOPO = "dumbbell"
-TRANSPORT = "udp"
 TUNE = False
 RESTORE = False
 RESTORE_PATH = file_dir + "./"
@@ -43,9 +43,9 @@ def generate_testname(output_dir):
     return testname
 
 
-def dump_config(path):
+def dump_config(path, transport):
     test_config = {}
-    test_config["transport"] = TRANSPORT
+    test_config["transport"] = transport
     test_config["timesteps"] = STEPS
     test_config["runs"] = RUNS
     test_config["topology"] = TOPO
@@ -59,31 +59,32 @@ def dump_config(path):
 
 
 def run_tests():
-    testname = generate_testname(OUTPUT_DIR)
-    results_dir = "%s/%s" % (OUTPUT_DIR, testname)
-    print ("Saving results to %s" % results_dir)
-    check_dir(results_dir)
-    print ("Dumping configuration in %s" % results_dir)
-    dump_config(results_dir)
-    for index in range(RUNS):
-        results_subdir = "%s/run%d" % (results_dir, index)
-        for algo in ALGOS:
-            cmd = "sudo python run_ray.py "
-            cmd += "-a %s " % algo
-            cmd += "-t %d " % STEPS
-            cmd += "--output %s " % results_subdir
-            cmd += "--topo %s " % TOPO
-            if (TUNE):
-                cmd += "--tune "
-            if (RESTORE):
-                cmd += "--restore %s " % RESTORE_PATH
-            if (algo in TCP_ALGOS):
-                cmd += " --env tcp --transport tcp"
-            else:
-                cmd += "--transport %s" % TRANSPORT
-            subprocess.call(cmd.split())
-    # Plot the results and save the graphs under the given test name
-    plot(results_dir, PLOT_DIR, testname)
+    for transport in TRANSPORT:
+        testname = generate_testname(OUTPUT_DIR)
+        results_dir = "%s/%s" % (OUTPUT_DIR, testname)
+        print ("Saving results to %s" % results_dir)
+        check_dir(results_dir)
+        print ("Dumping configuration in %s" % results_dir)
+        dump_config(results_dir, transport)
+        for index in range(RUNS):
+            results_subdir = "%s/run%d" % (results_dir, index)
+            for algo in ALGOS:
+                cmd = "sudo python run_ray.py "
+                cmd += "-a %s " % algo
+                cmd += "-t %d " % STEPS
+                cmd += "--output %s " % results_subdir
+                cmd += "--topo %s " % TOPO
+                if (TUNE):
+                    cmd += "--tune "
+                if (RESTORE):
+                    cmd += "--restore %s " % RESTORE_PATH
+                if (algo in TCP_ALGOS):
+                    cmd += " --env tcp --transport tcp"
+                else:
+                    cmd += "--transport %s" % transport
+                subprocess.call(cmd.split())
+        # Plot the results and save the graphs under the given test name
+        plot(results_dir, PLOT_DIR, testname)
 
 
 if __name__ == '__main__':

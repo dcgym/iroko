@@ -12,8 +12,8 @@ authors = [
 
 readme = 'README.md'
 
-repository = "https://github.com/fruffy/iroko"
-homepage = "https://github.com/fruffy/iroko"
+repository = "https://github.com/dc_gym/iroko"
+homepage = "https://github.com/dc_gym/iroko"
 
 keywords = ['tcp', 'congestion control', 'reinforcement learning', 'rl', 'data center']
 
