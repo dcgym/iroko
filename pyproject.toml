@@ -22,7 +22,6 @@ python = "~2.7 || ^3.2"  # Compatible python versions
 toml = "^0.9"
 
 # Dependencies with extras
-scapy = { version = "*", python = "~2.7 || ^3.2"}
 numpy = { version = "*", python = "~2.7 || ^3.2"}
 gym = { version = "*", python = "~2.7 || ^3.2"}
 tensorflow = { version = "*", python = "~2.7 || ^3.2"}
