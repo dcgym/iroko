@@ -31,7 +31,8 @@ PARSER.add_argument('--agent', '-a', dest='agent', default=None,
                          ' DCTCP, TCP_NV or TCP')
 PARSER.add_argument('--timesteps', '-t', dest='timesteps',
                     type=int, default=10000,
-                    help='total number of timesteps to train rl agent, if tune specified is wall clock time')
+                    help='total number of timesteps to train rl agent, '
+                         'if tune specified is wall clock time')
 PARSER.add_argument('--checkpoint_freq', '-cf', dest='checkpoint_freq',
                     type=int, default=0,
                     help='how often to checkpoint model')
@@ -46,25 +47,6 @@ PARSER.add_argument('--transport', dest='transport', default="udp",
 PARSER.add_argument('--tune', dest='tune', type=bool, default=False,
                     help='Specify whether to perform hyperparameter tuning')
 ARGS = PARSER.parse_args()
-
-
-def test_run(input_dir, output_dir, env, topo):
-    # Assemble a configuration dictionary for the environment
-    env_config = {
-        "input_dir": input_dir,
-        "output_dir": ARGS.output_dir,
-        "env": ARGS.env,
-        "topo": ARGS.topo,
-        "agent": "RND",
-        "transport": ARGS.transport,
-        "tf_index": 0
-    }
-    dc_env = EnvFactory.create(env_config)
-    for epoch in range(ARGS.timesteps):
-        action = dc_env.action_space.sample()
-        dc_env.step(action)
-    print('Generator Finished. Simulation over. Clearing dc_env...')
-    dc_env.kill_env()
 
 
 def get_env(env_config):
@@ -225,21 +207,16 @@ def configure(agent):
 
 
 def init():
-    print ("Removing all previous traces of Mininet and ray")
+    print("Registering the DC environment...")
+    register_env("dc_env", get_env)
 
-    if ARGS.agent:
-        print("Registering the DC environment...")
-        register_env("dc_env", get_env)
+    print("Starting Ray...")
+    ray.init(num_cpus=1)
 
-        print("Starting Ray...")
-        ray.init(num_cpus=1)
-
-        print("Starting experiment.")
-        experiment, scheduler = configure(ARGS.agent)
-        tune.run_experiments(experiment, scheduler=scheduler)
-        print("Experiment has completed.")
-    else:
-        test_run(INPUT_DIR, ARGS.output_dir, ARGS.env, ARGS.topo)
+    print("Starting experiment.")
+    experiment, scheduler = configure(ARGS.agent)
+    tune.run_experiments(experiment, scheduler=scheduler)
+    print("Experiment has completed.")
 
 
 if __name__ == '__main__':
