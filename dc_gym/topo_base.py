@@ -96,6 +96,8 @@ class BaseTopo():
         self._config_topo()
         self._connect_controller(c0)
         self._configure_hosts()
+        output("Testing reachability after configuration...\n")
+        self.net.ping()
 
     def get_net(self):
         return self.net
@@ -124,5 +126,4 @@ class BaseTopo():
                       controller=None, autoSetMacs=True)
 
         net.start()
-
         return net
