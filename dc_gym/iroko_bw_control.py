@@ -125,7 +125,7 @@ class IPFrame:
                   self.ip_src_addr, self.ip_dest_addr)
 
     def update(self, data_len):
-        self.ip_tlen = self.ip_tlen + data_len
+        self.ip_tlen = 4 * self.ip_ihl + data_len
         pack_into('!H', self.ip_hdr_buf, calcsize(self.IP_HDR_FMT[:2]),
                   self.ip_tlen)
         # self.ip_hdr_cksum = checksum(self.ip_hdr_buf.raw)
