@@ -138,33 +138,33 @@ def configure(agent):
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
-        # config['model']['fcnet_hiddens'] = [64, 64]
-        # config['model']['fcnet_activation'] = 'tanh'
-        # config["train_batch_size"] = 4000
-        # config['horizon'] = 2048
-        # config['lambda'] = 0.95
-        # config['sgd_minibatch_size'] = 64
-        # config['num_sgd_iter'] = 10  # assuming this is epochs...
-        # config['lr'] = 3e-4
-        # # use only clip objective as paper found this worked best
-        # # TODO: pick these vals specific for data centers
+        config['model']['fcnet_hiddens'] = [64, 64]
+        config['model']['fcnet_activation'] = 'tanh'
+        config["train_batch_size"] = 4000
+        config['horizon'] = 2048
+        config['lambda'] = 0.95
+        config['sgd_minibatch_size'] = 64
+        config['num_sgd_iter'] = 10  # assuming this is epochs...
+        config['lr'] = 3e-4
+        # use only clip objective as paper found this worked best
+        # TODO: pick these vals specific for data centers
         # config['kl_target'] = 0.0
-        # config['clip_param'] = 0.2
-        # config['kl_coeff'] = 0.0
-        # if ARGS.tune and agent == "PPO":
-        #     # changes to experiment
-        #     print("Performing tune experiment")
-        #     experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-        #     experiment[name]["num_samples"] = SEEDS
-        #     config, mutations, explore = set_tuning_parameters(
-        #         agent, config.copy())
-        #     config['horizon'] = 1000
-        #     scheduler = PopulationBasedTraining(time_attr='time_total_s',
-        #                                         reward_attr='episode_reward_mean',
-        #                                         perturbation_interval=5000,  # this..will be pretty sparse
-        #                                         hyperparam_mutations=mutations,
-        #                                         resample_probability=0.25,
-        #                                         custom_explore_fn=explore)
+        config['clip_param'] = 0.2
+        config['kl_coeff'] = 0.0
+        if ARGS.tune and agent == "PPO":
+            # changes to experiment
+            print("Performing tune experiment")
+            experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
+            experiment[name]["num_samples"] = SEEDS
+            config, mutations, explore = set_tuning_parameters(
+                agent, config.copy())
+            config['horizon'] = 1000
+            scheduler = PopulationBasedTraining(time_attr='time_total_s',
+                                                reward_attr='episode_reward_mean',
+                                                perturbation_interval=5000,  # this..will be pretty sparse
+                                                hyperparam_mutations=mutations,
+                                                resample_probability=0.25,
+                                                custom_explore_fn=explore)
     elif agent == "DDPG":
         experiment[name]["run"] = agent
         config = ddpg.DEFAULT_CONFIG.copy()

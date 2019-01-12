@@ -1,5 +1,5 @@
 import numpy as np
-import gym
+from gym import Env as openAIGym, spaces
 import time
 import signal
 import sys
@@ -10,7 +10,7 @@ from iroko_state import StateManager
 from factories import TopoFactory
 
 
-class BaseEnv(gym.Env):
+class BaseEnv(openAIGym):
     WAIT = 0.5      # amount of seconds the agent waits per iteration
     COLOR = 'blue'  # Color of the
     ALGO = 'base'   # Name of the environment
@@ -27,10 +27,10 @@ class BaseEnv(gym.Env):
 
         self.num_features = self.state_man.num_features
         self.num_actions = len(self.topo_conf.host_ctrl_map)
-        self.action_space = gym.spaces.Box(
+        self.action_space = spaces.Box(
             low=self.ACTION_MIN, high=self.ACTION_MAX, dtype=np.float32,
             shape=(self.num_actions, ))
-        self.observation_space = gym.spaces.Box(
+        self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float32,
             shape=(self.num_ports * self.num_features, ))
 
