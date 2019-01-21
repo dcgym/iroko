@@ -189,7 +189,7 @@ def configure(agent):
         experiment[name].pop("checkpoint_freq", None)
         experiment[name].pop("restore", None)
 
-    config['model']['squash_to_range'] = True
+    config['clip_actions'] = True
     config['num_workers'] = 0
     config["batch_mode"] = "truncate_episodes"
     config['env_config'] = {

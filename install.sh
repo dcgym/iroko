@@ -48,8 +48,8 @@ pip install --user dist/*.whl
 pip3 install --user dist/*.whl
 
 # Install the latest ray build for python 2.7
-pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.5.3-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
-pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.5.3-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
+pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
+pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray dependencies...
 pip install --user psutil
