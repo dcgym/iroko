@@ -1,8 +1,10 @@
-import socket
 from ctypes import create_string_buffer
 from struct import pack, pack_into, calcsize
-
-''' A majority of the source code here is inspired by
+import gevent
+from gevent import socket
+from socket import htons
+from bpf_filter import attach_port_filter
+''' A significant portion of the source code here is inspired by
 https://github.com/YingquanYuan/raw_sockets '''
 
 
@@ -32,7 +34,7 @@ class EtherFrame():
     ''' Simple Python model for an Ethernet Frame '''
     ETH_HDR_FMT = '!6s6sH'
 
-    def __init__(self, dest_mac='', src_mac='', tcode=0x0800):
+    def __init__(self, dest_mac, src_mac, tcode=0x0800):
         self.eth_dest_addr = self.mac_str_to_hex(dest_mac)
         self.eth_src_addr = self.mac_str_to_hex(src_mac)
         self.eth_tcode = tcode
@@ -126,7 +128,7 @@ class IPFrame:
 
     def update(self, data_len):
         self.ip_tlen = 4 * self.ip_ihl + data_len
-        pack_into('!H', self.ip_hdr_buf, calcsize(self.IP_HDR_FMT[:2]),
+        pack_into('!H', self.ip_hdr_buf, calcsize(self.IP_HDR_FMT[:3]),
                   self.ip_tlen)
         # self.ip_hdr_cksum = checksum(self.ip_hdr_buf.raw)
         # pack_into('!H', self.ip_hdr_buf, calcsize(self.IP_HDR_FMT[:8]),
@@ -141,7 +143,7 @@ class UDPFrame:
     UDP_HDR_FMT = '!HHHH'
     UDP_HDR_LEN = 8
 
-    def __init__(self, src_port=20135, dst_port=20130):
+    def __init__(self, src_port, dst_port):
         # vars for IP header
         # all IP addresses has been encoded
         self.src_port = src_port
@@ -160,24 +162,32 @@ class UDPFrame:
         return self.udp_hdr_buf.raw
 
     def update(self, data_len):
-        self.udp_len = self.UDP_HDR_LEN + data_len
+        self.udp_len = data_len + self.UDP_HDR_LEN
         pack_into('!H', self.udp_hdr_buf, calcsize(
-            self.UDP_HDR_FMT[:1]), self.udp_len)
+            self.UDP_HDR_FMT[:3]), self.udp_len)
         self.raw = self.udp_hdr_buf.raw
 
 
 class BandwidthController():
+    SRC_PORT = 20135
+    DST_PORT = 20130
+    DEST_MAC = '10:7b:44:4a:7e:19'
+    SRC_MAC = '10:7b:44:4a:7e:20'
+    SRC_IP = '172.168.5.1'
+    DST_IP = '172.168.10.1'
+    PAYLOAD_LEN = 8
+
     def __init__(self, name, host_ctrl_map):
         name = name
         self.host_ctrl_map = host_ctrl_map
         self.sock_map = self.bind_sockets(host_ctrl_map)
         self.init_headers()
 
-    def init_headers(self, ip_src='172.168.5.1', ip_dst='172.168.10.1',
-                     src_port=20135, dst_port=20130):
+    def init_headers(self, ip_src=SRC_IP, ip_dst=DST_IP,
+                     src_port=SRC_PORT, dst_port=DST_PORT):
         # build ETH header
-        self.eth_header = EtherFrame(dest_mac='10:7b:44:4a:7e:19',
-                                     src_mac='10:7b:44:4a:7e:20')
+        self.eth_header = EtherFrame(dest_mac=self.DEST_MAC,
+                                     src_mac=self.SRC_MAC)
         # build IP header
         self.ip_header = IPFrame(ip_src_addr=socket.inet_aton(ip_src),
                                  ip_dest_addr=socket.inet_aton(ip_dst))
@@ -188,20 +198,47 @@ class BandwidthController():
         sock_map = {}
         for sw_iface, ctrl_iface in host_ctrl_map.items():
             print("Binding socket %s" % ctrl_iface)
+            ETH_P_ALL = 3  # pass all Ethernet traffic on this socket
             sock = socket.socket(
-                socket.AF_PACKET, socket.SOCK_RAW, socket.IPPROTO_UDP)
+                socket.AF_PACKET, socket.SOCK_RAW, htons(ETH_P_ALL))
+            attach_port_filter(sock, self.SRC_PORT)
             sock.bind((ctrl_iface, 0))
             sock_map[sw_iface] = sock
         return sock_map
 
     def send_cntrl_pckt(self, iface, txrate):
-        data_len = 8
-        self.ip_header.update(data_len)
-        self.udp_header.update(data_len)
+        self.ip_header.update(self.PAYLOAD_LEN + self.udp_header.UDP_HDR_LEN)
+        self.udp_header.update(self.PAYLOAD_LEN)
         target_sock = self.sock_map[iface]
         # Assemble packet
         packet = self.eth_header.raw
         packet += self.ip_header.raw
         packet += self.udp_header.raw
-        packet += str(txrate).zfill(8).encode()
+        packet += str(txrate).zfill(self.PAYLOAD_LEN).encode()
         target_sock.sendall(packet)
+
+    def await_response(self, iface):
+        target_sock = self.sock_map[iface]
+        # we do not care about payload
+        # we only care about packets that pass the bpf filter
+        target_sock.recv(0)
+
+    def broadcast_bw(self, bw_map):
+        threads = []
+        for iface, txrate in bw_map.items():
+            threads.append(gevent.spawn(self.await_response, iface))
+        for iface, txrate in bw_map.items():
+            self.send_cntrl_pckt(iface, txrate)
+        gevent.joinall(threads)
+
+
+# small script to test the functionality of the bw control operations
+if __name__ == '__main__':
+    test_list = {"test": "c0-eth0", "fest": "c0-eth1",
+                 "nest": "c0-eth2", "quest": "c0-eth3"}
+    ic = BandwidthController("Iroko", test_list)
+    threads = []
+    for iface in test_list.keys():
+        threads.append(gevent.spawn(ic.await_response, iface))
+        ic.send_cntrl_pckt(iface, 20000)
+    gevent.joinall(threads)

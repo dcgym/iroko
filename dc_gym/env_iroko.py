@@ -26,7 +26,7 @@ class DCEnv(BaseEnv):
             pred_bw[h_iface] = action[i] * self.topo_conf.MAX_CAPACITY
             rate = h_iface, pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY
             print("%s:%.2fmb " % (rate), end='')
-            self.ic.send_cntrl_pckt(h_iface, pred_bw[h_iface])
+        self.ic.broadcast_bw(pred_bw)
 
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)

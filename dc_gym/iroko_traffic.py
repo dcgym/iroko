@@ -98,6 +98,8 @@ class TrafficGen():
             return
         print('*** Starting traffic\n')
         self._gen_traffic(out_dir, input_file)
+        # wait for load controllers to initialize
+        sleep(0.5)
 
     def parse_traffic_file(self, traffic_file):
         traffic_pattern = []
