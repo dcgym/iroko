@@ -1,5 +1,6 @@
 import numpy as np
 from multiprocessing import Manager
+import gevent
 
 from iroko_monitor import StatsCollector
 from iroko_monitor import FlowCollector
@@ -165,8 +166,8 @@ class StateManager():
         # Compute the reward
         reward = self.dopamin.get_reward(self.stats, curr_action)
         self.time_step_reward.append(reward)
-        if (len(self.time_step_reward) % 1000) == 0:
-            self.save()
+        if (len(self.time_step_reward) % 10000) == 0:
+            gevent.spawn(self.save())
         for k in curr_action.keys():
             self.action_per_port[k].append(curr_action[k])
         return reward

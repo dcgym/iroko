@@ -254,7 +254,6 @@ void ctrl_handle(struct tpacket3_hdr *ppd, struct nl_sock *qdisc_sock, struct rt
     uint16_t pkt_len = ppd->tp_snaplen
 ;    uint8_t packet[pkt_len];
     memcpy(packet, eth_hdr_rx, pkt_len);
-    printf("%d\n", pkt_len );
     // Interpret cloned packet headers
     struct ethhdr *eth_hdr_tx = (struct ethhdr *)((uint8_t *) packet);
     struct iphdr *ip_hdr_tx = (struct iphdr *)((uint8_t *)eth_hdr_tx + ETH_HLEN);

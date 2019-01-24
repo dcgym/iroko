@@ -138,7 +138,7 @@ def configure(agent):
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
-        config['model']['fcnet_hiddens'] = [64, 64]
+        config['model']['fcnet_hiddens'] = [400, 300]
         config['model']['fcnet_activation'] = 'tanh'
         config["train_batch_size"] = 4000
         config['horizon'] = 2048
