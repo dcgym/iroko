@@ -1,9 +1,3 @@
-/*
- * Copyright 2013 Red Hat, Inc.
- * Author: Daniel Borkmann <dborkman@redhat.com>
- *         Chetan Loke <loke.chetan@gmail.com> (TPACKET_V3 usage example)
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -17,6 +11,11 @@
 #include <net/ethernet.h>
 #include <netinet/udp.h>   //Provides declarations for udp header
 #include <netinet/ip.h> //Provides declarations for ip header
+
+#include <libnl3/netlink/route/tc.h>
+#include <libnl3/netlink/route/qdisc.h>
+#include <libnl3/netlink/route/qdisc/netem.h>
+#include <libnl3/netlink/route/qdisc/tbf.h>
 
 #ifndef likely
 # define likely(x)      __builtin_expect(!!(x), 1)
@@ -225,22 +224,23 @@ static void send_pkt(int sock, struct ring *ring, uint8_t * packet, size_t packe
     }
 }
 
-void *ctrl_set_bw(void *data, const char *iface) {
+void *ctrl_set_bw(void *data, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
     ctrl_pckt *pkt = (ctrl_pckt *) data;
     uint64_t tx_rate = atol(pkt->buf_size);
-    fprintf(stderr,"Host %s: tx_rate: %.3fmbit\n", iface, tx_rate / 10e5);
+    // int test = rtnl_qdisc_tbf_get_rate (fq_qdisc);
+    // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, test / 10e5);
     // snprintf(cmd, 200, "tc class change dev %s parent 5:0 classid 5:1 htb rate %lu burst 15k", iface, tx_rate);
-    char cmd[200];
-    snprintf(cmd, 200,"tc qdisc change dev %s root fq maxrate %.3fmbit", iface, tx_rate / 10e5);
-    fprintf(stderr, "Host %s: cmd: %s\n", iface, cmd);
-    int ret = system(cmd);
-    if (ret)
-        perror("Problem with tc");
+    // char cmd[200];
+    // snprintf(cmd, 200,"tc qdisc change dev %s root fq maxrate %.3fmbit", iface, tx_rate / 10e5);
+    // fprintf(stderr, "Host %s: cmd: %s\n", iface, cmd);
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, 15000, 0);
+    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
 
     return NULL;
 }
 
-void ctrl_handle(struct tpacket3_hdr *ppd, const char *iface) {
+void ctrl_handle(struct tpacket3_hdr *ppd, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
     // Interpret rx packet headers
     struct ethhdr *eth_hdr_rx = (struct ethhdr *)((uint8_t *) ppd + ppd->tp_mac);
     struct iphdr *ip_hdr_rx = (struct iphdr *)((uint8_t *)eth_hdr_rx + ETH_HLEN);
@@ -248,11 +248,11 @@ void ctrl_handle(struct tpacket3_hdr *ppd, const char *iface) {
     uint8_t *data_rx = ((uint8_t *)eth_hdr_rx + ETH_HLEN + sizeof(*ip_hdr_rx) + sizeof(*udp_hdr_rx));
 
     // set the bandwidth of the interface
-    ctrl_set_bw(data_rx, iface);
+    ctrl_set_bw(data_rx, qdisc_sock, fq_qdisc);
 
     // create a new packet with the same length and copy it from the rx ring
-    uint16_t pkt_len = ppd->tp_snaplen;
-    uint8_t packet[pkt_len];
+    uint16_t pkt_len = ppd->tp_snaplen
+;    uint8_t packet[pkt_len];
     memcpy(packet, eth_hdr_rx, pkt_len);
     printf("%d\n", pkt_len );
     // Interpret cloned packet headers
@@ -271,14 +271,14 @@ void ctrl_handle(struct tpacket3_hdr *ppd, const char *iface) {
     send_pkt(sock_tx, &ring_tx, packet, pkt_len);
 }
 
-static void walk_block(struct block_desc *pbd, const int block_num, const char *iface) {
+static void walk_block(struct block_desc *pbd, const int block_num, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
     int num_pkts = pbd->h1.num_pkts, i;
     struct tpacket3_hdr *ppd;
 
     ppd = (struct tpacket3_hdr *) ((uint8_t *) pbd +
                        pbd->h1.offset_to_first_pkt);
     for (i = 0; i < num_pkts; ++i) {
-        ctrl_handle(ppd, iface);
+        ctrl_handle(ppd, qdisc_sock, fq_qdisc);
         ppd = (struct tpacket3_hdr *) ((uint8_t *) ppd +
                            ppd->tp_next_offset);
     }
@@ -336,10 +336,32 @@ int main(int argc, char **argv) {
     err = system(tc_cmd);
     if (err)
         perror("Problem with tc del");
-    snprintf(tc_cmd, 200,"tc qdisc add dev %s root fq maxrate %.3fmbit", netdev, 10e6 / 10e5);
-    err = system(tc_cmd);
-    if (err)
-        perror("Problem with tc add");
+    // snprintf(tc_cmd, 200,"tc qdisc add dev %s root fq maxrate %.3fmbit", netdev, 10e6 / 10e5);
+    // err = system(tc_cmd);
+    // if (err)
+    //     perror("Problem with tc add");
+
+    struct nl_sock *qdisc_sock;
+    struct rtnl_qdisc *fq_qdisc;
+    struct nl_cache *cache;
+    struct rtnl_link *link;
+    int if_index;
+
+    qdisc_sock = nl_socket_alloc();
+    nl_connect(qdisc_sock, NETLINK_ROUTE);
+    rtnl_link_alloc_cache(qdisc_sock, AF_UNSPEC, &cache);
+    link = rtnl_link_get_by_name(cache, netdev);
+    if_index = rtnl_link_get_ifindex(link);
+    fq_qdisc = rtnl_qdisc_alloc();
+    rtnl_tc_set_ifindex(TC_CAST(fq_qdisc), if_index);
+    rtnl_tc_set_parent(TC_CAST(fq_qdisc), TC_H_ROOT);
+    rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1, 0));
+    rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf");
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, 10e6);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, 10e6/8, 15000, 0);
+
+    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE);
+
 
     struct pollfd pfd;
     struct block_desc *pbd;
@@ -370,10 +392,15 @@ int main(int argc, char **argv) {
             continue;
         }
 
-        walk_block(pbd, block_num, netdev);
+        walk_block(pbd, block_num, qdisc_sock, fq_qdisc);
         flush_block(pbd);
         block_num = (block_num + 1) % 256;
     }
+
+    rtnl_qdisc_put(fq_qdisc);
+    nl_socket_free(qdisc_sock);
+    rtnl_link_put(link);
+    nl_cache_put(cache);
 
     unmap_ring(sock_rx, &ring_rx);
     unmap_ring(sock_tx, &ring_tx);

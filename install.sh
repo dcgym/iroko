@@ -13,6 +13,9 @@ cd ../..
 sudo apt install -y bwm-ng
 sudo apt install -y ifstat
 
+# required for traffic adjustment
+sudo apt install -y libnl-route-3-dev
+
 # compile the traffic control
 make -C dc_gym/cluster_loadgen
 make -C dc_gym/control

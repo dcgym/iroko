@@ -219,8 +219,8 @@ def plot(data_dir, plot_dir, name):
     ax3.set_xticks(tcks)
     fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
     handles, labels = ax1.get_legend_handles_labels()
-    # fig.legend(handles, labels, loc='upper center', fancybox=True,
-    #            shadow=True, ncol=5)
+    fig.legend(handles, labels, loc='upper center', fancybox=True,
+               shadow=True, ncol=5)
     plt_name = "%s" % (plot_dir)
     plt_name += "_%s" % topo
     plt_name += "_%s" % transport
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     ALGOS = ["DDPG", "PG", "PPO", "TCP", "TCP_NV", "DCTCP"]
     RUNS = 5
     PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots/"
-    root = "dc_gym/data/"
+    root = "results"
     for folder in next(os.walk(root))[1]:
         print ("Crawling folder %s " % folder)
         machinedir = root + "/" + folder
