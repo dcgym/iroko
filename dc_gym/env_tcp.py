@@ -1,5 +1,6 @@
 from __future__ import print_function
 import time
+from iroko_bw_control import BandwidthController
 
 from env_base import BaseEnv
 
@@ -10,6 +11,7 @@ class DCEnv(BaseEnv):
 
     def __init__(self, conf):
         BaseEnv.__init__(self, conf)
+        self.ic = BandwidthController("Iroko", self.topo_conf.host_ctrl_map)
         self.start_time = time.time()
 
     def step(self, action):
