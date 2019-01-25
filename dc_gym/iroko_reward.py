@@ -35,17 +35,11 @@ class RewardFunction:
 
     def _bw_reward(self, stats):
         bw_reward = 0.0
+        weight = float(len(self.host_ifaces)) / float(self.num_interfaces)
         for iface, iface_stats in stats.items():
             if iface in self.host_ifaces:
                 bw_reward += iface_stats["bws_rx"] / float(self.max_bw)
-        return bw_reward
-
-    def _queue_reward_old(self, stats):
-        queue_reward = 0.0
-        for iface, iface_stats in stats.items():
-            queue_reward -= (self.num_interfaces / 2) * \
-                (float(iface_stats["queues"]) / float(self.max_queue))**2
-        return queue_reward
+        return bw_reward * weight
 
     def _queue_reward(self, stats):
         queue_reward = 0.0

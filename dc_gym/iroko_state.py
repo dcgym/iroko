@@ -7,7 +7,7 @@ from iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
 
 
-REWARD_MODEL = ["bw", "queue", "std_dev"]
+REWARD_MODEL = ["bw", "queue"]
 ###########################################
 
 
