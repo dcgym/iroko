@@ -2,18 +2,18 @@ import numpy as np
 from multiprocessing import Manager
 import gevent
 
-from iroko_monitor import StatsCollector
-from iroko_monitor import FlowCollector
+from iroko_monitor import BandwidthCollector, QueueCollector, FlowCollector
 from iroko_reward import RewardFunction
 
 
-REWARD_MODEL = ["bw", "queue"]
+REWARD_MODEL = ["action", "queue", "std_dev"]
 ###########################################
 
 
 class StateManager():
     DELTA_KEYS = ["delta_q_abs"]
-    STATE_KEYS = ["queues"]
+    BW_KEYS = []
+    Q_KEYS = ["queues"]
     COLLECT_FLOWS = True
 
     def __init__(self, topo_conf, config, reward_fun=REWARD_MODEL):
@@ -52,7 +52,7 @@ class StateManager():
 
     def _set_feature_length(self):
         self.num_features = len(self.DELTA_KEYS)
-        self.num_features += len(self.STATE_KEYS)
+        self.num_features += len(self.Q_KEYS) + len(self.BW_KEYS)
         if (self.COLLECT_FLOWS):
             self.num_features += len(self.topo_conf.host_ips) * 2
 
@@ -64,51 +64,57 @@ class StateManager():
 
     def spawn_collectors(self, host_ips):
         manager = Manager()
-        self.stats = manager.dict()
-        self.stats_proc = StatsCollector(self.ports, self.stats)
-        # self.stats_proc.daemon = True
-        self.stats_proc.start()
+
+        # Launch an asynchronous queue collector
+        self.q_stats = manager.dict()
+        self.q_stats_proc = QueueCollector(self.ports, self.q_stats)
+        self.q_stats_proc.start()
+        # Launch an asynchronous bandwidth collector
+        self.bw_stats = manager.dict()
+        self.bw_stats_proc = BandwidthCollector(self.ports, self.bw_stats)
+        self.bw_stats_proc.start()
         # Launch an asynchronous flow collector
         self.src_flows = manager.dict()
         self.dst_flows = manager.dict()
         self.flows_proc = FlowCollector(
             self.ports, host_ips, self.src_flows, self.dst_flows)
-        # self.flows_proc.daemon = True
         self.flows_proc.start()
         # initialize the stats matrix
-        self.prev_stats = self.stats.copy()
+        self.prev_q_stats = self.q_stats.copy()
 
     def _terminate_collectors(self):
-        if (self.stats_proc is not None):
-            self.stats_proc.terminate()
+        if (self.q_stats_proc is not None):
+            self.q_stats_proc.terminate()
+        if (self.bw_stats_proc is not None):
+            self.bw_stats_proc.terminate()
         if (self.flows_proc is not None):
             self.flows_proc.terminate()
 
     def _compute_delta(self, stats_prev, stats_now):
         deltas = {}
         for iface in stats_prev.keys():
-            bws_rx_prev = stats_prev[iface]["bws_rx"]
-            bws_tx_prev = stats_prev[iface]["bws_tx"]
+            # bws_rx_prev = stats_prev[iface]["bws_rx"]
+            # bws_tx_prev = stats_prev[iface]["bws_tx"]
             drops_prev = stats_prev[iface]["drops"]
             overlimits_prev = stats_prev[iface]["overlimits"]
             queues_prev = stats_prev[iface]["queues"]
 
-            bws_rx_now = stats_now[iface]["bws_rx"]
-            bws_tx_now = stats_now[iface]["bws_tx"]
+            # bws_rx_now = stats_now[iface]["bws_rx"]
+            # bws_tx_now = stats_now[iface]["bws_tx"]
             drops_now = stats_now[iface]["drops"]
             overlimits_now = stats_now[iface]["overlimits"]
             queues_now = stats_now[iface]["queues"]
 
             deltas[iface] = {}
-            if bws_rx_prev <= bws_rx_now:
-                deltas[iface]["delta_rx"] = 1
-            else:
-                deltas[iface]["delta_rx"] = 0
+            # if bws_rx_prev <= bws_rx_now:
+            #     deltas[iface]["delta_rx"] = 1
+            # else:
+            #     deltas[iface]["delta_rx"] = 0
 
-            if bws_tx_prev <= bws_tx_now:
-                deltas[iface]["delta_tx"] = 1
-            else:
-                deltas[iface]["delta_tx"] = 0
+            # if bws_tx_prev <= bws_tx_now:
+            #     deltas[iface]["delta_tx"] = 1
+            # else:
+            #     deltas[iface]["delta_tx"] = 0
 
             if drops_prev < drops_now:
                 deltas[iface]["delta_d"] = 0
@@ -127,8 +133,8 @@ class StateManager():
             else:
                 deltas["delta_q"] = 0
             deltas[iface]["delta_q_abs"] = queues_now - queues_prev
-            deltas[iface]["delta_rx_abs"] = bws_rx_now - bws_rx_prev
-            deltas[iface]["delta_tx_abs"] = bws_tx_now - bws_tx_prev
+            # deltas[iface]["delta_rx_abs"] = bws_rx_now - bws_rx_prev
+            # deltas[iface]["delta_tx_abs"] = bws_tx_now - bws_tx_prev
         return deltas
 
     def collect(self):
@@ -136,16 +142,18 @@ class StateManager():
         obs = np.zeros((self.num_ports, self.num_features))
 
         # retrieve the current deltas before updating total values
-        delta_vector = self._compute_delta(self.prev_stats, self.stats)
-        self.prev_stats = self.stats.copy()
+        delta_vector = self._compute_delta(self.prev_q_stats, self.q_stats)
+        self.prev_q_stats = self.q_stats.copy()
         # Create the data matrix for the agent based on the collected stats
         for i, iface in enumerate(self.ports):
             state = []
             deltas = delta_vector[iface]
             for key in self.DELTA_KEYS:
                 state.append(deltas[key])
-            for key in self.STATE_KEYS:
-                state.append(self.stats[iface][key])
+            for key in self.Q_KEYS:
+                state.append(self.q_stats[iface][key])
+            for key in self.BW_KEYS:
+                state.append(self.bw_stats[iface][key])
             if self.COLLECT_FLOWS:
                 state += self.src_flows[iface]
                 state += self.dst_flows[iface]
@@ -153,18 +161,20 @@ class StateManager():
             obs[i] = np.array(state)
 
             if iface in self.queues_per_port:
-                self.queues_per_port[iface].append(self.stats[iface]["queues"])
+                self.queues_per_port[iface].append(
+                    self.q_stats[iface]["queues"])
 
             if iface in self.topo_conf.host_ctrl_map:
                 self.bws_per_port["rx"][iface].append(
-                    self.stats[iface]["bws_rx"])
+                    self.bw_stats[iface]["bws_rx"])
                 self.bws_per_port["tx"][iface].append(
-                    self.stats[iface]["bws_tx"])
+                    self.bw_stats[iface]["bws_tx"])
         return obs
 
     def compute_reward(self, curr_action):
         # Compute the reward
-        reward = self.dopamin.get_reward(self.stats, curr_action)
+        reward = self.dopamin.get_reward(
+            (self.q_stats, self.bw_stats), curr_action)
         self.time_step_reward.append(reward)
         if (len(self.time_step_reward) % 10000) == 0:
             gevent.spawn(self.save())

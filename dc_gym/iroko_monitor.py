@@ -37,7 +37,7 @@ class Collector(multiprocessing.Process):
         self.kill.set()
 
 
-class StatsCollector(Collector):
+class BandwidthCollector(Collector):
 
     def __init__(self, iface_list, shared_stats):
         Collector.__init__(self, iface_list)
@@ -50,9 +50,6 @@ class StatsCollector(Collector):
         tmp_stats["bws_rx"] = 0
         tmp_stats["bws_tx"] = 0
         tmp_stats["free_bandwidths"] = 0
-        tmp_stats["drops"] = 0
-        tmp_stats["overlimits"] = 0
-        tmp_stats["queues"] = 0
         for iface in self.iface_list:
             self.stats[iface] = tmp_stats
 
@@ -94,6 +91,26 @@ class StatsCollector(Collector):
             free_bandwidths[iface] = self._get_free_bw(MAX_CAPACITY, bandwidth)
         return free_bandwidths
 
+    def _collect(self):
+        self._get_bandwidths(self.iface_list)
+
+
+class QueueCollector(Collector):
+
+    def __init__(self, iface_list, shared_stats):
+        Collector.__init__(self, iface_list)
+        self.name = 'StatsCollector'
+        self.stats = shared_stats
+        self.init_stats()
+
+    def init_stats(self):
+        tmp_stats = {}
+        tmp_stats["drops"] = 0
+        tmp_stats["overlimits"] = 0
+        tmp_stats["queues"] = 0
+        for iface in self.iface_list:
+            self.stats[iface] = tmp_stats
+
     def _get_qdisc_stats(self, iface_list):
         re_dropped = re.compile(r'(?<=dropped )[ 0-9]*')
         re_overlimit = re.compile(r'(?<=overlimits )[ 0-9]*')
@@ -122,7 +139,6 @@ class StatsCollector(Collector):
             self.stats[iface] = tmp_queues
 
     def _collect(self):
-        self._get_bandwidths(self.iface_list)
         self._get_qdisc_stats(self.iface_list)
 
 
