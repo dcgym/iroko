@@ -2,7 +2,9 @@ import numpy as np
 from multiprocessing import Manager
 import gevent
 
-from iroko_monitor import BandwidthCollector, QueueCollector, FlowCollector
+from monitor.iroko_monitor import BandwidthCollector
+from monitor.iroko_monitor import QueueCollector
+from monitor.iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
 
 

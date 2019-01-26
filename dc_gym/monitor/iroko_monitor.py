@@ -1,8 +1,11 @@
 import subprocess
 import re
 import multiprocessing
+import ctypes
+import os
 
 MAX_CAPACITY = 10e6   # Max capacity of link
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Collector(multiprocessing.Process):
@@ -96,11 +99,14 @@ class BandwidthCollector(Collector):
 
 
 class QueueCollector(Collector):
+    class QDISC(ctypes.Structure):
+        pass
 
     def __init__(self, iface_list, shared_stats):
         Collector.__init__(self, iface_list)
         self.name = 'StatsCollector'
         self.stats = shared_stats
+        self.q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
         self.init_stats()
 
     def init_stats(self):
@@ -111,7 +117,14 @@ class QueueCollector(Collector):
         for iface in self.iface_list:
             self.stats[iface] = tmp_stats
 
-    def _get_qdisc_stats(self, iface_list):
+    def _get_qdisc_stats(self):
+        for iface in self.iface_list:
+            tmp_queues = self.stats[iface]
+            queue_len = self.q_lib.get_iface_queue(iface)
+            tmp_queues["queues"] = queue_len
+            self.stats[iface] = tmp_queues
+
+    def _get_qdisc_stats_old(self, iface_list):
         re_dropped = re.compile(r'(?<=dropped )[ 0-9]*')
         re_overlimit = re.compile(r'(?<=overlimits )[ 0-9]*')
         re_queued = re.compile(r'backlog\s[^\s]+\s([\d]+)p')
@@ -139,7 +152,8 @@ class QueueCollector(Collector):
             self.stats[iface] = tmp_queues
 
     def _collect(self):
-        self._get_qdisc_stats(self.iface_list)
+        # self._get_qdisc_stats(self.iface_list)
+        self._get_qdisc_stats()
 
 
 class FlowCollector(Collector):

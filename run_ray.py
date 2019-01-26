@@ -176,7 +176,7 @@ def configure(agent):
         config["noise_scale"] = 1.0
         config["l2_reg"] = 1e-2
         config["train_batch_size"] = 64
-        config["exploration_fraction"] = 0.3
+        config["exploration_fraction"] = 0.8
         config["prioritized_replay"] = False
         config["lr"] = 1e-3
         config["actor_loss_coeff"] = 0.1

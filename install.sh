@@ -17,7 +17,7 @@ sudo apt install -y ifstat
 sudo apt install -y libnl-route-3-dev
 
 # compile the traffic control
-make -C dc_gym/cluster_loadgen
+make -C dc_gym/monitor
 make -C dc_gym/control
 
 # Install Python
