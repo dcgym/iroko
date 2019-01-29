@@ -1,12 +1,10 @@
 import numpy as np
 from multiprocessing import Manager
-import gevent
 
 from monitor.iroko_monitor import BandwidthCollector
 from monitor.iroko_monitor import QueueCollector
 from monitor.iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
-
 
 REWARD_MODEL = ["action", "queue", "std_dev"]
 ###########################################
@@ -26,31 +24,31 @@ class StateManager():
         self._set_feature_length()
         self._set_reward(reward_fun, topo_conf)
         self.spawn_collectors(topo_conf.host_ips)
-        self.time_step_reward = []
-        self.queues_per_port = {k: [] for k in self.ports}
-        self.action_per_port = {k: []
-                                for k in topo_conf.host_ctrl_map}
-        self.bws_per_port = {}
-        self.bws_per_port["tx"] = {k: []
-                                   for k in topo_conf.host_ctrl_map}
-        self.bws_per_port["rx"] = {k: []
-                                   for k in topo_conf.host_ctrl_map}
+        self._set_data_checkpoints(topo_conf)
 
     def terminate(self):
-        self.save()
+        self.flush()
         self._terminate_collectors()
+        self.reward_file.close()
+        self.action_file.close()
+        self.queue_file.close()
+        self.bw_file.close()
 
     def reset(self):
-        self.save()
-        # self.time_step_reward = []
-        # self.queues_per_port = {k: [] for k in self.ports}
-        # self.action_per_port = {k: []
-        #                         for k in self.topo_conf.host_ctrl_map}
-        # self.bws_per_port = {}
-        # self.bws_per_port["tx"] = {k: []
-        #                            for k in self.topo_conf.host_ctrl_map}
-        # self.bws_per_port["rx"] = {k: []
-        #                            for k in self.topo_conf.host_ctrl_map}
+        self.flush()
+
+    def _set_data_checkpoints(self, topo_conf):
+        data_dir = self.conf["output_dir"]
+        agent = self.conf["agent"]
+        # define file names
+        reward_name = "%s/reward_per_step_%s.npy" % (data_dir, agent)
+        action_name = "%s/action_per_step_by_port_%s.npy" % (data_dir, agent)
+        queue_name = "%s/queues_per_step_by_port_%s.npy" % (data_dir, agent)
+        bw_name = "%s/bandwidths_per_step_by_port_%s.npy" % (data_dir, agent)
+        self.reward_file = open(reward_name, 'w+', 1000000)
+        self.action_file = open(action_name, 'w+', 1000000)
+        self.queue_file = open(queue_name, 'w+', 1000000)
+        self.bw_file = open(bw_name, 'w+', 1000000)
 
     def _set_feature_length(self):
         self.num_features = len(self.DELTA_KEYS)
@@ -161,40 +159,22 @@ class StateManager():
                 state += self.dst_flows[iface]
             # print("State %s: %s " % (iface, state))
             obs[i] = np.array(state)
-
-            if iface in self.queues_per_port:
-                self.queues_per_port[iface].append(
-                    self.q_stats[iface]["queues"])
-
-            if iface in self.topo_conf.host_ctrl_map:
-                self.bws_per_port["rx"][iface].append(
-                    self.bw_stats[iface]["bws_rx"])
-                self.bws_per_port["tx"][iface].append(
-                    self.bw_stats[iface]["bws_tx"])
+        # Save collected data to disk
+        np.save(self.queue_file, self.q_stats.copy())
+        np.save(self.bw_file, self.bw_stats.copy())
         return obs
 
     def compute_reward(self, curr_action):
         # Compute the reward
         reward = self.dopamin.get_reward(
             (self.q_stats, self.bw_stats), curr_action)
-        self.time_step_reward.append(reward)
-        if (len(self.time_step_reward) % 10000) == 0:
-            gevent.spawn(self.save())
-        for k in curr_action.keys():
-            self.action_per_port[k].append(curr_action[k])
+        np.save(self.reward_file, reward)
+        np.save(self.action_file, curr_action)
         return reward
 
-    def save(self):
+    def flush(self):
         print ("Saving statistics...")
-        data_dir = self.conf["output_dir"]
-        agent = self.conf["agent"]
-        # define file names
-        reward_file = "%s/reward_per_step_%s" % (data_dir, agent)
-        action_file = "%s/action_per_step_by_port_%s" % (data_dir, agent)
-        queue_file = "%s/queues_per_step_by_port_%s" % (data_dir, agent)
-        bw_file = "%s/bandwidths_per_step_by_port_%s" % (data_dir, agent)
-
-        np.save(reward_file, self.time_step_reward)
-        np.save(action_file, self.action_per_port)
-        np.save(queue_file, self.queues_per_port)
-        np.save(bw_file, self.bws_per_port)
+        self.reward_file.flush()
+        self.action_file.flush()
+        self.queue_file.flush()
+        self.bw_file.flush()

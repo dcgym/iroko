@@ -81,6 +81,7 @@ class BaseTopo():
             if ("is_dctcp" in self.options and self.options["is_dctcp"]):
                 os.system("modprobe tcp_dctcp")
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=dctcp")
+                host.cmd("sysctl -w net.ipv4.tcp_ecn=1")
                 host.cmd("sysctl -w net.ipv4.tcp_ecn_fallback=0")
             if ("is_nv" in self.options and self.options["is_nv"]):
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=nv")

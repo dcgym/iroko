@@ -10,6 +10,9 @@ import json
 from itertools import islice
 
 
+MAX_BW = 10e6
+
+
 def check_plt_dir(plt_name):
     plt_dir = os.path.dirname(plt_name)
     if not plt_dir == '' and not os.path.exists(plt_dir):
@@ -17,34 +20,11 @@ def check_plt_dir(plt_name):
         os.makedirs(plt_dir)
 
 
-MAX_BW = 10e6
-
-
-def window(seq, n):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
-    it = iter(seq)
-    result = tuple(islice(it, n))
-    if len(result) == n:
-        yield result
-    for elem in it:
-        result = result[1:] + (elem,)
-        yield result
-
-# def moving_average(a, n=250):
-#     ret = np.cumsum(a, dtype=float)
-#     ret[n:] = ret[n:] - ret[:-n]
-#     return ret[n - 1:] / n
-
-
 def running_mean(x, N=300):
+    if (len(x) < N):
+        return x
     cumsum = np.cumsum(np.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / float(N)
-
-
-def moving_average(values, n=300):
-    for selection in window(values, n):
-        yield sum(selection) / n
 
 
 def merge_dict(target, input_dict):
@@ -55,7 +35,19 @@ def merge_dict(target, input_dict):
     return merged
 
 
+def average_dict(input_dict):
+    ''' Strips keys and averages the values in each dictionary
+     {key1: [val1, val2, val3], key2: [val4, val5, val6]}
+     -> [avg(val1, val4), avg(val2, val5), avg(val3, val6)]} '''
+    tmp = []
+    for key, val in input_dict.items():
+        tmp.append(val)
+    return np.average(tmp, axis=0)
+
+
 def get_iface_ids(key_list, delim):
+    ''' Sanitize interface ids according to the given limiter. Removes the
+      random string which is usually prepended. '''
     key_list.sort()
     tmp_dict = {}
     for iface_key in key_list:
@@ -64,23 +56,46 @@ def get_iface_ids(key_list, delim):
     return tmp_dict
 
 
-def average_dict_list(dict_list, delim):
-    if not dict_list:
-        return
-    tmp = get_iface_ids(dict_list[0].keys(), delim)
-    for l in dict_list:
-        keys_list = l.keys()
+def get_nested_values_from_dict(dict_list, nested_key):
+    ''' Find nested key in dictionary and bring it to the top.
+      Destroys the key in the process.
+      {key1: {keyx:valx keyy:valy}, key2: {keyx:vala keyy:valb}}
+      -> [key1:valx, key2:vala} '''
+    tmp = {}
+    for top_key in dict_list:
+        for d in dict_list[top_key]:
+            tmp.setdefault(top_key, []).append(d[nested_key])
+    return tmp
+
+
+def collapse_nested_dict_list(dict_list, delim):
+    ''' Take a list of dictionaries and merge them according to their keys.
+      [{key1: valx, key2: valy}, {key1: vala, key2: valb}]
+      -> {key1: [valx, vala], key2: [valy, valb]}'''
+    tmp = {}
+    for d in dict_list:
+        keys_list = d.keys()
         keys_list.sort()
-        for index, iface_key in enumerate(keys_list):
-            iface_id = delim + iface_key.split(delim)[1]
-            tmp[iface_id].append(l[iface_key])
-    dict_list = {k: np.average(tmp[k], axis=0) for k in tmp}
-    return dict_list
+        for key in keys_list:
+            # iface_id = delim + key.split(delim)[1]
+            tmp.setdefault(key, []).append(d[key])
+    # ret_list = {k: np.average(tmp[k], axis=0) for k in tmp}
+    return tmp
 
 
 def parse_config(results_dir):
     with open(results_dir + "/test_config.json") as conf_file:
         return json.load(conf_file)
+
+
+def load_file(filename):
+    out = []
+    with open(filename, 'rb') as f:
+        fsz = os.fstat(f.fileno()).st_size
+        out.append(np.load(f).item())
+        while f.tell() < fsz:
+            out.append(np.load(f).item())
+    return out
 
 
 def plot(data_dir, plot_dir, name):
@@ -135,45 +150,47 @@ def plot(data_dir, plot_dir, name):
                 print("Reward File %s does not exist, skipping..." % reward_file)
                 continue
             print ("Loading %s..." % reward_file)
-            np_rewards = np.load(reward_file)
-            if len(np_rewards) != 0:
-                rewards_list.append(np_rewards)
+            np_rewards = load_file(reward_file)
             print ("Loading %s..." % actions_file)
-            np_actions = np.load(actions_file).item()
-            if len(np_actions) != 0:
-                actions_list.append(np_actions)
-            print ("Loading %s..." % queue_file)
-            np_queues = np.load(queue_file).item()
-            if len(np_queues) != 0:
-                queues_list.append(np_queues)
-            print ("Loading %s..." % bw_file)
-            np_bws = np.load(bw_file).item()["tx"]
-            if len(np_bws) != 0:
-                bandwidths_list.append(np_bws)
+            np_actions = load_file(actions_file)
 
-        if not rewards_list:
-            print ("ALgorithm %s: rewards list empty! Skipping..." % algo)
-            continue
-        # rewards
-        rewards = np.average(rewards_list, axis=0)
-        plt_rewards[algo] = running_mean(rewards)
+            print ("Loading %s..." % queue_file)
+            np_queues = load_file(queue_file)
+            print ("Loading %s..." % bw_file)
+            np_bws = load_file(bw_file)
+
+            # rewards
+            rewards = running_mean(np_rewards)
+            # actions
+            actions = collapse_nested_dict_list(np_actions, DELIM)
+            mean_actions = running_mean(average_dict(actions)) / MAX_BW
+            # queues
+            iface_queues = collapse_nested_dict_list(np_queues, DELIM)
+            queues = get_nested_values_from_dict(iface_queues, "queues")
+            mean_queues = running_mean(average_dict(queues)) / MAX_BW
+            # bandwidths
+            iface_bws = collapse_nested_dict_list(np_bws, DELIM)
+            bws = get_nested_values_from_dict(iface_bws, "bws_rx")
+            mean_bw = 10 * running_mean(average_dict(bws)) / MAX_BW
+            if len(np_queues) != 0:
+                rewards_list.append(rewards)
+            if len(np_queues) != 0:
+                actions_list.append(mean_actions)
+            if len(np_queues) != 0:
+                queues_list.append(mean_queues)
+            if len(mean_bw) != 0:
+                bandwidths_list.append(mean_bw)
+        plt_rewards[algo] = np.average(bandwidths_list, axis=0)
+        plt_actions[algo] = np.average(actions_list, axis=0)
+        plt_queues[algo] = np.average(queues_list, axis=0)
+        plt_bandwidths[algo] = np.average(bandwidths_list, axis=0)
+
+        if(np.amax(plt_queues[algo]) > queue_max):
+            queue_max = np.amax(plt_queues[algo])
         if(np.amax(plt_rewards[algo]) > reward_max):
             reward_max = np.amax(plt_rewards[algo])
         if(np.amin(plt_rewards[algo]) < reward_min):
             reward_min = np.amin(plt_rewards[algo])
-        # actions
-        actions = average_dict_list(actions_list, DELIM)
-        plt_actions[algo] = average_dict_list(actions_list, DELIM)
-        # queues
-        queues = average_dict_list(queues_list, DELIM)
-        mean_queues = np.average(queues.values(), axis=0) / MAX_BW
-        plt_queues[algo] = running_mean(mean_queues)
-        if(np.amax(plt_queues[algo]) > queue_max):
-            queue_max = np.amax(plt_queues[algo])
-        # bandwidths
-        bandwidths = average_dict_list(bandwidths_list, DELIM)
-        mean_bw = 10 * np.average(bandwidths.values(), axis=0) / MAX_BW
-        plt_bandwidths[algo] = running_mean(mean_bw)
         if(np.amax(plt_bandwidths[algo]) > bw_max):
             bw_max = np.amax(plt_bandwidths[algo])
 

@@ -16,6 +16,7 @@ class DCEnv(BaseEnv):
         self.start_time = time.time()
 
     def step(self, action):
+        BaseEnv.step(self, action)
         # if the traffic generator still going then the simulation is not over
         done = not self.is_traffic_proc_alive()
         # let the agent predict bandwidth based on all previous information
@@ -36,8 +37,5 @@ class DCEnv(BaseEnv):
 
         obs = self.state_man.collect()
         reward = self.state_man.compute_reward(pred_bw)
-
-        if (done):
-            self.state_man.save()
         ret = obs.reshape(self.num_ports * self.num_features), reward, done, {}
         return ret

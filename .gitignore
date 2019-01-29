@@ -143,10 +143,8 @@ contrib/openflow
 *.sublime-project
 sftp-config*.json
 results/
-reward\.txt
 *.lock
 dc_gym/data
-dc_gym/data_old
-dc_gym/data_fattree
-dc_gym/control/node_control
 plots/
+dc_gym/control/node_control
+dc_gym/monitor/qdisc_stats

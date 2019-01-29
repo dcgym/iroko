@@ -4,6 +4,7 @@ import time
 import signal
 import sys
 import atexit
+import gevent
 
 from iroko_traffic import TrafficGen
 from iroko_state import StateManager
@@ -33,6 +34,7 @@ class BaseEnv(openAIGym):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float32,
             shape=(self.num_ports * self.num_features, ))
+        self.steps = 0
 
         # handle unexpected exits scenarios gracefully
         signal.signal(signal.SIGINT, self._handle_interrupt)
@@ -63,7 +65,10 @@ class BaseEnv(openAIGym):
                                      self.traffic_file)
 
     def step(self, action):
-        raise NotImplementedError("Method step not implemented!")
+        self.steps = self.steps + 1
+        # every 10000 steps flush the collected data
+        if (self.steps % 10000) == 0:
+            gevent.spawn(self.state_man.flush())
 
     def reset(self):
         print ("Resetting environment...")

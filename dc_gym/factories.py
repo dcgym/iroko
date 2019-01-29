@@ -46,7 +46,7 @@ class TopoFactory(object):
      Returns a target subclass based on the provided target option."""
     @staticmethod
     def create(options):
-        env_name = "topo_" + options["topo_name"]
+        env_name = "topos.topo_" + options["topo_name"]
         env_class = "TopoConfig"
 
         print("Loading topology %s " % env_name)
