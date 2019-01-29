@@ -16,24 +16,23 @@ class DCEnv(BaseEnv):
 
     def step(self, action):
         BaseEnv.step(self, action)
-        # if the trafic generator still going then the simulation is not over
+        # if the traffic generator still going then the simulation is not over
         # let the agent predict bandwidth based on all previous information
         # perform actions
         done = not self.is_traffic_proc_alive()
 
         pred_bw = {}
-        print ("Actions: ", end='')
+        # print ("Actions: ", end='')
         for i, h_iface in enumerate(self.topo_conf.host_ctrl_map):
             pred_bw[h_iface] = int(self.topo_conf.MAX_CAPACITY)
-            print("%s:%.2fmb " % (
-                h_iface,
-                pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY), end='')
+            rate = h_iface, pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY
+            # print("%s:%.2fmb " % (rate), end='')
         self.ic.broadcast_bw(pred_bw)
 
         # observe for WAIT seconds minus time needed for computation
         time.sleep(max(round(self.WAIT - (time.time() - self.start_time), 3), 0))
         self.start_time = time.time()
-        print ("")
+        # print ("")
 
         obs = self.state_man.collect()
         reward = self.state_man.compute_reward(pred_bw)

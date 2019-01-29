@@ -92,10 +92,12 @@ def load_file(filename):
     out = []
     with open(filename, 'rb') as f:
         fsz = os.fstat(f.fileno()).st_size
-        out.append(np.load(f).item())
         while f.tell() < fsz:
-            out.append(np.load(f).item())
-    return out
+            item = np.load(f)
+            if item.size > 0:
+                out.append(item)
+    flat_out = [x for sublist in out for x in sublist]
+    return flat_out
 
 
 def plot(data_dir, plot_dir, name):
@@ -146,9 +148,7 @@ def plot(data_dir, plot_dir, name):
                 run_dir, algo)
             bw_file = '%s/bandwidths_per_step_by_port_%s.npy' % (
                 run_dir, algo)
-            if not os.path.isfile(reward_file):
-                print("Reward File %s does not exist, skipping..." % reward_file)
-                continue
+
             print ("Loading %s..." % reward_file)
             np_rewards = load_file(reward_file)
             print ("Loading %s..." % actions_file)
@@ -158,7 +158,6 @@ def plot(data_dir, plot_dir, name):
             np_queues = load_file(queue_file)
             print ("Loading %s..." % bw_file)
             np_bws = load_file(bw_file)
-
             # rewards
             rewards = running_mean(np_rewards)
             # actions
@@ -172,15 +171,15 @@ def plot(data_dir, plot_dir, name):
             iface_bws = collapse_nested_dict_list(np_bws, DELIM)
             bws = get_nested_values_from_dict(iface_bws, "bws_rx")
             mean_bw = 10 * running_mean(average_dict(bws)) / MAX_BW
-            if len(np_queues) != 0:
+            if len(rewards) != 0:
                 rewards_list.append(rewards)
-            if len(np_queues) != 0:
+            if len(mean_actions) != 0:
                 actions_list.append(mean_actions)
-            if len(np_queues) != 0:
+            if len(mean_queues) != 0:
                 queues_list.append(mean_queues)
             if len(mean_bw) != 0:
                 bandwidths_list.append(mean_bw)
-        plt_rewards[algo] = np.average(bandwidths_list, axis=0)
+        plt_rewards[algo] = np.average(rewards_list, axis=0)
         plt_actions[algo] = np.average(actions_list, axis=0)
         plt_queues[algo] = np.average(queues_list, axis=0)
         plt_bandwidths[algo] = np.average(bandwidths_list, axis=0)
@@ -249,11 +248,9 @@ def plot(data_dir, plot_dir, name):
 
 
 if __name__ == '__main__':
-    ALGOS = ["DDPG", "PG", "PPO", "TCP", "TCP_NV", "DCTCP"]
-    RUNS = 5
     PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots/"
-    root = "results"
-    for folder in next(os.walk(root))[1]:
+    ROOT = "results"
+    for folder in next(os.walk(ROOT))[1]:
         print ("Crawling folder %s " % folder)
-        machinedir = root + "/" + folder
+        machinedir = ROOT + "/" + folder
         plot(machinedir, PLOT_DIR + folder, folder)

@@ -22,18 +22,18 @@ class DCEnv(BaseEnv):
         # let the agent predict bandwidth based on all previous information
         # perform actions
         pred_bw = {}
-        print ("Actions: ", end='')
+        # print ("Actions: ", end='')
         for i, h_iface in enumerate(self.topo_conf.host_ctrl_map):
             pred_bw[h_iface] = action[i] * self.topo_conf.MAX_CAPACITY
             rate = h_iface, pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY
-            print("%s:%.2fmb " % (rate), end='')
+            # print("%s:%.2fmb " % (rate), end='')
         self.ic.broadcast_bw(pred_bw)
 
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)
         self.start_time = time.time()
-        print ("")
+        # print ("")
 
         obs = self.state_man.collect()
         reward = self.state_man.compute_reward(pred_bw)

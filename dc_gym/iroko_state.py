@@ -45,10 +45,14 @@ class StateManager():
         action_name = "%s/action_per_step_by_port_%s.npy" % (data_dir, agent)
         queue_name = "%s/queues_per_step_by_port_%s.npy" % (data_dir, agent)
         bw_name = "%s/bandwidths_per_step_by_port_%s.npy" % (data_dir, agent)
-        self.reward_file = open(reward_name, 'w+', 1000000)
-        self.action_file = open(action_name, 'w+', 1000000)
-        self.queue_file = open(queue_name, 'w+', 1000000)
-        self.bw_file = open(bw_name, 'w+', 1000000)
+        self.reward_file = open(reward_name, 'w+')
+        self.action_file = open(action_name, 'w+')
+        self.queue_file = open(queue_name, 'w+')
+        self.bw_file = open(bw_name, 'w+')
+        self.time_step_reward = []
+        self.queues_per_port = []
+        self.action_per_port = []
+        self.bws_per_port = []
 
     def _set_feature_length(self):
         self.num_features = len(self.DELTA_KEYS)
@@ -159,22 +163,30 @@ class StateManager():
                 state += self.dst_flows[iface]
             # print("State %s: %s " % (iface, state))
             obs[i] = np.array(state)
-        # Save collected data to disk
-        np.save(self.queue_file, self.q_stats.copy())
-        np.save(self.bw_file, self.bw_stats.copy())
+        # Save collected data
+        self.queues_per_port.append(self.q_stats.copy())
+        self.bws_per_port.append(self.bw_stats.copy())
         return obs
 
     def compute_reward(self, curr_action):
         # Compute the reward
         reward = self.dopamin.get_reward(
             (self.q_stats, self.bw_stats), curr_action)
-        np.save(self.reward_file, reward)
-        np.save(self.action_file, curr_action)
+        self.action_per_port.append(curr_action)
+        self.time_step_reward.append(reward)
         return reward
 
     def flush(self):
         print ("Saving statistics...")
+        np.save(self.reward_file, self.time_step_reward)
+        np.save(self.action_file, self.action_per_port)
+        np.save(self.queue_file, self.queues_per_port)
+        np.save(self.bw_file, self.bws_per_port)
         self.reward_file.flush()
         self.action_file.flush()
         self.queue_file.flush()
         self.bw_file.flush()
+        del self.time_step_reward[:]
+        del self.action_per_port[:]
+        del self.queues_per_port[:]
+        del self.bws_per_port[:]

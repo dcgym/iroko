@@ -17,20 +17,20 @@ class RewardFunction:
         if "action" in self.reward_model:
             action_reward = self._action_reward(actions)
             reward += action_reward
-            print ("action: %f " % action_reward, end='')
+            # print ("action: %f " % action_reward, end='')
         if "bw" in self.reward_model:
             bw_reward = self._bw_reward(stats[1])
             reward += bw_reward
-            print ("bw: %f " % bw_reward, end='')
+            # print ("bw: %f " % bw_reward, end='')
         if "queue" in self.reward_model:
             queue_reward = self._queue_reward(stats[0])
             reward += queue_reward
-            print ("queue: %f " % queue_reward, end='')
+            # print ("queue: %f " % queue_reward, end='')
         if "std_dev" in self.reward_model:
             std_dev_reward = self._std_dev_reward(actions)
             reward += std_dev_reward
-            print ("std_dev: %f " % std_dev_reward, end='')
-        print("Total: %f" % reward)
+            # print ("std_dev: %f " % std_dev_reward, end='')
+        # print("Total: %f" % reward)
         return reward
 
     def _std_dev_reward(self, actions):
