@@ -4,7 +4,8 @@ import time
 import signal
 import sys
 import atexit
-import gevent
+from tqdm import tqdm
+
 
 from iroko_traffic import TrafficGen
 from iroko_state import StateManager
@@ -35,6 +36,7 @@ class BaseEnv(openAIGym):
             low=-np.inf, high=np.inf, dtype=np.float32,
             shape=(self.num_ports * self.num_features, ))
         self.steps = 0
+        self.progress_bar = tqdm(total=self.conf["iterations"])
 
         # handle unexpected exits scenarios gracefully
         signal.signal(signal.SIGINT, self._handle_interrupt)
@@ -66,9 +68,7 @@ class BaseEnv(openAIGym):
 
     def step(self, action):
         self.steps = self.steps + 1
-        # every 10000 steps flush the collected data
-        if (self.steps % 10000) == 0:
-            gevent.spawn(self.state_man.flush())
+        self.progress_bar.update(1)
 
     def reset(self):
         print ("Resetting environment...")
@@ -98,6 +98,7 @@ class BaseEnv(openAIGym):
         net = self.topo_conf.get_net()
         if (net is not None):
             net.stop()
+        self.progress_bar.close()
         print ("Done with destroying myself.")
 
     def get_topo_conf(self):
