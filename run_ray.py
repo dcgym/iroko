@@ -134,13 +134,12 @@ def configure(agent):
     if agent == "PPO":
         experiment[name]["run"] = agent
         config = ppo.DEFAULT_CONFIG.copy()
-        config["train_batch_size"] = 4000
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
+        config["train_batch_size"] = ARGS.timesteps / 10
         config['model']['fcnet_hiddens'] = [400, 300]
         config['model']['fcnet_activation'] = 'tanh'
-        config["train_batch_size"] = 4000
         config['horizon'] = 2048
         config['lambda'] = 0.95
         config['sgd_minibatch_size'] = 64
@@ -199,6 +198,7 @@ def configure(agent):
         "topo": ARGS.topo,
         "agent": ARGS.agent,
         "transport": ARGS.transport,
+        "iterations": ARGS.timesteps,
         "tf_index": 0,
     }
 

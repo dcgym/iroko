@@ -36,6 +36,7 @@ def test_run(input_dir, output_dir, env, topo):
         "topo": ARGS.topo,
         "agent": "RND",
         "transport": ARGS.transport,
+        "iterations": ARGS.timesteps,
         "tf_index": 0
     }
     dc_env = EnvFactory.create(env_config)
