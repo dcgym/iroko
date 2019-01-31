@@ -197,7 +197,7 @@ class BandwidthController():
     def bind_sockets(self, host_ctrl_map):
         sock_map = {}
         for sw_iface, ctrl_iface in host_ctrl_map.items():
-            print("Binding socket %s" % ctrl_iface)
+            # print("Binding socket %s" % ctrl_iface)
             ETH_P_ALL = 3  # pass all Ethernet traffic on this socket
             sock = socket.socket(
                 socket.AF_PACKET, socket.SOCK_RAW, htons(ETH_P_ALL))

@@ -56,15 +56,15 @@ class DumbbellTopo(Topo):
 
         self.hostlist = self.hosts_w + self.hosts_e
 
-    def create_links(self, link_args):
+    def create_links(self):
         """
                 Add links between switch and hosts.
         """
-        self.addLink(self.switch_w, self.switch_e, **link_args)
+        self.addLink(self.switch_w, self.switch_e)
         for host in self.hosts_w:
-            self.addLink(self.switch_w, host, **link_args)
+            self.addLink(self.switch_w, host)
         for host in self.hosts_e:
-            self.addLink(self.switch_e, host, **link_args)
+            self.addLink(self.switch_e, host)
 
 
 class TopoConfig(BaseTopo):

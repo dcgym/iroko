@@ -50,14 +50,14 @@ class NonBlocking(Topo):
             self.hostlist.append(self.addHost(
                 PREFIX + str(i), cpu=1.0 / float(NUMBER)))
 
-    def create_links(self, link_args):
+    def create_links(self):
         """
                 Add links between switch and hosts.
         """
         for sw in self.switchlist:
             for host in self.hostlist:
                 # use_htb=False
-                self.addLink(sw, host, **link_args)
+                self.addLink(sw, host)
 
 
 class TopoConfig(BaseTopo):

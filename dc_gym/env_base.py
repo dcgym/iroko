@@ -36,8 +36,9 @@ class BaseEnv(openAIGym):
             low=-np.inf, high=np.inf, dtype=np.float32,
             shape=(self.num_ports * self.num_features, ))
         self.steps = 0
-        self.progress_bar = tqdm(total=self.conf["iterations"])
-
+        self.progress_bar = tqdm(
+            total=self.conf["iterations"], leave=False, miniters=100)
+        self.progress_bar.clear()
         # handle unexpected exits scenarios gracefully
         signal.signal(signal.SIGINT, self._handle_interrupt)
         signal.signal(signal.SIGTERM, self._handle_interrupt)
@@ -92,13 +93,13 @@ class BaseEnv(openAIGym):
         if (self.killed):
             print("Chill, I am already cleaning up...")
             return
+        self.progress_bar.close()
         self.killed = True
         self.state_man.terminate()
         self.traffic_gen.stop_traffic()
         net = self.topo_conf.get_net()
         if (net is not None):
             net.stop()
-        self.progress_bar.close()
         print ("Done with destroying myself.")
 
     def get_topo_conf(self):

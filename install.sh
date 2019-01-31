@@ -55,6 +55,6 @@ pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0
 pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray dependencies...
-pip install --user psutil
-pip3 install --user psutil
+# pip install --user psutil
+# pip3 install --user psutil
 

@@ -43,7 +43,7 @@ class Fattree(Topo):
             host_name = "h%d" % i
             self.hostlist.append(self.addHost(host_name, cpu=1.0 / num))
 
-    def create_links(self, link_args):
+    def create_links(self):
         """ Add network links. """
         # Core to Agg
         end = self.pod / 2
@@ -52,21 +52,20 @@ class Fattree(Topo):
                 for j in range(0, end):
                     self.addLink(
                         self.core_switches[i * end + j],
-                        self.agg_switches[switch + i], **link_args)
+                        self.agg_switches[switch + i])
         # Agg to Edge
         for switch in range(0, self.agg_switch_num, end):
             for i in range(0, end):
                 for j in range(0, end):
                     self.addLink(
                         self.agg_switches[switch +
-                                          i], self.edge_switches[switch + j],
-                        **link_args)
+                                          i], self.edge_switches[switch + j])
         # Edge to Host
         for switch in range(0, self.edge_switch_num):
             for i in range(0, self.density):
                 self.addLink(
                     self.edge_switches[switch],
-                    self.hostlist[self.density * switch + i], **link_args)
+                    self.hostlist[self.density * switch + i])
 
 
 class TopoConfig(BaseTopo):
