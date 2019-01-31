@@ -14,8 +14,6 @@ from factories import TopoFactory
 
 class BaseEnv(openAIGym):
     WAIT = 0.0      # amount of seconds the agent waits per iteration
-    COLOR = 'blue'  # Color of the
-    ALGO = 'base'   # Name of the environment
     ACTION_MIN = 0.1
     ACTION_MAX = 1.0
 

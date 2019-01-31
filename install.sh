@@ -47,8 +47,8 @@ poetry install      # Package the dc_gym
 poetry build        # Build distribution package
 
 # Install the dc_gym locally
-pip install --user dist/*.whl
-pip3 install --user dist/*.whl
+pip install --upgrade --user dist/*.whl
+pip3 install --upgrade --user dist/*.whl
 
 # Install the latest ray build for python 2.7
 pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl

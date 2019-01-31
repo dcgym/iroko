@@ -6,8 +6,6 @@ from env_base import BaseEnv
 
 
 class DCEnv(BaseEnv):
-    COLOR = 'yellow'
-    ALGO = 'tcp'
 
     def __init__(self, conf):
         BaseEnv.__init__(self, conf)

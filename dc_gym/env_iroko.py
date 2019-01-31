@@ -5,8 +5,6 @@ from iroko_bw_control import BandwidthController
 
 
 class DCEnv(BaseEnv):
-    COLOR = 'red'
-    ALGO = 'iroko'
 
     def __init__(self, conf):
         # inputs:
