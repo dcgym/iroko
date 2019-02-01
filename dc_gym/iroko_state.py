@@ -45,10 +45,10 @@ class StateManager():
         action_name = "%s/action_per_step_by_port_%s.npy" % (data_dir, agent)
         queue_name = "%s/queues_per_step_by_port_%s.npy" % (data_dir, agent)
         bw_name = "%s/bandwidths_per_step_by_port_%s.npy" % (data_dir, agent)
-        self.reward_file = open(reward_name, 'w+')
-        self.action_file = open(action_name, 'w+')
-        self.queue_file = open(queue_name, 'w+')
-        self.bw_file = open(bw_name, 'w+')
+        self.reward_file = open(reward_name, 'wb+')
+        self.action_file = open(action_name, 'wb+')
+        self.queue_file = open(queue_name, 'wb+')
+        self.bw_file = open(bw_name, 'wb+')
         self.time_step_reward = []
         self.queues_per_port = []
         self.action_per_port = []

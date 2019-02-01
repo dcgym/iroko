@@ -1,9 +1,6 @@
 import os
-import sys
 from mininet.topo import Topo
-from topo_base import BaseTopo
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parentdir)
+from topos.topo_base import BaseTopo
 
 
 class NonBlocking(Topo):

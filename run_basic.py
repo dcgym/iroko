@@ -27,6 +27,13 @@ PARSER.add_argument('--transport', dest='transport', default="udp",
 ARGS = PARSER.parse_args()
 
 
+def check_dir(directory):
+    # create the folder if it does not exit
+    if not directory == '' and not os.path.exists(directory):
+        print("Folder %s does not exist! Creating..." % directory)
+        os.makedirs(directory)
+
+
 def test_run(input_dir, output_dir, env, topo):
     # Assemble a configuration dictionary for the environment
     env_config = {
@@ -55,6 +62,7 @@ def clean():
 
 
 def init():
+    check_dir(ARGS.output_dir)
     test_run(INPUT_DIR, ARGS.output_dir, ARGS.env, ARGS.topo)
 
 

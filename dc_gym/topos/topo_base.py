@@ -1,18 +1,13 @@
 import os
-import sys
 import random
 import string
-file_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-mininet_dir = file_dir + "/../contrib/mininet/"
-sys.path.insert(0, mininet_dir)
+
 from mininet.log import info, output, warn, error, debug
 from mininet.node import RemoteController
 from mininet.net import Mininet
 from mininet.log import setLogLevel
-from mininet.link import TCLink
 from mininet.node import CPULimitedHost
 from mininet.util import custom
-from mininet.link import Intf
 
 
 class BaseTopo():
@@ -30,6 +25,7 @@ class BaseTopo():
         self.switch_id = self.generate_switch_id()
 
     def generate_switch_id(self):
+
         # Best collision-free technique for the limited amount of characters
         sw_id = ''.join(random.choice(''.join([random.choice(
             string.ascii_letters + string.digits)

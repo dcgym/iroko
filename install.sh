@@ -1,13 +1,31 @@
 #!/bin/bash
 
+# exit when any command fails
+set -e
+
 # fetch submodules
 git submodule update --init --recursive
 
-# # install mininet
-cd contrib/mininet
-sudo -E util/install.sh -nv
-cd ../..
+# Install essential dependencies
+sudo apt install -y build-essential
 
+# Install Python
+sudo apt install -y python            # default ubuntu python2.x
+sudo apt install -y python3           # default ubuntu python3.x
+sudo apt install -y python-dev        # for python2.x installs
+sudo apt install -y python3-dev       # for python3.x installs
+sudo apt install -y python3-distutils # required to install pip
+
+# install Mininet
+# sudo -E util/install.sh -nv
+
+sudo apt install -y openvswitch-switch
+sudo apt install -y cgroup-bin
+sudo apt install -y help2man
+cd contrib/mininet
+sudo make install
+sudo make install PYTHON=python3
+cd ../..
 
 # traffic monitors
 sudo apt install -y bwm-ng
@@ -20,12 +38,6 @@ sudo apt install -y libnl-route-3-dev
 make -C dc_gym/monitor
 make -C dc_gym/control
 
-# Install Python
-sudo apt install -y python            # default ubuntu python2.x
-sudo apt install -y python3           # default ubuntu python3.x
-sudo apt install -y python-dev        # for python2.x installs
-sudo apt install -y python3-dev       # for python3.x installs
-sudo apt install -y python3-distutils # required to install pip
 
 # Install pip locally
 export PATH+=$PATH:~/.local/bin
@@ -54,7 +66,5 @@ pip3 install --upgrade --user dist/*.whl
 pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
 pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
-# Install unresolved Ray dependencies...
-# pip install --user psutil
-# pip3 install --user psutil
-
+# Install unresolved runtime Ray dependencies...
+sudo apt install -y libsm6 libxext6 libxrender-dev

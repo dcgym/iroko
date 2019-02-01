@@ -3,8 +3,7 @@ import os
 cwd = os.getcwd()
 lib_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, lib_dir)
-mininet_dir = lib_dir + "/../contrib/mininet/"
-sys.path.insert(0, mininet_dir)
+
 
 DEFAULT_ENV_CONFIG = {
     "input_dir": lib_dir + '/inputs',
@@ -29,7 +28,7 @@ class EnvFactory(object):
      Returns a target subclass based on the provided target option."""
     @staticmethod
     def create(config=DEFAULT_ENV_CONFIG):
-        env_name = "env_" + config["env"]
+        env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
 
         print("Loading environment %s " % env_name)
@@ -46,7 +45,7 @@ class TopoFactory(object):
      Returns a target subclass based on the provided target option."""
     @staticmethod
     def create(options):
-        env_name = "topos.topo_" + options["topo_name"]
+        env_name = "dc_gym.topos.topo_" + options["topo_name"]
         env_class = "TopoConfig"
 
         print("Loading topology %s " % env_name)

@@ -1,9 +1,9 @@
 import numpy as np
-from gym import Env as openAIGym, spaces
 import time
 import signal
 import sys
 import atexit
+from gym import Env as openAIGym, spaces
 from tqdm import tqdm
 
 

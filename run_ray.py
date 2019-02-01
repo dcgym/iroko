@@ -49,6 +49,13 @@ PARSER.add_argument('--tune', dest='tune', type=bool, default=False,
 ARGS = PARSER.parse_args()
 
 
+def check_dir(directory):
+    # create the folder if it does not exit
+    if not directory == '' and not os.path.exists(directory):
+        print("Folder %s does not exist! Creating..." % directory)
+        os.makedirs(directory)
+
+
 def get_env(env_config):
     return EnvFactory.create(env_config)
 
@@ -207,6 +214,7 @@ def configure(agent):
 
 
 def init():
+    check_dir(ARGS.output_dir)
     print("Registering the DC environment...")
     register_env("dc_env", get_env)
 

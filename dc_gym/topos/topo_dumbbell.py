@@ -1,11 +1,7 @@
 import os
-import sys
 from mininet.topo import Topo
-from topo_base import BaseTopo
+from topos.topo_base import BaseTopo
 from mininet.log import info, output, warn, error, debug
-
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parentdir)
 
 
 class DumbbellTopo(Topo):

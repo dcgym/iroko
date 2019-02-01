@@ -53,7 +53,7 @@ def attach_port_filter(sock, port_num):
     ]
     # Create filters struct and fprog struct to be used by SO_ATTACH_FILTER, as
     # defined in linux/filter.h.
-    filters = ''.join(filters_list)
+    filters = b''.join(filters_list)
     b = create_string_buffer(filters)
     mem_addr_of_filters = addressof(b)
     fprog = pack('HL', len(filters_list), mem_addr_of_filters)

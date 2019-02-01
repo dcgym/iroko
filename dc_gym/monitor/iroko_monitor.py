@@ -107,6 +107,7 @@ class QueueCollector(Collector):
         self.name = 'StatsCollector'
         self.stats = shared_stats
         self.q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
+        self.q_lib.get_iface_queue.argtypes = [ctypes.c_char_p]
         self.init_stats()
 
     def init_stats(self):
