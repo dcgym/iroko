@@ -21,13 +21,17 @@ keywords = ['tcp', 'congestion control', 'reinforcement learning', 'rl', 'data c
 python = "~2.7 || ^3.2"  # Compatible python versions
 toml = "^0.9"
 
-# Dependencies with extras
+# DCgym dependencies
 numpy = { version = "*", python = "~2.7 || ^3.2"}
 gym = { version = "*", python = "~2.7 || ^3.2"}
-tensorflow = { version = "*", python = "~2.7 || ^3.2"}
-lz4 = { version = "*", python = "~2.7 || ^3.2"}
-opencv-python = { version = "*", python = "~2.7 || ^3.2"}
 seaborn = { version = "*", python = "~2.7 || ^3.2"}
 matplotlib = { version = "*", python = "~2.7 || ^3.2"}
 gevent = { version = "*", python = "~2.7 || ^3.2"}
 tqdm = { version = "*", python = "~2.7 || ^3.2"}
+
+# Ray dependencies
+opencv-python = { version = "*", python = "~2.7 || ^3.2"}
+tensorflow = { version = "*", python = "~2.7 || ^3.2"}
+lz4 = { version = "*", python = "~2.7 || ^3.2"}
+psutil = { version = "*", python = "~2.7 || ^3.2"}
+setproctitle = { version = "*", python = "~2.7 || ^3.2"}
