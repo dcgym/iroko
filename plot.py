@@ -238,7 +238,7 @@ def plot(data_dir, plot_dir, name):
     fig.legend(handles, labels, loc='upper center', fancybox=True,
                shadow=True, ncol=5)
     plt_name = "%s" % (plot_dir)
-    plt_name += "_%s" % topo
+    plt_name += "/_%s" % topo
     plt_name += "_%s" % transport
     plt_name += "_%s" % num_timesteps
     check_plt_dir(plt_name)
@@ -248,7 +248,7 @@ def plot(data_dir, plot_dir, name):
 
 
 if __name__ == '__main__':
-    PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots/"
+    PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
     ROOT = "results"
     for folder in next(os.walk(ROOT))[1]:
         print ("Crawling folder %s " % folder)

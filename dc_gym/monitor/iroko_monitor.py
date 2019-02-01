@@ -121,7 +121,7 @@ class QueueCollector(Collector):
     def _get_qdisc_stats(self):
         for iface in self.iface_list:
             tmp_queues = self.stats[iface]
-            queue_len = self.q_lib.get_iface_queue(iface)
+            queue_len = self.q_lib.get_iface_queue(iface.encode('ascii'))
             tmp_queues["queues"] = queue_len
             self.stats[iface] = tmp_queues
 
