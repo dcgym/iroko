@@ -9,35 +9,42 @@ git submodule update --init --recursive
 # Install essential dependencies
 sudo apt install -y build-essential
 
-# Install Python
+# Install Python dependencies
 sudo apt install -y python            # default ubuntu python2.x
 sudo apt install -y python3           # default ubuntu python3.x
 sudo apt install -y python-dev        # for python2.x installs
 sudo apt install -y python3-dev       # for python3.x installs
-sudo apt install -y python3-distutils # required to install pip
+sudo apt install python-setuptools    # required to install pip
+sudo apt install python3-setuptools   # required to install pip
 
-# install Mininet
-# sudo -E util/install.sh -nv
-
+# install Mininet dependencies
 sudo apt install -y openvswitch-switch
 sudo apt install -y cgroup-bin
 sudo apt install -y help2man
+# install Mininet
 cd contrib/mininet
-sudo make install
-sudo make install PYTHON=python3
+sudo make install                   # install the Python2 version
+sudo make install PYTHON=python3    # install the Python3 version
 cd ../..
 
-# traffic monitors
+# install traffic monitors
 sudo apt install -y bwm-ng
 sudo apt install -y ifstat
 
 # required for traffic adjustment
 sudo apt install -y libnl-route-3-dev
 
+# Build the dc_gym
+curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+source $HOME/.poetry/env
+poetry self:update  # Update Poetry
+poetry update       # Update poetry lock dependencies
+poetry install      # Package the dc_gym
+poetry build        # Build distribution package
+
 # compile the traffic control
 make -C dc_gym/monitor
 make -C dc_gym/control
-
 
 # Install pip locally
 export PATH+=$PATH:~/.local/bin
@@ -50,21 +57,13 @@ rm get-pip.py
 PYTHON_VERSION=`python -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
 PYTHON3_VERSION=`python3 -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
 
-# Build the dc_gym
-curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-source $HOME/.poetry/env
-poetry self:update  # Update Poetry
-poetry update       # Update poetry lock dependencies
-poetry install      # Package the dc_gym
-poetry build        # Build distribution package
-
 # Install the dc_gym locally
 pip install --upgrade --user dist/*.whl
 pip3 install --upgrade --user dist/*.whl
 
-# Install the latest ray build for python 2.7
+# Install the latest ray build for Python 2 and 3
 pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
 pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
-# Install unresolved runtime Ray dependencies...
+# Install unresolved Ray runtime dependencies...
 sudo apt install -y libsm6 libxext6 libxrender-dev
