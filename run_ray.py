@@ -4,8 +4,8 @@ import os
 
 # Ray imports
 import ray
+from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
-from ray.rllib.agents import ppo, ddpg, pg
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
 import random
@@ -147,7 +147,6 @@ def get_tune_experiment(config, agent):
     if agent == "PPO":
         experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
         experiment[name]["num_samples"] = SEEDS
-
         if SCHEDULE:
             # custom changes to experiment
             print("Performing tune experiment")
@@ -165,7 +164,7 @@ def configure_ray(agent):
     config = {}
 
     if agent == "PPO":
-        config = ppo.DEFAULT_CONFIG.copy()
+        # config = ppo.DEFAULT_CONFIG.copy()
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
@@ -183,7 +182,7 @@ def configure_ray(agent):
         config['clip_param'] = 0.2
         config['kl_coeff'] = 0.0
     elif agent == "DDPG":
-        config = ddpg.DEFAULT_CONFIG.copy()
+        # config = ddpg.DEFAULT_CONFIG.copy()
         config["actor_hiddens"] = [400, 300]
         config["actor_hidden_activation"] = "relu"
         config["critic_hiddens"] = [400, 300]
@@ -197,13 +196,11 @@ def configure_ray(agent):
         config["lr"] = 1e-3
         config["actor_loss_coeff"] = 0.1
         config["critic_loss_coeff"] = 1.0
-    else:
-        # the rest of the experiments just runs PG
-        config = pg.DEFAULT_CONFIG.copy()
 
     config['clip_actions'] = True
     config['num_workers'] = 0
     config["batch_mode"] = "truncate_episodes"
+    config["log_level"] = "ERROR"
     config['env_config'] = {
         "input_dir": INPUT_DIR,
         "output_dir": ARGS.output_dir,
@@ -214,15 +211,14 @@ def configure_ray(agent):
         "iterations": ARGS.timesteps,
         "tf_index": 0,
     }
-    config["log_level"] = "ERROR"
     return config
 
 
 def run(config):
-    agent = ppo.PPOAgent(config=config, env="dc_env")
-
+    agent_class = get_agent_class(config["env_config"]["agent"])
+    agent = agent_class(config=config, env="dc_env")
     # Can optionally call agent.restore(path) to load a checkpoint.
-    for epoch in range(ARGS.timesteps):
+    for epoch in range(config["env_config"]["iterations"]):
         # Perform one iteration of training the policy with PPO
         agent.train()
     print('Generator Finished. Simulation over. Clearing dc_env...')
