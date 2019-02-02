@@ -31,6 +31,11 @@ cd ../..
 sudo apt install -y bwm-ng
 sudo apt install -y ifstat
 
+# install the traffic generator using Go
+cd contrib
+./install_goben.sh
+cd ..
+
 # required for traffic adjustment
 sudo apt install -y libnl-route-3-dev
 

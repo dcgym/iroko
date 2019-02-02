@@ -35,7 +35,7 @@ class BaseEnv(openAIGym):
             shape=(self.num_ports * self.num_features, ))
         self.steps = 0
         self.progress_bar = tqdm(
-            total=self.conf["iterations"], leave=False, miniters=100)
+            total=self.conf["iterations"], leave=False, mininterval=5)
         self.progress_bar.clear()
         # handle unexpected exits scenarios gracefully
         signal.signal(signal.SIGINT, self._handle_interrupt)

@@ -9,6 +9,7 @@ from ray.rllib.agents import ppo, ddpg, pg
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
 import random
+import logging
 
 # Iroko imports
 import dc_gym
@@ -106,8 +107,15 @@ def set_tuning_parameters(agent, config):
                 config[k] = lambda spec: random.choice([1000, 2000, 4000])
             if k == 'sgd_minibatch_size':
                 config[k] = lambda spec: random.choice([16, 32, 64, 128])
-
-    return config, hype_params, explore
+    config['horizon'] = 1000
+    scheduler = PopulationBasedTraining(time_attr='time_total_s',
+                                        reward_attr='episode_reward_mean',
+                                        # this..will be pretty sparse
+                                        perturbation_interval=5000,
+                                        hyperparam_mutations=hype_params,
+                                        resample_probability=0.25,
+                                        custom_explore_fn=explore)
+    return config, scheduler
 
 
 def clean():
@@ -120,31 +128,48 @@ def clean():
     os.system("sudo killall -9 node_control")
 
 
-def configure(agent):
-    if ARGS.tune:
-        name = "%s_tune_experiment" % agent
-    else:
-        name = "%s_experiment" % agent
-    config = {}
+def get_tune_experiment(config, agent):
+    SCHEDULE = False
     scheduler = None
+    name = "%s_tune_experiment" % agent
     experiment = {
         name: {
+            'run': agent,
             'local_dir': ARGS.output_dir,
             "stop": {"timesteps_total": ARGS.timesteps},
             "env": "dc_env",
             "checkpoint_freq": ARGS.checkpoint_freq,
             "checkpoint_at_end": True,
-            "restore": ARGS.restore
+            "restore": ARGS.restore,
         }
     }
 
     if agent == "PPO":
-        experiment[name]["run"] = agent
+        experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
+        experiment[name]["num_samples"] = SEEDS
+
+        if SCHEDULE:
+            # custom changes to experiment
+            print("Performing tune experiment")
+            config, scheduler = set_tuning_parameters(agent, config)
+
+    if agent == "PG":
+        # TODO need to be able to save, work around for now
+        experiment[name].pop("checkpoint_freq", None)
+        experiment[name].pop("restore", None)
+
+    return experiment, scheduler
+
+
+def configure_ray(agent):
+    config = {}
+
+    if agent == "PPO":
         config = ppo.DEFAULT_CONFIG.copy()
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
-        config["train_batch_size"] = ARGS.timesteps / 10
+        config["train_batch_size"] = 4096
         config['model']['fcnet_hiddens'] = [400, 300]
         config['model']['fcnet_activation'] = 'tanh'
         config['horizon'] = 2048
@@ -157,22 +182,7 @@ def configure(agent):
         # config['kl_target'] = 0.0
         config['clip_param'] = 0.2
         config['kl_coeff'] = 0.0
-        if ARGS.tune and agent == "PPO":
-            # changes to experiment
-            print("Performing tune experiment")
-            experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-            experiment[name]["num_samples"] = SEEDS
-            config, mutations, explore = set_tuning_parameters(
-                agent, config.copy())
-            config['horizon'] = 1000
-            scheduler = PopulationBasedTraining(time_attr='time_total_s',
-                                                reward_attr='episode_reward_mean',
-                                                perturbation_interval=5000,  # this..will be pretty sparse
-                                                hyperparam_mutations=mutations,
-                                                resample_probability=0.25,
-                                                custom_explore_fn=explore)
     elif agent == "DDPG":
-        experiment[name]["run"] = agent
         config = ddpg.DEFAULT_CONFIG.copy()
         config["actor_hiddens"] = [400, 300]
         config["actor_hidden_activation"] = "relu"
@@ -187,13 +197,9 @@ def configure(agent):
         config["lr"] = 1e-3
         config["actor_loss_coeff"] = 0.1
         config["critic_loss_coeff"] = 1.0
-
-    else:  # the rest of the experiments just runs PG
-        experiment[name]["run"] = "PG"
+    else:
+        # the rest of the experiments just runs PG
         config = pg.DEFAULT_CONFIG.copy()
-        # TODO need to be able to save, work around for now
-        experiment[name].pop("checkpoint_freq", None)
-        experiment[name].pop("restore", None)
 
     config['clip_actions'] = True
     config['num_workers'] = 0
@@ -208,9 +214,24 @@ def configure(agent):
         "iterations": ARGS.timesteps,
         "tf_index": 0,
     }
+    config["log_level"] = "ERROR"
+    return config
 
-    experiment[name]["config"] = config
-    return experiment, scheduler
+
+def run(config):
+    agent = ppo.PPOAgent(config=config, env="dc_env")
+
+    # Can optionally call agent.restore(path) to load a checkpoint.
+    for epoch in range(ARGS.timesteps):
+        # Perform one iteration of training the policy with PPO
+        agent.train()
+    print('Generator Finished. Simulation over. Clearing dc_env...')
+
+
+def tune_run(config):
+    agent = config['env_config']['agent']
+    experiment, scheduler = get_tune_experiment(config, agent)
+    tune.run_experiments(experiment, scheduler=scheduler, verbose=False)
 
 
 def init():
@@ -219,11 +240,14 @@ def init():
     register_env("dc_env", get_env)
 
     print("Starting Ray...")
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1, logging_level=logging.ERROR)
 
+    config = configure_ray(ARGS.agent)
     print("Starting experiment.")
-    experiment, scheduler = configure(ARGS.agent)
-    tune.run_experiments(experiment, scheduler=scheduler)
+    if ARGS.tune:
+        tune_run(config)
+    else:
+        run(config)
     print("Experiment has completed.")
 
 

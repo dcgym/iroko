@@ -16,9 +16,10 @@ class DCEnv(BaseEnv):
     def step(self, action):
         BaseEnv.step(self, action)
         # if the traffic generator still going then the simulation is not over
-        done = not self.is_traffic_proc_alive()
         # let the agent predict bandwidth based on all previous information
         # perform actions
+        done = not self.is_traffic_proc_alive()
+
         pred_bw = {}
         # print ("Actions: ", end='')
         for i, h_iface in enumerate(self.topo_conf.host_ctrl_map):

@@ -26,12 +26,14 @@ class TrafficGen():
             sys.exit(1)
 
     def traffic_is_active(self):
-        ''' Return false if any of the traffic processes has terminated '''
-        if self.traffic_procs:
-            for proc in self.traffic_procs:
-                poll = proc.poll()
-                if poll is not None:
-                    return False
+        ''' Return false if any of the processes has terminated '''
+        all_procs = [self.server_procs, self.traffic_procs, self.ctrl_procs]
+        for proc_list in all_procs:
+            if proc_list:
+                for proc in proc_list:
+                    poll = proc.poll()
+                    if poll is not None:
+                        return False
         return True
 
     def _start_process(self, host, cmd, out, err):
@@ -39,7 +41,7 @@ class TrafficGen():
             return host.popen(cmd.split(), stdout=f_out, stderr=f_err)
 
     def _gen_traffic(self, out_dir, input_file):
-
+        ''' Run the traffic generator and monitor all of the interfaces '''
         print('*** Loading file\n %s\n' % input_file)
         traffic_pattern = self.parse_traffic_file(input_file)
         net = self.topo_conf.get_net()
@@ -47,11 +49,14 @@ class TrafficGen():
         if not os.path.exists(out_dir):
             print ("Result folder %s does not exist, creating..." % out_dir)
             os.makedirs(out_dir)
-        ''' Run the traffic generator and monitor all of the interfaces '''
 
+        # The binaries are located in the control subfolder
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        traffic_ctrl = base_dir + '/control/node_control'
+        # The binary of the traffic generator
         traffic_gen = base_dir + '/control/goben -silent'
+        # The binary of the host rate limiter
+        traffic_ctrl = base_dir + '/control/node_control'
+
         if not os.path.isfile(traffic_ctrl):
             print("The traffic controller does not exist.\n"
                   "cd control; make\n")
@@ -65,7 +70,8 @@ class TrafficGen():
             s_proc = self._start_process(host, server_cmd, out, err)
             self.server_procs.append(s_proc)
 
-        sleep(2)
+        # Wait a little to let the servers initialize
+        sleep(1)
         print('*** Starting load-generators\n')
         for host in self.hosts:
             iface_net = host.intfList()[0]
