@@ -20,7 +20,6 @@ cwd = os.getcwd()
 lib_dir = os.path.dirname(dc_gym.__file__)
 INPUT_DIR = lib_dir + '/inputs'
 OUTPUT_DIR = cwd + '/results'
-SEEDS = 2
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--env', '-e', dest='env',
@@ -146,7 +145,7 @@ def get_tune_experiment(config, agent):
 
     if agent == "PPO":
         experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-        experiment[name]["num_samples"] = SEEDS
+        experiment[name]["num_samples"] = 2
         if SCHEDULE:
             # custom changes to experiment
             print("Performing tune experiment")
@@ -169,6 +168,7 @@ def configure_ray(agent):
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
         config["train_batch_size"] = 4096
+        config['model'] = {}
         config['model']['fcnet_hiddens'] = [400, 300]
         config['model']['fcnet_activation'] = 'tanh'
         config['horizon'] = 2048
