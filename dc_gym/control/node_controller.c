@@ -11,11 +11,18 @@
 #include <net/ethernet.h>
 #include <netinet/udp.h>   //Provides declarations for udp header
 #include <netinet/ip.h> //Provides declarations for ip header
+#include <linux/version.h>
 
 #include <libnl3/netlink/route/tc.h>
 #include <libnl3/netlink/route/qdisc.h>
 #include <libnl3/netlink/route/qdisc/netem.h>
 #include <libnl3/netlink/route/qdisc/tbf.h>
+
+// Older kernel versions do not support TPACKET_V3.
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,15,0)
+#define PACKET_MMAPV2
+#endif
+
 
 #ifndef likely
 # define likely(x)      __builtin_expect(!!(x), 1)
@@ -32,6 +39,7 @@
     return lvl;            \
   } while(0);
 
+
 #define CTRL_PORT  20130
 #define CTRL_PCKT_SIZE 9450
 typedef struct ctrl_pckt {
@@ -45,7 +53,7 @@ struct ring {
     size_t mm_len, rd_len;
     struct sockaddr_ll ll;
     void (*walk)(int sock, struct ring *ring);
-    int type, rd_num, flen, version;
+    int type, rd_num, flen;
     union {
         struct tpacket_req  req;
         struct tpacket_req3 req3;
@@ -58,6 +66,7 @@ struct block_desc {
     struct tpacket_hdr_v1 h1;
 };
 
+static sig_atomic_t sigint = 0;
 static int sock_rx;
 static int sock_tx;
 static struct ring ring_tx;
@@ -109,7 +118,21 @@ static int init_socket(int ver, const char *netdev, int port) {
     return sock;
 }
 
-static void fill_ring(struct ring *ring, unsigned int blocks, int type) {
+static void __v2_fill(struct ring *ring, unsigned int blocks) {
+    ring->req.tp_block_size = getpagesize() << 2;
+    ring->req.tp_frame_size = TPACKET_ALIGNMENT << 7;
+    ring->req.tp_block_nr = blocks;
+
+    ring->req.tp_frame_nr = ring->req.tp_block_size /
+                ring->req.tp_frame_size *
+                ring->req.tp_block_nr;
+
+    ring->mm_len = ring->req.tp_block_size * ring->req.tp_block_nr;
+    ring->rd_num = ring->req.tp_frame_nr;
+    ring->flen = ring->req.tp_frame_size;
+}
+
+static void __v3_fill(struct ring *ring, unsigned int blocks, int type) {
     if (type == PACKET_RX_RING) {
         ring->req3.tp_retire_blk_tov = 64;
         ring->req3.tp_sizeof_priv = 0;
@@ -133,10 +156,20 @@ static void setup_ring(int sock, struct ring *ring, int version, int type) {
     unsigned int blocks = 256;
 
     ring->type = type;
-    ring->version = version;
-    fill_ring(ring, blocks, type);
-    ret = setsockopt(sock, SOL_PACKET, type, &ring->req3,
-             sizeof(ring->req3));
+
+    switch (version) {
+    case TPACKET_V2:
+        __v2_fill(ring, blocks);
+        ret = setsockopt(sock, SOL_PACKET, type, &ring->req,
+                 sizeof(ring->req));
+        break;
+
+    case TPACKET_V3:
+        __v3_fill(ring, blocks, type);
+        ret = setsockopt(sock, SOL_PACKET, type, &ring->req3,
+                 sizeof(ring->req3));
+        break;
+    }
 
     if (ret == -1) {
         perror("setsockopt");
@@ -152,7 +185,6 @@ static void setup_ring(int sock, struct ring *ring, int version, int type) {
 }
 
 static void mmap_ring(int sock, struct ring *ring) {
-    int i;
 
     ring->mm_space = mmap(0, ring->mm_len, PROT_READ | PROT_WRITE,
                   MAP_SHARED | MAP_LOCKED | MAP_POPULATE, sock, 0);
@@ -162,7 +194,7 @@ static void mmap_ring(int sock, struct ring *ring) {
     }
 
     memset(ring->rd, 0, ring->rd_len);
-    for (i = 0; i < ring->rd_num; ++i) {
+    for (int i = 0; i < ring->rd_num; ++i) {
         ring->rd[i].iov_base = ring->mm_space + (i * ring->flen);
         ring->rd[i].iov_len = ring->flen;
     }
@@ -190,31 +222,47 @@ static void unmap_ring(int sock, struct ring *ring) {
     free(ring->rd);
 }
 
-static inline int tx_kernel_ready(struct tpacket3_hdr *hdr) {
+static inline int tx_kernel_ready(void *base) {
+#ifdef PACKET_MMAPV2
+    struct tpacket2_hdr *hdr = (struct tpacket2_hdr *) base;
+#else
+    struct tpacket3_hdr *hdr = (struct tpacket3_hdr *) base;
+#endif
     return !(hdr->tp_status & (TP_STATUS_SEND_REQUEST | TP_STATUS_SENDING));
 }
 
-static inline void tx_user_ready(struct tpacket3_hdr *hdr) {
-    hdr->tp_status = TP_STATUS_SEND_REQUEST;
-}
 static inline void *get_next_frame(struct ring *ring, int n) {
+#ifdef PACKET_MMAPV2
+    return ring->rd[n].iov_base;
+#else
     uint8_t *f0 = ring->rd[0].iov_base;
     return f0 + (n * ring->req3.tp_frame_size);
+#endif
 }
 
-unsigned int frame_offset = 0;
+// for some reason, the tx ring does not work it this variable is not global...
+static unsigned int frame_offset = 0;
 static void send_pkt(int sock, struct ring *ring, uint8_t * packet, size_t packet_len) {
-    int nframes = ring->req3.tp_frame_nr;
+#ifdef PACKET_MMAPV2
+    int nframes = ring->rd_num;
+    struct tpacket2_hdr *next = get_next_frame(ring, frame_offset);
+#else
     struct tpacket3_hdr *next = get_next_frame(ring, frame_offset);
+    int nframes = ring->req3.tp_frame_nr;
+#endif
     while (tx_kernel_ready(next) == 0) {
         frame_offset = (frame_offset + 1) % nframes;
         next = get_next_frame(ring, frame_offset);
     }
     // tx->tp_snaplen = packet_len;
     next->tp_len = packet_len;
+#ifdef PACKET_MMAPV2
+    memcpy((uint8_t *)next + TPACKET2_HDRLEN - sizeof(struct sockaddr_ll), packet, packet_len);
+#else
     next->tp_next_offset = 0;
-    memcpy((uint8_t *)next + TPACKET3_HDRLEN - sizeof(struct sockaddr_ll), packet,
-    packet_len);
+    memcpy((uint8_t *)next + TPACKET3_HDRLEN - sizeof(struct sockaddr_ll), packet, packet_len);
+#endif
+
     next->tp_status = TP_STATUS_SEND_REQUEST;
     frame_offset = (frame_offset + 1) % nframes;
     int ret = sendto(sock, NULL, 0, 0, NULL, 0);
@@ -224,23 +272,32 @@ static void send_pkt(int sock, struct ring *ring, uint8_t * packet, size_t packe
     }
 }
 
-void *ctrl_set_bw(void *data, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
-    ctrl_pckt *pkt = (ctrl_pckt *) data;
-    uint64_t tx_rate = atol(pkt->buf_size);
-    // int test = rtnl_qdisc_tbf_get_rate (fq_qdisc);
-    // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, test / 10e5);
-    // snprintf(cmd, 200, "tc class change dev %s parent 5:0 classid 5:1 htb rate %lu burst 15k", iface, tx_rate);
-    // char cmd[200];
-    // snprintf(cmd, 200,"tc qdisc change dev %s root fq maxrate %.3fmbit", iface, tx_rate / 10e5);
-    // fprintf(stderr, "Host %s: cmd: %s\n", iface, cmd);
+void ctrl_set_bw(void *data, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+    int err = 0;
+    uint64_t tx_rate;
+    ctrl_pckt *pkt;
+
+    pkt = (ctrl_pckt *) data;
+    tx_rate = atol(pkt->buf_size);
+    // used for debugging purposes
+    // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
+    // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);    fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);
     rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
     rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, 15000, 0);
-    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
-
-    return NULL;
+    if(err)
+        fprintf(stderr,"tbf_set_rate: %s\n", nl_geterror(err));
+    err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
+    if(err)
+        fprintf(stderr,"qdisc_add: %s\n", nl_geterror(err));
 }
 
-void ctrl_handle(struct tpacket3_hdr *ppd, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+void ctrl_handle(void *packet_head, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+
+#ifdef PACKET_MMAPV2
+    struct tpacket2_hdr *ppd = (struct tpacket2_hdr *) packet_head;
+#else
+    struct tpacket3_hdr *ppd = (struct tpacket3_hdr *) packet_head;
+#endif
     // Interpret rx packet headers
     struct ethhdr *eth_hdr_rx = (struct ethhdr *)((uint8_t *) ppd + ppd->tp_mac);
     struct iphdr *ip_hdr_rx = (struct iphdr *)((uint8_t *)eth_hdr_rx + ETH_HLEN);
@@ -251,8 +308,8 @@ void ctrl_handle(struct tpacket3_hdr *ppd, struct nl_sock *qdisc_sock, struct rt
     ctrl_set_bw(data_rx, qdisc_sock, fq_qdisc);
 
     // create a new packet with the same length and copy it from the rx ring
-    uint16_t pkt_len = ppd->tp_snaplen
-;    uint8_t packet[pkt_len];
+    uint16_t pkt_len = ppd->tp_snaplen;
+    uint8_t packet[pkt_len];
     memcpy(packet, eth_hdr_rx, pkt_len);
     // Interpret cloned packet headers
     struct ethhdr *eth_hdr_tx = (struct ethhdr *)((uint8_t *) packet);
@@ -270,6 +327,26 @@ void ctrl_handle(struct tpacket3_hdr *ppd, struct nl_sock *qdisc_sock, struct rt
     send_pkt(sock_tx, &ring_tx, packet, pkt_len);
 }
 
+#ifdef PACKET_MMAPV2
+static void walk_ring(struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+    struct pollfd pfd;
+    unsigned int frame_num = 0;
+    memset(&pfd, 0, sizeof(pfd));
+    pfd.fd = sock_rx;
+    pfd.events = POLLIN | POLLERR;
+    pfd.revents = 0;
+    while (likely(!sigint)) {
+        struct tpacket2_hdr *hdr = ring_rx.rd[frame_num].iov_base;
+        if (((hdr->tp_status & TP_STATUS_USER) == TP_STATUS_USER) == 0) {
+            poll(&pfd, 1, -1);
+            continue;
+        }
+        ctrl_handle(hdr, qdisc_sock, fq_qdisc);
+        hdr->tp_status = TP_STATUS_KERNEL;
+        frame_num = (frame_num + 1) % ring_rx.rd_num;
+    }
+}
+#else
 static void walk_block(struct block_desc *pbd, const int block_num, struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
     int num_pkts = pbd->h1.num_pkts, i;
     struct tpacket3_hdr *ppd;
@@ -287,10 +364,61 @@ static void flush_block(struct block_desc *pbd) {
     pbd->h1.block_status = TP_STATUS_KERNEL;
 }
 
-static sig_atomic_t sigint = 0;
+static void walk_ring(struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+    struct pollfd pfd;
+    struct block_desc *pbd;
+    unsigned int block_num = 0;
+    memset(&pfd, 0, sizeof(pfd));
+    pfd.fd = sock_rx;
+    pfd.events = POLLIN | POLLERR;
+    pfd.revents = 0;
+
+    while (likely(!sigint)) {
+        pbd = (struct block_desc *) ring_rx.rd[block_num].iov_base;
+
+        if ((pbd->h1.block_status & TP_STATUS_USER) == 0) {
+            poll(&pfd, 1, -1);
+            continue;
+        }
+        walk_block(pbd, block_num, qdisc_sock, fq_qdisc);
+        flush_block(pbd);
+        block_num = (block_num + 1) % 256;
+    }
+}
+#endif
 
 static void sighandler(int num) {
     sigint = 1;
+}
+
+struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev){
+    struct rtnl_qdisc *fq_qdisc;
+    int if_index;
+    int err = 0;
+
+    // delete the old qdisc on the device
+    char tc_cmd[200];
+    snprintf(tc_cmd, 200, "tc qdisc del dev %s root", netdev);
+    err = system(tc_cmd);
+    if (err)
+        perror("Problem with tc del");
+
+    if_index = if_nametoindex(netdev);
+    fq_qdisc = rtnl_qdisc_alloc();
+    rtnl_tc_set_ifindex(TC_CAST(fq_qdisc), if_index);
+    rtnl_tc_set_parent(TC_CAST(fq_qdisc), TC_H_ROOT);
+    rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1, 0));
+    rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf");
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, 10e6);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, 10e6/8, 15000, 0);
+    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE);
+    return fq_qdisc;
+}
+
+void clean_qdisc(struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
+    rtnl_qdisc_put(fq_qdisc);
+    nl_socket_free(qdisc_sock);
+    nl_object_free((struct nl_object *) fq_qdisc);
 }
 
 void usage(char *prog_name){
@@ -300,9 +428,30 @@ void usage(char *prog_name){
     exit(1);
 }
 
-int main(int argc, char **argv) {
-    int ret = 0, err = 0;
+void init_rings(const char *netdev, const char *ctrldev) {
+#ifdef PACKET_MMAPV2
+    fprintf(stderr, "Using tpacket_v2.\n");
+    int version = TPACKET_V2;
+#else
+    int version = TPACKET_V3;
+#endif
 
+    sock_rx = init_socket(version, netdev, CTRL_PORT);
+    sock_tx = init_socket(version, netdev, CTRL_PORT);
+    memset(&ring_rx, 0, sizeof(ring_rx));
+    memset(&ring_tx, 0, sizeof(ring_tx));
+    setup_ring(sock_rx, &ring_rx, version, PACKET_RX_RING);
+    setup_ring(sock_tx, &ring_tx, version, PACKET_TX_RING);
+
+    mmap_ring(sock_rx, &ring_rx);
+    mmap_ring(sock_tx, &ring_tx);
+
+    bind_ring(sock_rx, &ring_rx, ctrldev);
+    bind_ring(sock_tx, &ring_tx, ctrldev);
+}
+
+
+int main(int argc, char **argv) {
     // process args
     char c;
     char *netdev = NULL;
@@ -329,86 +478,22 @@ int main(int argc, char **argv) {
     signal(SIGINT, sighandler);
 
 
-    /* init qdisc on the device */
-    char tc_cmd[200];
-    snprintf(tc_cmd, 200, "tc qdisc del dev %s root", netdev);
-    err = system(tc_cmd);
-    if (err)
-        perror("Problem with tc del");
-    // snprintf(tc_cmd, 200,"tc qdisc add dev %s root fq maxrate %.3fmbit", netdev, 10e6 / 10e5);
-    // err = system(tc_cmd);
-    // if (err)
-    //     perror("Problem with tc add");
-
+    // Set up the managing qdisc on the main interface
     struct nl_sock *qdisc_sock;
-    struct rtnl_qdisc *fq_qdisc;
-    struct nl_cache *cache;
-    struct rtnl_link *link;
-    int if_index;
-
     qdisc_sock = nl_socket_alloc();
     nl_connect(qdisc_sock, NETLINK_ROUTE);
-    rtnl_link_alloc_cache(qdisc_sock, AF_UNSPEC, &cache);
-    link = rtnl_link_get_by_name(cache, netdev);
-    if_index = rtnl_link_get_ifindex(link);
-    fq_qdisc = rtnl_qdisc_alloc();
-    rtnl_tc_set_ifindex(TC_CAST(fq_qdisc), if_index);
-    rtnl_tc_set_parent(TC_CAST(fq_qdisc), TC_H_ROOT);
-    rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1, 0));
-    rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf");
-    rtnl_qdisc_tbf_set_limit(fq_qdisc, 10e6);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, 10e6/8, 15000, 0);
+    struct rtnl_qdisc *fq_qdisc = setup_qdisc(qdisc_sock, netdev);
 
-    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE);
+    // Set up the rx and tx rings
+    init_rings(netdev, ctrldev);
+    // Start main loop
+    walk_ring(qdisc_sock, fq_qdisc);
 
-
-    struct pollfd pfd;
-    struct block_desc *pbd;
-    unsigned int block_num = 0;
-    sock_rx = init_socket(TPACKET_V3, netdev, CTRL_PORT);
-    sock_tx = init_socket(TPACKET_V3, netdev, CTRL_PORT);
-    memset(&ring_rx, 0, sizeof(ring_rx));
-    memset(&ring_tx, 0, sizeof(ring_tx));
-    setup_ring(sock_rx, &ring_rx, TPACKET_V3, PACKET_RX_RING);
-    setup_ring(sock_tx, &ring_tx, TPACKET_V3, PACKET_TX_RING);
-
-    mmap_ring(sock_rx, &ring_rx);
-    mmap_ring(sock_tx, &ring_tx);
-
-    bind_ring(sock_rx, &ring_rx, ctrldev);
-    bind_ring(sock_tx, &ring_tx, ctrldev);
-
-    memset(&pfd, 0, sizeof(pfd));
-    pfd.fd = sock_rx;
-    pfd.events = POLLIN | POLLERR;
-    pfd.revents = 0;
-
-    while (likely(!sigint)) {
-        pbd = (struct block_desc *) ring_rx.rd[block_num].iov_base;
-
-        if ((pbd->h1.block_status & TP_STATUS_USER) == 0) {
-            poll(&pfd, 1, -1);
-            continue;
-        }
-
-        walk_block(pbd, block_num, qdisc_sock, fq_qdisc);
-        flush_block(pbd);
-        block_num = (block_num + 1) % 256;
-    }
-
-    rtnl_qdisc_put(fq_qdisc);
-    nl_socket_free(qdisc_sock);
-    rtnl_link_put(link);
-    nl_cache_put(cache);
-
+    // Clean up
+    clean_qdisc(qdisc_sock, fq_qdisc);
     unmap_ring(sock_rx, &ring_rx);
     unmap_ring(sock_tx, &ring_tx);
-
     close(sock_rx);
     close(sock_tx);
-
-    if (ret)
-        return 1;
-
     return 0;
 }

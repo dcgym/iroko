@@ -221,7 +221,8 @@ class BandwidthController():
         target_sock = self.sock_map[iface]
         # we do not care about payload
         # we only care about packets that pass the bpf filter
-        target_sock.recv(0)
+        # bytes must be 1 to ensure that recv blocks in Python 3
+        target_sock.recv(1)
 
     def broadcast_bw(self, bw_map):
         threads = []
