@@ -23,7 +23,7 @@ class DCEnv(BaseEnv):
         # print ("Actions: ", end='')
         for i, h_iface in enumerate(self.topo_conf.host_ctrl_map):
             pred_bw[h_iface] = int(self.topo_conf.MAX_CAPACITY)
-            rate = h_iface, pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY
+            # rate = h_iface, pred_bw[h_iface] * 10 / self.topo_conf.MAX_CAPACITY
             # print("%s:%.2fmb " % (rate), end='')
         self.ic.broadcast_bw(pred_bw)
 

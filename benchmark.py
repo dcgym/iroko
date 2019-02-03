@@ -21,7 +21,7 @@ TRANSPORT = ["udp", "tcp"]
 RUNS = 5
 STEPS = 50000
 TOPO = "dumbbell"
-TUNE = False
+TUNE = True
 RESTORE = False
 RESTORE_PATH = file_dir + "./"
 

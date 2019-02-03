@@ -10,6 +10,7 @@ import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
 import random
 import logging
+from tqdm import tqdm
 
 # Iroko imports
 import dc_gym
@@ -144,9 +145,9 @@ def get_tune_experiment(config, agent):
     }
 
     if agent == "PPO":
-        experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-        experiment[name]["num_samples"] = 2
         if SCHEDULE:
+            experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
+            experiment[name]["num_samples"] = 2
             # custom changes to experiment
             print("Performing tune experiment")
             config, scheduler = set_tuning_parameters(agent, config)
@@ -155,7 +156,7 @@ def get_tune_experiment(config, agent):
         # TODO need to be able to save, work around for now
         experiment[name].pop("checkpoint_freq", None)
         experiment[name].pop("restore", None)
-
+    experiment[name]["config"] = config
     return experiment, scheduler
 
 
@@ -163,7 +164,6 @@ def configure_ray(agent):
     config = {}
 
     if agent == "PPO":
-        # config = ppo.DEFAULT_CONFIG.copy()
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
@@ -182,7 +182,6 @@ def configure_ray(agent):
         config['clip_param'] = 0.2
         config['kl_coeff'] = 0.0
     elif agent == "DDPG":
-        # config = ddpg.DEFAULT_CONFIG.copy()
         config["actor_hiddens"] = [400, 300]
         config["actor_hidden_activation"] = "relu"
         config["critic_hiddens"] = [400, 300]
@@ -199,6 +198,7 @@ def configure_ray(agent):
 
     config['clip_actions'] = True
     config['num_workers'] = 0
+    config['num_gpus'] = 0
     config["batch_mode"] = "truncate_episodes"
     config["log_level"] = "ERROR"
     config['env_config'] = {
@@ -217,33 +217,32 @@ def configure_ray(agent):
 def run(config):
     agent_class = get_agent_class(config["env_config"]["agent"])
     agent = agent_class(config=config, env="dc_env")
-    # Can optionally call agent.restore(path) to load a checkpoint.
-    for epoch in range(config["env_config"]["iterations"]):
-        # Perform one iteration of training the policy with PPO
-        agent.train()
+    agent.train()
     print('Generator Finished. Simulation over. Clearing dc_env...')
 
 
 def tune_run(config):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(config, agent)
-    tune.run_experiments(experiment, scheduler=scheduler, verbose=False)
+    tune.run_experiments(experiment, scheduler=scheduler, verbose=True)
 
 
 def init():
     check_dir(ARGS.output_dir)
+
     print("Registering the DC environment...")
     register_env("dc_env", get_env)
 
     print("Starting Ray...")
-    ray.init(num_cpus=1, logging_level=logging.ERROR)
+    ray.init(num_cpus=1, logging_level=logging.WARN)
 
     config = configure_ray(ARGS.agent)
     print("Starting experiment.")
-    if ARGS.tune:
-        tune_run(config)
-    else:
-        run(config)
+    # Basic ray train currently does not work, always use tune for now
+    # if ARGS.tune:
+    tune_run(config)
+    # else:
+    #    run(config)
     print("Experiment has completed.")
 
 
