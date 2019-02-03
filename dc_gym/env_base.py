@@ -51,9 +51,9 @@ class BaseEnv(openAIGym):
         topo_options = {}
         topo_options["topo_name"] = conf["topo"]
         topo_options["enable_ecn"] = False
-        if conf["agent"] == "DCTCP":
+        if conf["agent"].lower() == "dctcp":
             topo_options["is_dctcp"] = True
-        if conf["agent"] == "TCP_NV":
+        if conf["agent"].lower() == "tcp_nv":
             topo_options["is_nv"] = True
         return TopoFactory.create(topo_options)
 

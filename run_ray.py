@@ -5,12 +5,12 @@ import os
 # Ray imports
 import ray
 from ray.rllib.agents.registry import get_agent_class
+from ray.rllib.agents.pg import PGAgent
 from ray.tune.registry import register_env
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
 import random
 import logging
-from tqdm import tqdm
 
 # Iroko imports
 import dc_gym
@@ -29,7 +29,7 @@ PARSER.add_argument('--topo', '-to', dest='topo',
                     default='dumbbell', help='The topology to operate on.')
 PARSER.add_argument('--agent', '-a', dest='agent', default=None,
                     help='must be string of either: PPO, DDPG, PG,'
-                         ' DCTCP, TCP_NV or TCP')
+                         ' DCTCP, TCP_NV or TCP', type=str.lower)
 PARSER.add_argument('--timesteps', '-t', dest='timesteps',
                     type=int, default=10000,
                     help='total number of timesteps to train rl agent, '
@@ -128,13 +128,24 @@ def clean():
     os.system("sudo killall -9 node_control")
 
 
+def get_agent(agent_name):
+    try:
+        agent_class = get_agent_class(agent_name)
+    except Exception:
+        # We use PG as the base class for experiments
+        agent_class = type(agent_name, (PGAgent,), {})
+    return agent_class
+
+
 def get_tune_experiment(config, agent):
     SCHEDULE = False
     scheduler = None
-    name = "%s_tune_experiment" % agent
+    name = "%s_tune" % agent
+    agent_class = get_agent(agent)
+
     experiment = {
         name: {
-            'run': agent,
+            'run': agent_class,
             'local_dir': ARGS.output_dir,
             "stop": {"timesteps_total": ARGS.timesteps},
             "env": "dc_env",
@@ -152,10 +163,6 @@ def get_tune_experiment(config, agent):
             print("Performing tune experiment")
             config, scheduler = set_tuning_parameters(agent, config)
 
-    if agent == "PG":
-        # TODO need to be able to save, work around for now
-        experiment[name].pop("checkpoint_freq", None)
-        experiment[name].pop("restore", None)
     experiment[name]["config"] = config
     return experiment, scheduler
 
@@ -215,7 +222,7 @@ def configure_ray(agent):
 
 
 def run(config):
-    agent_class = get_agent_class(config["env_config"]["agent"])
+    agent_class = get_agent(config["env_config"]["agent"])
     agent = agent_class(config=config, env="dc_env")
     agent.train()
     print('Generator Finished. Simulation over. Clearing dc_env...')
