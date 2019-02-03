@@ -45,7 +45,7 @@ PARSER.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
                     help='Folder which contains all the collected metrics.')
 PARSER.add_argument('--transport', dest='transport', default="udp",
                     help='Choose the transport protocol of the hosts.')
-PARSER.add_argument('--tune', dest='tune', type=bool, default=False,
+PARSER.add_argument('--tune', action="store_true", default=False,
                     help='Specify whether to perform hyperparameter tuning')
 ARGS = PARSER.parse_args()
 
