@@ -15,7 +15,7 @@ tar -xvf ${GO_SRC}
 cd goben
 go install ./goben
 cd ..
-mv ${GOPATH}/bin/goben $(pwd)/../dc_gym/control
+mv ${GOPATH}/bin/goben $(pwd)/../dc_gym
 chmod -R 775 ${GOPATH}
 rm -rf ${GO_SRC}
 rm -rf ${GOPATH}

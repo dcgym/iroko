@@ -27,7 +27,7 @@ PARSER.add_argument('--env', '-e', dest='env',
                     default='iroko', help='The platform to run.')
 PARSER.add_argument('--topo', '-to', dest='topo',
                     default='dumbbell', help='The topology to operate on.')
-PARSER.add_argument('--agent', '-a', dest='agent', default=None,
+PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
                     help='must be string of either: PPO, DDPG, PG,'
                          ' DCTCP, TCP_NV or TCP', type=str.lower)
 PARSER.add_argument('--timesteps', '-t', dest='timesteps',
@@ -231,7 +231,7 @@ def run(config):
 def tune_run(config):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(config, agent)
-    tune.run_experiments(experiment, scheduler=scheduler, verbose=True)
+    tune.run_experiments(experiment, scheduler=scheduler, verbose=0)
 
 
 def init():

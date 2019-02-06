@@ -53,7 +53,7 @@ class TrafficGen():
         # The binaries are located in the control subfolder
         base_dir = os.path.dirname(os.path.abspath(__file__))
         # The binary of the traffic generator
-        traffic_gen = base_dir + '/control/goben -silent'
+        traffic_gen = base_dir + '/goben -silent'
         # The binary of the host rate limiter
         traffic_ctrl = base_dir + '/control/node_control'
 

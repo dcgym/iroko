@@ -35,7 +35,7 @@ class BaseEnv(openAIGym):
             shape=(self.num_ports * self.num_features, ))
         self.steps = 0
         self.progress_bar = tqdm(
-            total=self.conf["iterations"], leave=False, mininterval=5)
+            total=self.conf["iterations"], leave=False)
         self.progress_bar.clear()
         # handle unexpected exits scenarios gracefully
         signal.signal(signal.SIGINT, self._handle_interrupt)
@@ -83,7 +83,7 @@ class BaseEnv(openAIGym):
         raise NotImplementedError("Method render not implemented!")
 
     def _handle_interrupt(self, signum, frame):
-        print ("\nCaught interrupt")
+        print ("\nEnvironment: Caught interrupt")
         self.kill_env()
         sys.exit(1)
 
@@ -91,8 +91,8 @@ class BaseEnv(openAIGym):
         if (self.killed):
             print("Chill, I am already cleaning up...")
             return
-        self.progress_bar.close()
         self.killed = True
+        self.progress_bar.close()
         self.state_man.terminate()
         self.traffic_gen.stop_traffic()
         net = self.topo_conf.get_net()

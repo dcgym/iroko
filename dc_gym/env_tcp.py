@@ -1,6 +1,6 @@
 from __future__ import print_function
 import time
-from iroko_bw_control import BandwidthController
+from control.iroko_bw_control import BandwidthController
 
 from env_base import BaseEnv
 

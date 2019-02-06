@@ -33,7 +33,6 @@ class Collector(multiprocessing.Process):
                 print("%s: Caught Interrupt..." % self.name)
                 self.kill.set()
         print ("%s: Exiting..." % self.name)
-        return
 
     def terminate(self):
         print("%s: Received termination signal" % self.name)
@@ -77,7 +76,7 @@ class BandwidthCollector(Collector):
             try:
                 tmp_stats["bws_rx"] = float(bw[0]) * 1000
                 tmp_stats["bws_tx"] = float(bw[1]) * 1000
-            except Exception as e:
+            except Exception:
                 # print("Error Collecting Bandwidth: %s" % e)
                 tmp_stats["bws_rx"] = 0
                 tmp_stats["bws_tx"] = 0
@@ -99,8 +98,6 @@ class BandwidthCollector(Collector):
 
 
 class QueueCollector(Collector):
-    class QDISC(ctypes.Structure):
-        pass
 
     def __init__(self, iface_list, shared_stats):
         Collector.__init__(self, iface_list)
@@ -141,7 +138,7 @@ class QueueCollector(Collector):
                 drop_return = re_dropped.findall(output)
                 over_return = re_overlimit.findall(output)
                 queue_return = re_queued.findall(output)
-            except Exception as e:
+            except Exception:
                 # print("Error Collecting Queues: %s" % e)
                 drop_return[0] = 0
                 over_return[0] = 0

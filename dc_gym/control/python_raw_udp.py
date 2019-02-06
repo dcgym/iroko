@@ -1,5 +1,6 @@
 from ctypes import create_string_buffer
 from struct import pack, pack_into, calcsize
+
 import gevent
 from gevent import socket
 from socket import htons
@@ -168,7 +169,7 @@ class UDPFrame:
         self.raw = self.udp_hdr_buf.raw
 
 
-class BandwidthController():
+class BandwidthControllerOld():
     SRC_PORT = 20135
     DST_PORT = 20130
     DEST_MAC = '10:7b:44:4a:7e:19'
@@ -231,15 +232,3 @@ class BandwidthController():
         for iface, txrate in bw_map.items():
             self.send_cntrl_pckt(iface, txrate)
         gevent.joinall(threads)
-
-
-# small script to test the functionality of the bw control operations
-if __name__ == '__main__':
-    test_list = {"test": "c0-eth0", "fest": "c0-eth1",
-                 "nest": "c0-eth2", "quest": "c0-eth3"}
-    ic = BandwidthController("Iroko", test_list)
-    threads = []
-    for iface in test_list.keys():
-        threads.append(gevent.spawn(ic.await_response, iface))
-        ic.send_cntrl_pckt(iface, 20000)
-    gevent.joinall(threads)
