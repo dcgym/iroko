@@ -8,9 +8,10 @@
 #include <poll.h>               // polling descriptors
 
 // Older kernel versions do not support TPACKET_V3.
+// Something is wrong with TPACKET_V3, so let's always use TPACKET_V2 for now.
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4,15,0)
-#define PACKET_MMAPV2
 #endif
+#define PACKET_MMAPV2
 
 // (unimportant) macro for loud failure
 // needs some love in the code
@@ -45,7 +46,6 @@ struct ring {
         struct tpacket_req  req;
         struct tpacket_req3 req3;
     };
-
 };
 
 struct block_desc {

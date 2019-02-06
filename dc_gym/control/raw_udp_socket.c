@@ -181,7 +181,7 @@ static inline void *get_next_frame(struct ring *ring, int n) {
 
 struct ring *init_raw_backend(const char *iface, int port, int type) {
 #ifdef PACKET_MMAPV2
-    fprintf(stderr, "Using tpacket_v2.\n");
+    // fprintf(stderr, "Using tpacket_v2.\n");
     int version = TPACKET_V2;
 #else
     int version = TPACKET_V3;

@@ -67,14 +67,14 @@ static void walk_ring(struct ring *ring_rx, struct ring *ring_tx) {
     ring_rx->pfd.events = POLLIN | POLLERR;
     ring_rx->pfd.revents = 0;
     while (likely(!sigint)) {
-        struct tpacket2_hdr *hdr = ring_rx.rd[ring_rx->p_offset].iov_base;
+        struct tpacket2_hdr *hdr = ring_rx->rd[ring_rx->p_offset].iov_base;
         if (((hdr->tp_status & TP_STATUS_USER) == TP_STATUS_USER) == 0) {
             poll(&ring_rx->pfd, 1, -1);
             continue;
         }
-        ctrl_handle(hdr);
+        ctrl_handle(hdr, ring_tx);
         hdr->tp_status = TP_STATUS_KERNEL;
-        ring_rx->p_offset = (ring_rx->p_offset + 1) % ring_rx.rd_num;
+        ring_rx->p_offset = (ring_rx->p_offset + 1) % ring_rx->rd_num;
     }
 }
 #else

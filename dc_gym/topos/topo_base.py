@@ -22,7 +22,7 @@ class BaseTopo():
         self.topo = None
         self.host_ctrl_map = {}
         self.host_ips = []
-        self.switch_id = ""  # self.generate_switch_id()
+        self.switch_id = self.generate_switch_id()
 
     def generate_switch_id(self):
 
