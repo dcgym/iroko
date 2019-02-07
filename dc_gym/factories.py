@@ -35,7 +35,7 @@ class EnvFactory(object):
         try:
             BaseEnv = import_from(env_name, env_class)
         except ImportError as e:
-            print("Problem: ", e)
+            print("Could not import requested environment: ", e)
             exit(1)
         return BaseEnv(config)
 
@@ -44,14 +44,14 @@ class TopoFactory(object):
     """ Generator class.
      Returns a target subclass based on the provided target option."""
     @staticmethod
-    def create(options):
-        env_name = "dc_gym.topos.topo_" + options["topo_name"]
+    def create(topo_name, options):
+        env_name = "dc_gym.topos.topo_" + topo_name
         env_class = "TopoConfig"
 
         print("Loading topology %s " % env_name)
         try:
             TopoConfig = import_from(env_name, env_class)
         except ImportError as e:
-            print("Problem: ", e)
+            print("Could not import requested topology: ", e)
             exit(1)
         return TopoConfig(options)

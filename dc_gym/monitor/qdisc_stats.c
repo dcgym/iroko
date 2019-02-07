@@ -16,7 +16,7 @@ int get_iface_queue(char *interface) {
     qdisc = rtnl_qdisc_get_by_parent(qdisc_cache, ifindex, TC_H_ROOT);
 
     /* Query current queue length on the interface */
-    int qdisc_len = rtnl_tc_get_stat(TC_CAST(qdisc),  RTNL_TC_QLEN);
+    int qdisc_len = rtnl_tc_get_stat(TC_CAST(qdisc), RTNL_TC_BACKLOG);
 
     /* Free all allocated data structures */
     nl_cache_free(qdisc_cache);

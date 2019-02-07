@@ -133,7 +133,8 @@ def get_agent(agent_name):
         agent_class = get_agent_class(agent_name)
     except Exception:
         # We use PG as the base class for experiments
-        agent_class = type(agent_name, (PGAgent,), {})
+        agent_class = get_agent_class("__fake")
+        agent_class = type(agent_name, (agent_class,), {})
     return agent_class
 
 
@@ -162,7 +163,7 @@ def get_tune_experiment(config, agent):
             # custom changes to experiment
             print("Performing tune experiment")
             config, scheduler = set_tuning_parameters(agent, config)
-
+    config["env_config"]["parallel_envs"] = True
     experiment[name]["config"] = config
     return experiment, scheduler
 

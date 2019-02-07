@@ -96,8 +96,15 @@ def load_file(filename):
             item = np.load(f)
             if item.size > 0:
                 out.append(item)
+            item = None
     flat_out = [x for sublist in out for x in sublist]
+    out = None
     return flat_out
+
+
+def release_list(l):
+    del l[:]
+    del l
 
 
 def plot(data_dir, plot_dir, name):
@@ -150,47 +157,63 @@ def plot(data_dir, plot_dir, name):
                 bw_file = '%s/bandwidths_per_step_by_port_%s.npy' % (
                     run_dir, algo.lower())
 
+                print ("Computing running reward mean...")
+                # rewards
                 print ("Loading %s..." % reward_file)
                 np_rewards = load_file(reward_file)
-                print ("Loading %s..." % actions_file)
-                np_actions = load_file(actions_file)
-
-                print ("Loading %s..." % queue_file)
-                np_queues = load_file(queue_file)
-                print ("Loading %s..." % bw_file)
-                np_bws = load_file(bw_file)
-                # rewards
                 rewards = running_mean(np_rewards)
-                # actions
-                actions = collapse_nested_dict_list(np_actions, DELIM)
-                mean_actions = running_mean(average_dict(actions)) / MAX_BW
-                # queues
-                iface_queues = collapse_nested_dict_list(np_queues, DELIM)
-                queues = get_nested_values_from_dict(iface_queues, "queues")
-                mean_queues = running_mean(average_dict(queues)) / MAX_BW
-                # bandwidths
-                iface_bws = collapse_nested_dict_list(np_bws, DELIM)
-                bws = get_nested_values_from_dict(iface_bws, "bws_rx")
-                mean_bw = 10 * running_mean(average_dict(bws)) / MAX_BW
+                np_rewards = None
                 if len(rewards) != 0:
                     rewards_list.append(rewards)
+                # actions
+                print ("Loading %s..." % actions_file)
+                np_actions = load_file(actions_file)
+                print ("Computing running action mean...")
+                actions = collapse_nested_dict_list(np_actions, DELIM)
+                np_actions = None
+                mean_actions = running_mean(average_dict(actions)) / MAX_BW
+                actions = None
+                # queues
+                print ("Loading %s..." % queue_file)
+                np_queues = load_file(queue_file)
                 if len(mean_actions) != 0:
                     actions_list.append(mean_actions)
+                print ("Computing running queue mean...")
+                iface_queues = collapse_nested_dict_list(np_queues, DELIM)
+                np_queues = None
+                queues = get_nested_values_from_dict(iface_queues, "queues")
+                iface_queues = None
+                mean_queues = running_mean(average_dict(queues)) / MAX_BW
+                queues = None
                 if len(mean_queues) != 0:
                     queues_list.append(mean_queues)
+                # bandwidths
+                print ("Loading %s..." % bw_file)
+                np_bws = load_file(bw_file)
+                print ("Computing running bandwidth mean...")
+                iface_bws = collapse_nested_dict_list(np_bws, DELIM)
+                np_bws = None
+                bws = get_nested_values_from_dict(iface_bws, "bws_rx")
+                iface_bws = None
+                mean_bw = 10 * running_mean(average_dict(bws)) / MAX_BW
+                bws = None
                 if len(mean_bw) != 0:
                     bandwidths_list.append(mean_bw)
             plt_rewards[algo] = np.average(rewards_list, axis=0)
+            rewards_list = None
             plt_actions[algo] = np.average(actions_list, axis=0)
+            actions_list = None
             plt_queues[algo] = np.average(queues_list, axis=0)
+            queues_list = None
             plt_bandwidths[algo] = np.average(bandwidths_list, axis=0)
+            bandwidths_list = None
 
-            if(np.amax(plt_queues[algo]) > queue_max):
-                queue_max = np.amax(plt_queues[algo])
             if(np.amax(plt_rewards[algo]) > reward_max):
                 reward_max = np.amax(plt_rewards[algo])
             if(np.amin(plt_rewards[algo]) < reward_min):
                 reward_min = np.amin(plt_rewards[algo])
+            if(np.amax(plt_queues[algo]) > queue_max):
+                queue_max = np.amax(plt_queues[algo])
             if(np.amax(plt_bandwidths[algo]) > bw_max):
                 bw_max = np.amax(plt_bandwidths[algo])
 
@@ -199,15 +222,15 @@ def plot(data_dir, plot_dir, name):
                 break
             marker = mark_iterator.next()
             linestyle = line_iterator.next()
-            offset = 2500 + i * 500
+            offset = num_timesteps / 4 + i * num_timesteps / 10
             linewidth = 2
             normalized_reward = (plt_rewards[algo] -
                                  reward_min) / (reward_max - reward_min)
             normalized_queues = plt_queues[algo] / queue_max
             normalized_bw = plt_bandwidths[algo] / bw_max
+
             if algo.lower() == "pg":
                 algo = "REINFORCE"
-
             ax1.plot(normalized_reward, label=algo, linewidth=linewidth,
                      linestyle=linestyle, marker=marker, markevery=offset)
             ax2.plot(normalized_queues, label=algo,
@@ -238,10 +261,12 @@ def plot(data_dir, plot_dir, name):
         handles, labels = ax1.get_legend_handles_labels()
         fig.legend(handles, labels, loc='upper center', fancybox=True,
                    shadow=True, ncol=5)
-        plt_name = "%s" % (plot_dir)
+        plt_name = "%s/" % (plot_dir)
+        plt_name += "%s" % name
         plt_name += "_%s" % topo
         plt_name += "_%s" % transport
         plt_name += "_%s" % num_timesteps
+        print("Saving plot %s" % plt_name)
         check_plt_dir(plt_name)
         plt.savefig(plt_name + ".pdf")
         plt.savefig(plt_name + ".png")
@@ -249,9 +274,9 @@ def plot(data_dir, plot_dir, name):
 
 
 if __name__ == '__main__':
-    PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots/"
+    PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
     ROOT = "results"
     for folder in next(os.walk(ROOT))[1]:
         print ("Crawling folder %s " % folder)
         machinedir = ROOT + "/" + folder
-        plot(machinedir, PLOT_DIR + folder, folder)
+        plot(machinedir, PLOT_DIR, folder)

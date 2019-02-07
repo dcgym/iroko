@@ -13,7 +13,7 @@ exec_dir = os.getcwd()
 file_dir = os.path.dirname(__file__)
 INPUT_DIR = file_dir + '/inputs'
 OUTPUT_DIR = exec_dir + '/results'
-PLOT_DIR = exec_dir + '/plots/'
+PLOT_DIR = exec_dir + '/plots'
 RL_ALGOS = ["PPO", "DDPG", "PG"]
 TCP_ALGOS = ["TCP", "DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
@@ -78,8 +78,9 @@ def run_tests():
                     cmd += "--tune "
                 if (RESTORE):
                     cmd += "--restore %s " % RESTORE_PATH
+                # always use TCP if we are dealing with a TCP algorithm
                 if (algo in TCP_ALGOS):
-                    cmd += " --env tcp --transport tcp"
+                    cmd += "--transport tcp"
                 else:
                     cmd += "--transport %s" % transport
                 subprocess.call(cmd.split())

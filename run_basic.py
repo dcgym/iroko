@@ -24,6 +24,9 @@ PARSER.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
                     help='Folder which contains all the collected metrics.')
 PARSER.add_argument('--transport', dest='transport', default="udp",
                     help='Choose the transport protocol of the hosts.')
+PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
+                    help='must be string of either: PG,'
+                         ' DCTCP, TCP_NV or TCP', type=str.lower)
 ARGS = PARSER.parse_args()
 
 
@@ -41,7 +44,7 @@ def test_run(input_dir, output_dir, env, topo):
         "output_dir": ARGS.output_dir,
         "env": ARGS.env,
         "topo": ARGS.topo,
-        "agent": "RND",
+        "agent": ARGS.agent,
         "transport": ARGS.transport,
         "iterations": ARGS.timesteps,
         "tf_index": 0

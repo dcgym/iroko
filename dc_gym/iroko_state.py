@@ -99,14 +99,14 @@ class StateManager():
         for iface in stats_prev.keys():
             # bws_rx_prev = stats_prev[iface]["bws_rx"]
             # bws_tx_prev = stats_prev[iface]["bws_tx"]
-            drops_prev = stats_prev[iface]["drops"]
-            overlimits_prev = stats_prev[iface]["overlimits"]
+            # drops_prev = stats_prev[iface]["drops"]
+            # overlimits_prev = stats_prev[iface]["overlimits"]
             queues_prev = stats_prev[iface]["queues"]
 
             # bws_rx_now = stats_now[iface]["bws_rx"]
             # bws_tx_now = stats_now[iface]["bws_tx"]
-            drops_now = stats_now[iface]["drops"]
-            overlimits_now = stats_now[iface]["overlimits"]
+            # drops_now = stats_now[iface]["drops"]
+            # overlimits_now = stats_now[iface]["overlimits"]
             queues_now = stats_now[iface]["queues"]
 
             deltas[iface] = {}
@@ -120,15 +120,15 @@ class StateManager():
             # else:
             #     deltas[iface]["delta_tx"] = 0
 
-            if drops_prev < drops_now:
-                deltas[iface]["delta_d"] = 0
-            else:
-                deltas[iface]["delta_d"] = 1
+            # if drops_prev < drops_now:
+            #     deltas[iface]["delta_d"] = 0
+            # else:
+            #     deltas[iface]["delta_d"] = 1
 
-            if overlimits_prev < overlimits_now:
-                deltas[iface]["delta_ov"] = 0
-            else:
-                deltas[iface]["delta_ov"] = 1
+            # if overlimits_prev < overlimits_now:
+            #     deltas[iface]["delta_ov"] = 0
+            # else:
+            #     deltas[iface]["delta_ov"] = 1
 
             if queues_prev < queues_now:
                 deltas[iface]["delta_q"] = 1
