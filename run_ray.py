@@ -5,7 +5,7 @@ import os
 # Ray imports
 import ray
 from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.pg import PGAgent
+from ray.rllib.agents.agent import Agent, with_common_config
 from ray.tune.registry import register_env
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
@@ -15,6 +15,7 @@ import logging
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
+import numpy as np
 
 # set up paths
 cwd = os.getcwd()
@@ -48,6 +49,35 @@ PARSER.add_argument('--transport', dest='transport', default="udp",
 PARSER.add_argument('--tune', action="store_true", default=False,
                     help='Specify whether to perform hyperparameter tuning')
 ARGS = PARSER.parse_args()
+
+
+class MaxAgent(Agent):
+    """Agent that always takes the maximum available action."""
+    _agent_name = "MaxAgent"
+    _default_config = with_common_config({
+        "rollouts_per_iteration": 10,
+    })
+
+    def _init(self):
+        self.env = self.env_creator(self.config["env_config"])
+
+    def _train(self):
+        rewards = []
+        steps = 0
+        for _ in range(self.config["rollouts_per_iteration"]):
+            obs = self.env.reset()
+            done = False
+            reward = 0.0
+            while not done:
+                action = self.env.action_space.high
+                obs, r, done, info = self.env.step(action)
+                reward += r
+                steps += 1
+            rewards.append(reward)
+        return {
+            "episode_reward_mean": np.mean(rewards),
+            "timesteps_this_iter": steps,
+        }
 
 
 def check_dir(directory):
@@ -130,11 +160,11 @@ def clean():
 
 def get_agent(agent_name):
     try:
-        agent_class = get_agent_class(agent_name)
-    except Exception:
+        agent_class = get_agent_class(agent_name.upper())
+    except Exception as e:
+        print ("%s Loading basic algorithm" % e)
         # We use PG as the base class for experiments
-        agent_class = get_agent_class("__fake")
-        agent_class = type(agent_name, (agent_class,), {})
+        agent_class = type(agent_name, (MaxAgent,), {})
     return agent_class
 
 

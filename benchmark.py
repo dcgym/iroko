@@ -80,9 +80,9 @@ def run_tests():
                     cmd += "--restore %s " % RESTORE_PATH
                 # always use TCP if we are dealing with a TCP algorithm
                 if (algo in TCP_ALGOS):
-                    cmd += "--transport tcp"
+                    cmd += "--transport tcp "
                 else:
-                    cmd += "--transport %s" % transport
+                    cmd += "--transport %s " % transport
                 subprocess.call(cmd.split())
     # Plot the results and save the graphs under the given test name
     plot(results_dir, PLOT_DIR, testname)
