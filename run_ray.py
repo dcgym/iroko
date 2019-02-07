@@ -15,7 +15,6 @@ import logging
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
-import numpy as np
 
 # set up paths
 cwd = os.getcwd()
@@ -54,28 +53,24 @@ ARGS = PARSER.parse_args()
 class MaxAgent(Agent):
     """Agent that always takes the maximum available action."""
     _agent_name = "MaxAgent"
-    _default_config = with_common_config({
-        "rollouts_per_iteration": 10,
-    })
+    _default_config = with_common_config({})
 
     def _init(self):
         self.env = self.env_creator(self.config["env_config"])
 
     def _train(self):
-        rewards = []
         steps = 0
-        for _ in range(self.config["rollouts_per_iteration"]):
-            obs = self.env.reset()
-            done = False
-            reward = 0.0
-            while not done:
-                action = self.env.action_space.high
-                obs, r, done, info = self.env.step(action)
-                reward += r
-                steps += 1
-            rewards.append(reward)
+        done = False
+        reward = 0.0
+        while not done:
+            action = self.env.action_space.high
+            obs, r, done, info = self.env.step(action)
+            reward += r
+            steps += 1
+            if steps >= self.config["env_config"]["iterations"]:
+                done = True
         return {
-            "episode_reward_mean": np.mean(rewards),
+            "episode_reward_mean": reward,
             "timesteps_this_iter": steps,
         }
 
@@ -137,7 +132,6 @@ def set_tuning_parameters(agent, config):
                 config[k] = lambda spec: random.choice([1000, 2000, 4000])
             if k == 'sgd_minibatch_size':
                 config[k] = lambda spec: random.choice([16, 32, 64, 128])
-    config['horizon'] = 1000
     scheduler = PopulationBasedTraining(time_attr='time_total_s',
                                         reward_attr='episode_reward_mean',
                                         # this..will be pretty sparse
@@ -209,7 +203,7 @@ def configure_ray(agent):
         config['model'] = {}
         config['model']['fcnet_hiddens'] = [400, 300]
         config['model']['fcnet_activation'] = 'tanh'
-        config['horizon'] = 2048
+        # config['horizon'] = 2048
         config['lambda'] = 0.95
         config['sgd_minibatch_size'] = 64
         config['num_sgd_iter'] = 10  # assuming this is epochs...
