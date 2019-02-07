@@ -17,13 +17,15 @@ class BaseEnv(openAIGym):
     ACTION_MIN = 0.01
     ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "num_ports",
-                 "num_features", "num_actions", "steps", "progress_bar",
-                 "_handle_interrupt", "kill_env", "killed", "input_file",
-                 "output_dir"]
+                 "num_features", "num_actions", "steps", "reward",
+                 "progress_bar", "_handle_interrupt", "kill_env", "killed",
+                 "input_file", "output_dir"]
 
     def __init__(self, conf):
         self.conf = conf
+        # initialize the topology
         self.topo = self._create_topo(conf)
+        # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, conf["transport"])
         self.state_man = StateManager(self.topo, conf)
 
@@ -38,8 +40,9 @@ class BaseEnv(openAIGym):
             low=-np.inf, high=np.inf, dtype=np.float32,
             shape=(self.num_ports * self.num_features, ))
 
-        # set up the progress bar
+        # set up variables for the progress bar
         self.steps = 0
+        self.reward = 0
         self.progress_bar = tqdm(
             total=self.conf["iterations"], leave=False)
         self.progress_bar.clear()
@@ -73,7 +76,7 @@ class BaseEnv(openAIGym):
     def step(self, action):
         self.steps = self.steps + 1
         self.progress_bar.update(1)
-        # self.progress_bar.set_postfix(reward=self.reward)
+        self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
 
     def reset(self):
         print ("Resetting environment...")
