@@ -7,3 +7,8 @@
 	url = https://github.com/dcgym/goben
     path = contrib/goben
     ignore = dirty
+
+[submodule "pcc"]
+    url = https://github.com/PCCproject/PCC-Kernel
+    path = contrib/pcc
+    ignore = dirty
