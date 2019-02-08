@@ -3,6 +3,7 @@ import re
 import multiprocessing
 import ctypes
 import os
+import time
 
 MAX_CAPACITY = 10e6   # Max capacity of link
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,11 +33,14 @@ class Collector(multiprocessing.Process):
             except KeyboardInterrupt:
                 print("%s: Caught Interrupt..." % self.name)
                 self.kill.set()
-        print ("%s: Exiting..." % self.name)
+        self._clean()
 
     def terminate(self):
         print("%s: Received termination signal" % self.name)
         self.kill.set()
+
+    def _clean(self):
+        print ("%s: Exiting..." % self.name)
 
 
 class BandwidthCollector(Collector):
@@ -97,29 +101,58 @@ class BandwidthCollector(Collector):
         self._get_bandwidths(self.iface_list)
 
 
+class Qdisc(ctypes.Structure):
+    pass
+
+
 class QueueCollector(Collector):
 
     def __init__(self, iface_list, shared_stats):
         Collector.__init__(self, iface_list)
         self.name = 'StatsCollector'
         self.stats = shared_stats
-        self.q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
-        self.q_lib.get_iface_queue.argtypes = [ctypes.c_char_p]
-        self.init_stats()
+        self.q_lib = self._init_stats()
+        # self._init_qdiscs(iface_list, self.q_lib)
 
-    def init_stats(self):
+    def _init_stats(self):
         tmp_stats = {}
-        tmp_stats["drops"] = 0
+        tmp_stats["backlog"] = 0
         tmp_stats["overlimits"] = 0
-        tmp_stats["queues"] = 0
+        tmp_stats["rate_bps"] = 0
+        tmp_stats["drops"] = 0
         for iface in self.iface_list:
             self.stats[iface] = tmp_stats
+        # init qdisc C library
+        q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
+        q_lib.init_qdisc_monitor.argtypes = [ctypes.c_char_p]
+        q_lib.init_qdisc_monitor.restype = ctypes.POINTER(Qdisc)
+        return q_lib
 
-    def _get_qdisc_stats(self):
-        for iface in self.iface_list:
+    # def _init_qdiscs(self, iface_list, q_lib):
+    #     self.qdisc_map = {}
+    #     for iface in iface_list:
+    #         qdisc = q_lib.init_qdisc_monitor(iface)
+    #         print (qdisc)
+    #         self.qdisc_map[iface] = qdisc
+
+    # def _clean(self):
+    #     for iface in self.iface_list:
+    #         qdisc = self.qdisc_map[iface]
+    #         self.q_lib.delete_qdisc_monitor(qdisc)
+
+    def _get_qdisc_stats(self, iface_list):
+        for iface in iface_list:
             tmp_queues = self.stats[iface]
-            queue_len = self.q_lib.get_iface_queue(iface.encode('ascii'))
-            tmp_queues["queues"] = queue_len
+            qdisc = self.q_lib.init_qdisc_monitor(iface)
+            queue_backlog = self.q_lib.get_qdisc_backlog(qdisc)
+            queue_drops = self.q_lib.get_qdisc_drops(qdisc)
+            queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
+            queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
+            tmp_queues["backlog"] = queue_backlog
+            tmp_queues["overlimits"] = queue_overlimits
+            tmp_queues["rate_bps"] = queue_rate_bps  # tx rate
+            tmp_queues["drops"] = queue_drops
+            self.q_lib.delete_qdisc_monitor(qdisc)
             self.stats[iface] = tmp_queues
 
     def _get_qdisc_stats_old(self, iface_list):
@@ -151,7 +184,9 @@ class QueueCollector(Collector):
 
     def _collect(self):
         # self._get_qdisc_stats(self.iface_list)
-        self._get_qdisc_stats()
+        self._get_qdisc_stats(self.iface_list)
+        # we are too fast, let it rest for a bit..
+        time.sleep(0.05)
 
 
 class FlowCollector(Collector):

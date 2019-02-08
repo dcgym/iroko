@@ -92,7 +92,8 @@ class BaseTopo():
         # os.system(tc_cmd + cmd)
 
         tc_cmd = "tc qdisc add dev %s " % (port)
-        cmd = "root handle 1: htb default 10 direct_qlen 0"
+        cmd = "root handle 1: estimator 1sec 8sec htb default 10 "
+        cmd += " direct_qlen 0 "
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
@@ -103,8 +104,8 @@ class BaseTopo():
 
         # Apply tc red to mark excess packets in the queue with ecn
         limit = int(self.MAX_QUEUE)
-        max_q = limit
-        min_q = limit / 3
+        max_q = limit / 4
+        min_q = max_q / 3
         tc_cmd = "tc qdisc add dev %s " % (port)
         cmd = "parent 1:10 handle 20:1 red "
         cmd += "limit %d " % (limit)
@@ -114,7 +115,7 @@ class BaseTopo():
         cmd += "max %d " % (max_q)
         cmd += "probability 0.001"
         if self.dctcp:
-            cmd += "ecn "
+            cmd += " ecn "
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 

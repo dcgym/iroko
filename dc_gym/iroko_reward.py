@@ -57,5 +57,5 @@ class RewardFunction:
         weight = 10 * float(self.num_interfaces) / float(len(self.host_ifaces))
         for iface, iface_stats in stats.items():
             queue_reward -= weight * \
-                (float(iface_stats["queues"]) / float(self.max_queue))**2
+                (float(iface_stats["backlog"]) / float(self.max_queue))**2
         return queue_reward

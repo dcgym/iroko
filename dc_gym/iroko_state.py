@@ -13,7 +13,7 @@ REWARD_MODEL = ["action", "queue", "std_dev"]
 class StateManager():
     DELTA_KEYS = ["delta_q_abs"]
     BW_KEYS = []
-    Q_KEYS = ["queues"]
+    Q_KEYS = ["backlog"]
     COLLECT_FLOWS = True
 
     def __init__(self, topo_conf, config, reward_fun=REWARD_MODEL):
@@ -101,13 +101,13 @@ class StateManager():
             # bws_tx_prev = stats_prev[iface]["bws_tx"]
             # drops_prev = stats_prev[iface]["drops"]
             # overlimits_prev = stats_prev[iface]["overlimits"]
-            queues_prev = stats_prev[iface]["queues"]
+            queues_prev = stats_prev[iface]["backlog"]
 
             # bws_rx_now = stats_now[iface]["bws_rx"]
             # bws_tx_now = stats_now[iface]["bws_tx"]
             # drops_now = stats_now[iface]["drops"]
             # overlimits_now = stats_now[iface]["overlimits"]
-            queues_now = stats_now[iface]["queues"]
+            queues_now = stats_now[iface]["backlog"]
 
             deltas[iface] = {}
             # if bws_rx_prev <= bws_rx_now:
