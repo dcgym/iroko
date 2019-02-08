@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import string
 
@@ -8,6 +9,10 @@ from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import CPULimitedHost
 from mininet.util import custom
+
+cwd = os.getcwd()
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, FILE_DIR)
 
 
 class BaseTopo():
@@ -23,6 +28,7 @@ class BaseTopo():
         self.host_ctrl_map = {}
         self.host_ips = []
         self.switch_id = self._generate_switch_id(options)
+        self.prev_cc = self._get_active_congestion_control()
         self._set_congestion_control(options)
 
     def _generate_switch_id(self, options):
@@ -36,9 +42,14 @@ class BaseTopo():
             for ch in range(5)])) for _ in range(5))
         return sw_id
 
+    def _get_active_congestion_control(self):
+        prev_cc = os.popen("sysctl -n net.ipv4.tcp_congestion_control").read()
+        return prev_cc
+
     def _set_congestion_control(self, options):
         self.dctcp = False
         self.tcp_nv = False
+        self.pcc = False
         if "dctcp" in options:
             os.system("modprobe tcp_dctcp")
             os.system("sysctl -w net.ipv4.tcp_ecn=1")
@@ -46,6 +57,10 @@ class BaseTopo():
         elif "tcp_nv" in options:
             self.tcp_nv = True
             os.system("modprobe tcp_nv")
+        elif "pcc" in options:
+            self.pcc = True
+            if (os.popen("lsmod | grep pcc").read() == ""):
+                os.system("insmod %s/tcp_pcc.ko" % FILE_DIR)
 
     def _set_host_ip(self, net, topo):
         raise NotImplementedError("Method _set_host_ip not implemented!")
@@ -192,6 +207,8 @@ class BaseTopo():
                 host.cmd("sysctl -w net.ipv4.tcp_ecn_fallback=0")
             elif self.tcp_nv:
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=nv")
+            elif self.pcc:
+                host.cmd("sysctl -w net.ipv4.tcp_congestion_control=pcc")
 
     def _configure_network(self):
         c0 = RemoteController(self.switch_id + "c0")
@@ -216,6 +233,10 @@ class BaseTopo():
     def delete_topo(self):
         if (self.dctcp):
             os.system("sysctl -w net.ipv4.tcp_ecn=0")
+        # reset the active host congestion control to the previous value
+        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+        os.system(cmd)
+        # destroy the mininet
         self.net.stop()
 
     def get_sw_ports(self):

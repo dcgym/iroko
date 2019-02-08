@@ -39,6 +39,13 @@ cd contrib
 cd ..
 fi
 
+
+# install the PCC kernel module
+if  [[ $1 = "--pcc" ]]; then
+make -C contrib/pcc/src/
+cp contrib/pcc/src/tcp_pcc.ko dc_gym/topos
+fi
+
 # required for traffic adjustment
 sudo apt install -y libnl-route-3-dev
 

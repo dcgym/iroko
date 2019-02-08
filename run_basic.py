@@ -25,8 +25,8 @@ PARSER.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
 PARSER.add_argument('--transport', dest='transport', default="udp",
                     help='Choose the transport protocol of the hosts.')
 PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
-                    help='must be string of either: PG,'
-                         ' DCTCP, TCP_NV or TCP', type=str.lower)
+                    help='must be string of either: PPO, DDPG, PG,'
+                         ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
 ARGS = PARSER.parse_args()
 
 

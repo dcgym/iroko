@@ -136,8 +136,6 @@ venv.bak/
 .mypy_cache/
 
 ################################################### Misc
-contrib/oflops
-contrib/openflow
 .DS_Store
 *.sublime-workspace
 *.sublime-project
@@ -148,3 +146,4 @@ dc_gym/data
 plots/
 dc_gym/control/node_control
 dc_gym/monitor/qdisc_stats
+*.ko

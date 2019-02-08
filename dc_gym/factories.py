@@ -1,12 +1,12 @@
 import sys
 import os
 cwd = os.getcwd()
-lib_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, lib_dir)
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, FILE_DIR)
 
 
 DEFAULT_ENV_CONFIG = {
-    "input_dir": lib_dir + '/inputs',
+    "input_dir": FILE_DIR + '/inputs',
     "output_dir": cwd + '/results',
     "topo": "dumbbell",
     "agent": "PPO",

@@ -29,7 +29,7 @@ PARSER.add_argument('--topo', '-to', dest='topo',
                     default='dumbbell', help='The topology to operate on.')
 PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
                     help='must be string of either: PPO, DDPG, PG,'
-                         ' DCTCP, TCP_NV or TCP', type=str.lower)
+                         ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
 PARSER.add_argument('--timesteps', '-t', dest='timesteps',
                     type=int, default=10000,
                     help='total number of timesteps to train rl agent, '
@@ -158,7 +158,7 @@ def get_agent(agent_name):
     except Exception as e:
         print ("%s Loading basic algorithm" % e)
         # We use PG as the base class for experiments
-        agent_class = type(agent_name, (MaxAgent,), {})
+        agent_class = type(agent_name.upper(), (MaxAgent,), {})
     return agent_class
 
 
