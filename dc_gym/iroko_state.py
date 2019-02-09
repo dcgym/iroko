@@ -1,17 +1,19 @@
 import numpy as np
-from multiprocessing import Manager
+from multiprocessing import Array
+from ctypes import c_ulong, c_double, c_ubyte
 
 from monitor.iroko_monitor import BandwidthCollector
 from monitor.iroko_monitor import QueueCollector
 from monitor.iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
 
-REWARD_MODEL = ["action", "queue", "std_dev"]
+# REWARD_MODEL = ["action", "queue", "std_dev"]
+REWARD_MODEL = ["action", "queue"]
 ###########################################
 
 
 class StateManager():
-    DELTA_KEYS = ["delta_q_abs"]
+    DELTA_KEYS = ["delta_backlog_abs"]
     BW_KEYS = []
     Q_KEYS = ["backlog"]
     COLLECT_FLOWS = True
@@ -22,13 +24,13 @@ class StateManager():
         self.num_ports = len(self.ports)
         self.topo_conf = topo_conf
         self._set_feature_length()
+        self._spawn_collectors(topo_conf.host_ips)
         self._set_reward(reward_fun, topo_conf)
-        self.spawn_collectors(topo_conf.host_ips)
         self._set_data_checkpoints(topo_conf)
 
     def terminate(self):
         self.flush()
-        self._terminate_collectors()
+        # self._terminate_collectors()
         self.reward_file.close()
         self.action_file.close()
         self.queue_file.close()
@@ -64,27 +66,32 @@ class StateManager():
         self.dopamin = RewardFunction(topo_conf.host_ctrl_map,
                                       self.ports,
                                       reward_fun, topo_conf.MAX_QUEUE,
-                                      topo_conf.MAX_CAPACITY)
+                                      topo_conf.MAX_CAPACITY, self.q_dict)
 
-    def spawn_collectors(self, host_ips):
-        manager = Manager()
+    def _spawn_collectors(self, host_ips):
 
         # Launch an asynchronous queue collector
-        self.q_stats = manager.dict()
-        self.q_stats_proc = QueueCollector(self.ports, self.q_stats)
+        self.q_dict = {"backlog": 0, "overlimits": 1,
+                       "drops": 2, "rate_bps": 3, "rate_pps": 4}
+        self.q_stats = Array(c_ulong, self.num_ports * len(self.q_dict))
+        self.q_stats_proc = QueueCollector(
+            self.ports, self.q_stats, self.q_dict)
         self.q_stats_proc.start()
         # Launch an asynchronous bandwidth collector
-        self.bw_stats = manager.dict()
-        self.bw_stats_proc = BandwidthCollector(self.ports, self.bw_stats)
+        self.bw_dict = {"bw_rx": 0, "bw_tx": 1}
+        self.bw_stats = Array(c_double, self.num_ports * len(self.bw_dict))
+        self.bw_stats_proc = BandwidthCollector(
+            self.ports, self.bw_stats, self.bw_dict)
         self.bw_stats_proc.start()
         # Launch an asynchronous flow collector
-        self.src_flows = manager.dict()
-        self.dst_flows = manager.dict()
+        self.flow_dict = {"src": 0, "dst": 1}
+        self.flow_stats = Array(
+            c_ubyte, self.num_ports * len(self.flow_dict) * len(host_ips))
         self.flows_proc = FlowCollector(
-            self.ports, host_ips, self.src_flows, self.dst_flows)
+            self.ports, host_ips, self.flow_stats, self.flow_dict)
         self.flows_proc.start()
         # initialize the stats matrix
-        self.prev_q_stats = self.q_stats.copy()
+        self.prev_q_stats = list(self.q_stats)
 
     def _terminate_collectors(self):
         if (self.q_stats_proc is not None):
@@ -94,20 +101,21 @@ class StateManager():
         if (self.flows_proc is not None):
             self.flows_proc.terminate()
 
-    def _compute_delta(self, stats_prev, stats_now):
+    def _compute_delta(self, ports, stats_prev, stats_now):
         deltas = {}
-        for iface in stats_prev.keys():
+        for index, iface in enumerate(ports):
+            offset = len(self.q_dict) * index
             # bws_rx_prev = stats_prev[iface]["bws_rx"]
             # bws_tx_prev = stats_prev[iface]["bws_tx"]
-            # drops_prev = stats_prev[iface]["drops"]
-            # overlimits_prev = stats_prev[iface]["overlimits"]
-            queues_prev = stats_prev[iface]["backlog"]
+            drops_prev = stats_prev[offset + self.q_dict["drops"]]
+            overlimits_prev = stats_prev[offset + self.q_dict["overlimits"]]
+            queues_prev = stats_prev[offset + self.q_dict["backlog"]]
 
-            # bws_rx_now = stats_now[iface]["bws_rx"]
-            # bws_tx_now = stats_now[iface]["bws_tx"]
-            # drops_now = stats_now[iface]["drops"]
-            # overlimits_now = stats_now[iface]["overlimits"]
-            queues_now = stats_now[iface]["backlog"]
+            # bws_rx_now = stats_now[offset + self.q_dict["bws_rx"]]
+            # bws_tx_now = stats_now[offset + self.q_dict["bws_tx"]]
+            drops_now = stats_now[offset + self.q_dict["drops"]]
+            overlimits_now = stats_now[offset + self.q_dict["overlimits"]]
+            queues_now = stats_now[offset + self.q_dict["backlog"]]
 
             deltas[iface] = {}
             # if bws_rx_prev <= bws_rx_now:
@@ -120,15 +128,15 @@ class StateManager():
             # else:
             #     deltas[iface]["delta_tx"] = 0
 
-            # if drops_prev < drops_now:
-            #     deltas[iface]["delta_d"] = 0
-            # else:
-            #     deltas[iface]["delta_d"] = 1
+            if drops_prev < drops_now:
+                deltas[iface]["delta_d"] = 0
+            else:
+                deltas[iface]["delta_d"] = 1
 
-            # if overlimits_prev < overlimits_now:
-            #     deltas[iface]["delta_ov"] = 0
-            # else:
-            #     deltas[iface]["delta_ov"] = 1
+            if overlimits_prev < overlimits_now:
+                deltas[iface]["delta_ov"] = 0
+            else:
+                deltas[iface]["delta_ov"] = 1
 
             if queues_prev < queues_now:
                 deltas[iface]["delta_q"] = 1
@@ -136,36 +144,39 @@ class StateManager():
                 deltas[iface]["delta_q"] = -1
             else:
                 deltas["delta_q"] = 0
-            deltas[iface]["delta_q_abs"] = queues_now - queues_prev
+            deltas[iface]["delta_backlog_abs"] = queues_now - queues_prev
             # deltas[iface]["delta_rx_abs"] = bws_rx_now - bws_rx_prev
             # deltas[iface]["delta_tx_abs"] = bws_tx_now - bws_tx_prev
         return deltas
 
     def collect(self):
-
         obs = np.zeros((self.num_ports, self.num_features))
 
         # retrieve the current deltas before updating total values
-        delta_vector = self._compute_delta(self.prev_q_stats, self.q_stats)
-        self.prev_q_stats = self.q_stats.copy()
+        delta_vector = self._compute_delta(
+            self.ports, self.prev_q_stats, self.q_stats)
+        self.prev_q_stats = list(self.q_stats)
         # Create the data matrix for the agent based on the collected stats
-        for i, iface in enumerate(self.ports):
+        for index, iface in enumerate(self.ports):
             state = []
             deltas = delta_vector[iface]
             for key in self.DELTA_KEYS:
                 state.append(deltas[key])
             for key in self.Q_KEYS:
-                state.append(self.q_stats[iface][key])
+                offset = len(self.q_dict) * index
+                state.append(int(self.q_stats[offset + self.q_dict[key]]))
             for key in self.BW_KEYS:
-                state.append(self.bw_stats[iface][key])
+                offset = len(self.bw_dict) * index
+                state.append(float(self.bw_stats[offset + self.bw_dict[key]]))
             if self.COLLECT_FLOWS:
-                state += self.src_flows[iface]
-                state += self.dst_flows[iface]
+                flow_len = len(self.topo_conf.host_ips) * len(self.flow_dict)
+                offset = flow_len * index
+                state.extend(self.flow_stats[offset:(offset + flow_len)])
             # print("State %s: %s " % (iface, state))
-            obs[i] = np.array(state)
+            obs[index] = np.array(state)
         # Save collected data
-        self.queues_per_port.append(self.q_stats.copy())
-        self.bws_per_port.append(self.bw_stats.copy())
+        self.queues_per_port.append(list(self.q_stats))
+        self.bws_per_port.append(list(self.bw_stats))
         return obs
 
     def compute_reward(self, curr_action):

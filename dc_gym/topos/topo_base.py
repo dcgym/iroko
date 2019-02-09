@@ -92,7 +92,7 @@ class BaseTopo():
         # os.system(tc_cmd + cmd)
 
         tc_cmd = "tc qdisc add dev %s " % (port)
-        cmd = "root handle 1: estimator 1sec 8sec htb default 10 "
+        cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
         cmd += " direct_qlen 0 "
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
@@ -104,7 +104,7 @@ class BaseTopo():
 
         # Apply tc red to mark excess packets in the queue with ecn
         limit = int(self.MAX_QUEUE)
-        max_q = limit / 4
+        max_q = limit
         min_q = max_q / 3
         tc_cmd = "tc qdisc add dev %s " % (port)
         cmd = "parent 1:10 handle 20:1 red "
@@ -177,7 +177,7 @@ class BaseTopo():
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-        os.system("ip link set %s txqueuelen 1" % (port))
+        # os.system("ip link set %s txqueuelen 1" % (port))
 
     def _config_links(self):
         for switch in self.net.switches:

@@ -13,7 +13,7 @@ from factories import TopoFactory
 
 
 class BaseEnv(openAIGym):
-    WAIT = 0.05      # amount of seconds the agent waits per iteration
+    WAIT = 0.0      # amount of seconds the agent waits per iteration
     ACTION_MIN = 0.01
     ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "num_ports",
@@ -43,11 +43,10 @@ class BaseEnv(openAIGym):
         # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
-        self.progress_bar = tqdm(
-            total=self.conf["iterations"], leave=False)
-        self.progress_bar.clear()
-
+        # self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
+        # self.progress_bar.clear()
         # handle unexpected exits scenarios gracefully
+        print("Registering signal handler.")
         signal.signal(signal.SIGINT, self._handle_interrupt)
         signal.signal(signal.SIGTERM, self._handle_interrupt)
         atexit.register(self.kill_env)
@@ -75,8 +74,8 @@ class BaseEnv(openAIGym):
 
     def step(self, action):
         self.steps = self.steps + 1
-        self.progress_bar.update(1)
-        self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
+        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
+        # self.progress_bar.update(1)
 
     def reset(self):
         print ("Resetting environment...")
@@ -101,7 +100,7 @@ class BaseEnv(openAIGym):
             print("Chill, I am already cleaning up...")
             return
         self.killed = True
-        self.progress_bar.close()
+        # self.progress_bar.close()
         self.state_man.terminate()
         self.traffic_gen.stop_traffic()
         self.topo.delete_topo()

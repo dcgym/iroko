@@ -5,7 +5,9 @@
 #include "raw_udp_socket.h"
 
 static sig_atomic_t sigint = 0;
+static struct sigaction prev_handler;
 static uint16_t src_port;
+typedef void (*sighandler_t)(int);
 
 void fill_frame(uint8_t *ether_frame) {
 
@@ -103,22 +105,33 @@ void walk_ring(struct ring *ring_rx) {
 #endif
 
 
-void wait_for_reply(struct ring *ring_rx) {
-    walk_ring(ring_rx);
-}
-
-static void sighandler(int num) {
+void sighandler(int num) {
     sigint = 1;
 }
 
+void wait_for_reply(struct ring *ring_rx) {
+    // Replace the signal handler with the internal C signal handler.
+    signal(SIGINT, sighandler);
+    // Wait for a packet.
+    walk_ring(ring_rx);
+    // We are done, restore the original handler.
+    sigaction(SIGINT, &prev_handler, NULL );
+    // If we stopped because of an interrupt raise another one for Python.
+    if (sigint)
+        raise(SIGINT);
+}
+
+
 struct ring *init_ring(const char *iface, uint16_t filter_port, int ring_type) {
+    // We save the current active signal handler
+    sigaction(SIGINT, NULL, &prev_handler);
+
     struct ring *ring = init_raw_backend(iface, filter_port, ring_type);
     if (ring_type == PACKET_RX_RING) {
         memset(&ring->pfd, 0, sizeof(ring->pfd));
         ring->pfd.fd = ring->socket;
         ring->pfd.events = POLLIN | POLLERR;
         ring->pfd.revents = 0;
-        signal(SIGINT, sighandler);
     }
     if (ring_type == PACKET_TX_RING)  {
         src_port = filter_port;

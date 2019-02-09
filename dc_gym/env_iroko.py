@@ -5,6 +5,7 @@ from control.iroko_bw_control import BandwidthController
 
 
 class DCEnv(BaseEnv):
+    WAIT = 0.1      # amount of seconds the agent waits per iteration
 
     def __init__(self, conf):
         # inputs:
@@ -21,11 +22,11 @@ class DCEnv(BaseEnv):
         done = not self.is_traffic_proc_alive()
 
         pred_bw = {}
-        # print ("Actions: ", end='')
+        print ("Iteration %d Actions: " % self.steps, end='')
         for i, h_iface in enumerate(self.topo.host_ctrl_map):
             pred_bw[h_iface] = action[i] * self.topo.MAX_CAPACITY
-            # rate = h_iface, pred_bw[h_iface] * 10 / self.topo.MAX_CAPACITY
-            # print("%s:%.2fmb " % (rate), end='')
+            rate = h_iface, pred_bw[h_iface] * 10 / self.topo.MAX_CAPACITY
+            print("%s:%.2fmb " % (rate), end='')
         self.ic.broadcast_bw(pred_bw)
 
         # observe for WAIT seconds minus time needed for computation

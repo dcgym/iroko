@@ -181,7 +181,7 @@ def plot(data_dir, plot_dir, name):
                 print ("Computing running queue mean...")
                 iface_queues = collapse_nested_dict_list(np_queues, DELIM)
                 np_queues = None
-                queues = get_nested_values_from_dict(iface_queues, "queues")
+                queues = get_nested_values_from_dict(iface_queues, "backlog")
                 iface_queues = None
                 mean_queues = running_mean(average_dict(queues)) / MAX_BW
                 queues = None
