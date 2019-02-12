@@ -8,12 +8,12 @@ from monitor.iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
 
 # REWARD_MODEL = ["action", "queue", "std_dev"]
-REWARD_MODEL = ["action", "queue"]
+REWARD_MODEL = ["action", "queue", "d_ol", "d_drops"]
 ###########################################
 
 
 class StateManager():
-    DELTA_KEYS = ["delta_backlog_abs"]
+    DELTA_KEYS = ["delta_backlog"]
     BW_KEYS = []
     Q_KEYS = ["backlog"]
     COLLECT_FLOWS = True
@@ -30,7 +30,7 @@ class StateManager():
 
     def terminate(self):
         self.flush()
-        # self._terminate_collectors()
+        self._terminate_collectors()
         self.reward_file.close()
         self.action_file.close()
         self.queue_file.close()
@@ -105,61 +105,37 @@ class StateManager():
         deltas = {}
         for index, iface in enumerate(ports):
             offset = len(self.q_dict) * index
-            # bws_rx_prev = stats_prev[iface]["bws_rx"]
-            # bws_tx_prev = stats_prev[iface]["bws_tx"]
+            # bws_rx_prev = stats_prev[iface]["bw_rx"]
+            # bws_tx_prev = stats_prev[iface]["bw_tx"]
             drops_prev = stats_prev[offset + self.q_dict["drops"]]
             overlimits_prev = stats_prev[offset + self.q_dict["overlimits"]]
             queues_prev = stats_prev[offset + self.q_dict["backlog"]]
 
-            # bws_rx_now = stats_now[offset + self.q_dict["bws_rx"]]
-            # bws_tx_now = stats_now[offset + self.q_dict["bws_tx"]]
+            # bws_rx_now = stats_now[offset + self.q_dict["bw_rx"]]
+            # bws_tx_now = stats_now[offset + self.q_dict["bw_tx"]]
             drops_now = stats_now[offset + self.q_dict["drops"]]
             overlimits_now = stats_now[offset + self.q_dict["overlimits"]]
             queues_now = stats_now[offset + self.q_dict["backlog"]]
 
             deltas[iface] = {}
-            # if bws_rx_prev <= bws_rx_now:
-            #     deltas[iface]["delta_rx"] = 1
-            # else:
-            #     deltas[iface]["delta_rx"] = 0
-
-            # if bws_tx_prev <= bws_tx_now:
-            #     deltas[iface]["delta_tx"] = 1
-            # else:
-            #     deltas[iface]["delta_tx"] = 0
-
-            if drops_prev < drops_now:
-                deltas[iface]["delta_d"] = 0
-            else:
-                deltas[iface]["delta_d"] = 1
-
-            if overlimits_prev < overlimits_now:
-                deltas[iface]["delta_ov"] = 0
-            else:
-                deltas[iface]["delta_ov"] = 1
-
-            if queues_prev < queues_now:
-                deltas[iface]["delta_q"] = 1
-            elif queues_prev > queues_now:
-                deltas[iface]["delta_q"] = -1
-            else:
-                deltas["delta_q"] = 0
-            deltas[iface]["delta_backlog_abs"] = queues_now - queues_prev
-            # deltas[iface]["delta_rx_abs"] = bws_rx_now - bws_rx_prev
-            # deltas[iface]["delta_tx_abs"] = bws_tx_now - bws_tx_prev
+            deltas[iface]["delta_backlog"] = queues_now - queues_prev
+            deltas[iface]["delta_overlimits"] = overlimits_now - overlimits_prev
+            deltas[iface]["delta_drops"] = drops_now - drops_prev
+            # deltas[iface]["delta_rx"] = bws_rx_now - bws_rx_prev
+            # deltas[iface]["delta_tx"] = bws_tx_now - bws_tx_prev
         return deltas
 
     def collect(self):
         obs = np.zeros((self.num_ports, self.num_features))
 
         # retrieve the current deltas before updating total values
-        delta_vector = self._compute_delta(
+        self.delta_vector = self._compute_delta(
             self.ports, self.prev_q_stats, self.q_stats)
         self.prev_q_stats = list(self.q_stats)
         # Create the data matrix for the agent based on the collected stats
         for index, iface in enumerate(self.ports):
             state = []
-            deltas = delta_vector[iface]
+            deltas = self.delta_vector[iface]
             for key in self.DELTA_KEYS:
                 state.append(deltas[key])
             for key in self.Q_KEYS:
@@ -182,7 +158,7 @@ class StateManager():
     def compute_reward(self, curr_action):
         # Compute the reward
         reward = self.dopamin.get_reward(
-            (self.q_stats, self.bw_stats), curr_action)
+            (self.q_stats, self.bw_stats, self.delta_vector), curr_action)
         self.action_per_port.append(curr_action)
         self.time_step_reward.append(reward)
         return reward

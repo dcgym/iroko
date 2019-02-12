@@ -11,6 +11,10 @@ from itertools import islice
 
 
 MAX_BW = 10e6
+Q_DICT = {"backlog": 0, "overlimits": 1,
+          "drops": 2, "rate_bps": 3, "rate_pps": 4}
+BW_DICT = {"bw_rx": 0, "bw_tx": 1}
+NUM_IFACES = 6
 
 
 def check_plt_dir(plt_name):
@@ -83,6 +87,29 @@ def collapse_nested_dict_list(dict_list, delim):
     return tmp
 
 
+def collapse_nested_array(array_list, delim, dict_len):
+    ''' Take a list of dictionaries and merge them according to their keys.
+      [{key1: valx, key2: valy}, {key1: vala, key2: valb}]
+      -> {key1: [valx, vala], key2: [valy, valb]}'''
+    tmp = []
+    for arr in array_list:
+        # print(np.average(arr.reshape((NUM_IFACES, len(Q_DICT))), axis=0))
+        tmp_arr = np.average(arr.reshape((NUM_IFACES, dict_len)), axis=0)
+        tmp.append(tmp_arr)
+    return tmp
+
+
+def get_nested_values_from_array(array_list, nested_key, base_dict):
+    ''' Find nested key in dictionary and bring it to the top.
+      Destroys the key in the process.
+      {key1: {keyx:valx keyy:valy}, key2: {keyx:vala keyy:valb}}
+      -> [key1:valx, key2:vala} '''
+    tmp = []
+    for arr in array_list:
+        tmp.append(arr[base_dict[nested_key]])
+    return tmp
+
+
 def parse_config(results_dir):
     with open(results_dir + "/test_config.json") as conf_file:
         return json.load(conf_file)
@@ -127,6 +154,7 @@ def plot(data_dir, plot_dir, name):
         ax1 = ax[0]
         ax2 = ax[1]
         ax3 = ax[2]
+
         mark_iterator = itertools.cycle((".", ",", "o", "v", "^", "<", ">"))
         line_iterator = itertools.cycle(('--', '-.', '-', ':'))
         colour = itertools.cycle(('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w'))
@@ -138,11 +166,15 @@ def plot(data_dir, plot_dir, name):
         plt_actions = {}
         plt_queues = {}
         plt_bandwidths = {}
+        plt_overlimits_bar = {}
+        plt_drops_bar = {}
         for i, algo in enumerate(algos):
             rewards_list = []
             actions_list = []
             queues_list = []
             bandwidths_list = []
+            overlimits_bar_list = []
+            drops_bar_list = []
             for index in range(runs):
                 run_dir = data_dir + "/%s/run%d" % (transport.lower(), index)
                 marker = mark_iterator.next()
@@ -179,23 +211,39 @@ def plot(data_dir, plot_dir, name):
                 if len(mean_actions) != 0:
                     actions_list.append(mean_actions)
                 print ("Computing running queue mean...")
-                iface_queues = collapse_nested_dict_list(np_queues, DELIM)
+                iface_queues = collapse_nested_array(
+                    np_queues, DELIM, len(Q_DICT))
                 np_queues = None
-                queues = get_nested_values_from_dict(iface_queues, "backlog")
+                queues = get_nested_values_from_array(
+                    iface_queues, "backlog", Q_DICT)
+                drops = get_nested_values_from_array(
+                    iface_queues, "drops", Q_DICT)
+                overlimits = get_nested_values_from_array(
+                    iface_queues, "overlimits", Q_DICT)
                 iface_queues = None
-                mean_queues = running_mean(average_dict(queues)) / MAX_BW
+                mean_queues = running_mean(queues) / MAX_BW
+                mean_bar_overlimits = np.average(overlimits)
+                mean_bar_drops = np.average(drops)
                 queues = None
+                overlimits = None
+                drops = None
                 if len(mean_queues) != 0:
                     queues_list.append(mean_queues)
+                    drops_bar_list.append(mean_bar_drops)
+                    overlimits_bar_list.append(mean_bar_overlimits)
+                mean_queues = None
+                mean_bar_overlimits = None
+                mean_bar_drops = None
                 # bandwidths
                 print ("Loading %s..." % bw_file)
                 np_bws = load_file(bw_file)
                 print ("Computing running bandwidth mean...")
-                iface_bws = collapse_nested_dict_list(np_bws, DELIM)
+                iface_bws = collapse_nested_array(np_bws, DELIM, len(BW_DICT))
                 np_bws = None
-                bws = get_nested_values_from_dict(iface_bws, "bws_rx")
+                bws = get_nested_values_from_array(
+                    iface_bws, "bw_rx", BW_DICT)
                 iface_bws = None
-                mean_bw = 10 * running_mean(average_dict(bws)) / MAX_BW
+                mean_bw = 10 * running_mean(bws) / MAX_BW
                 bws = None
                 if len(mean_bw) != 0:
                     bandwidths_list.append(mean_bw)
@@ -205,6 +253,10 @@ def plot(data_dir, plot_dir, name):
             actions_list = None
             plt_queues[algo] = np.average(queues_list, axis=0)
             queues_list = None
+            plt_overlimits_bar[algo] = np.average(overlimits_bar_list, axis=0)
+            overlimits_bar_list = None
+            plt_drops_bar[algo] = np.average(drops_bar_list, axis=0)
+            drops_bar_list = None
             plt_bandwidths[algo] = np.average(bandwidths_list, axis=0)
             bandwidths_list = None
 
@@ -228,7 +280,6 @@ def plot(data_dir, plot_dir, name):
                                  reward_min) / (reward_max - reward_min)
             normalized_queues = plt_queues[algo] / queue_max
             normalized_bw = plt_bandwidths[algo] / bw_max
-
             if algo.lower() == "pg":
                 algo = "REINFORCE"
             ax1.plot(normalized_reward, label=algo, linewidth=linewidth,
@@ -270,6 +321,21 @@ def plot(data_dir, plot_dir, name):
         check_plt_dir(plt_name)
         plt.savefig(plt_name + ".pdf")
         plt.savefig(plt_name + ".png")
+        plt.gcf().clear()
+
+        fig, ax = plt.subplots(2, 1, figsize=(20, 10))
+        ax_overlimits = ax[0]
+        ax_drops = ax[1]
+        ax_overlimits.set_ylabel('drop avg')
+        ax_drops.set_ylabel('overlimit avg')
+        ax_overlimits.get_xaxis().set_visible(False)
+        X = np.arange(len(plt_overlimits_bar))
+        ax_overlimits.bar(X, plt_overlimits_bar.values(),
+                          tick_label=plt_overlimits_bar.keys())
+        ax_drops.bar(X, plt_drops_bar.values(),
+                     tick_label=plt_drops_bar.keys())
+        plt.savefig(plt_name + "_bar.pdf")
+        plt.savefig(plt_name + "_bar.png")
         plt.gcf().clear()
 
 

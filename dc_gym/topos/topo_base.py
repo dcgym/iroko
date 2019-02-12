@@ -81,6 +81,7 @@ class BaseTopo():
 
     def _apply_qdisc(self, port):
         ''' Here be dragons... '''
+
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1: hfsc default 10"
         # print (tc_cmd + cmd)
@@ -104,7 +105,7 @@ class BaseTopo():
 
         # Apply tc red to mark excess packets in the queue with ecn
         limit = int(self.MAX_QUEUE)
-        max_q = limit
+        max_q = limit / 4
         min_q = max_q / 3
         tc_cmd = "tc qdisc add dev %s " % (port)
         cmd = "parent 1:10 handle 20:1 red "
