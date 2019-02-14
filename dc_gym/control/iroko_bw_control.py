@@ -1,6 +1,6 @@
-import gevent
 import os
 import ctypes
+import gevent
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,8 +15,7 @@ class BandwidthController():
     PACKET_RX_RING = 5
     PACKET_TX_RING = 13
 
-    def __init__(self, name, host_ctrl_map):
-        name = name
+    def __init__(self, host_ctrl_map):
         self.host_ctrl_map = host_ctrl_map
         # self.sock_map = self.bind_sockets(host_ctrl_map)
         self.bw_lib = self.init_backend()
@@ -35,31 +34,33 @@ class BandwidthController():
     def init_transmissions_rings(self, host_ctrl_map):
         ring_list = {}
         for sw_iface, ctrl_iface in host_ctrl_map.items():
+            ring_list[sw_iface] = {}
             rx_ring = self.bw_lib.init_ring(
                 ctrl_iface.encode('ascii'), self.SRC_PORT,
                 self.PACKET_RX_RING)
             tx_ring = self.bw_lib.init_ring(
                 ctrl_iface.encode('ascii'), self.SRC_PORT,
                 self.PACKET_TX_RING)
-            ring_list[sw_iface] = (rx_ring, tx_ring)
+            ring_list[sw_iface]["rx"] = rx_ring
+            ring_list[sw_iface]["tx"] = tx_ring
         return ring_list
 
     def send_cntrl_pckt(self, iface, txrate):
         # Get the tx ring to transmit a packet
-        tx_ring = self.ring_list[iface][1]
+        tx_ring = self.ring_list[iface]["tx"]
         self.bw_lib.send_bw_allocation(int(txrate), tx_ring, self.DST_PORT)
 
     def await_response(self, iface):
-        rx_ring = self.ring_list[iface][0]
+        rx_ring = self.ring_list[iface]["rx"]
         # we do not care about payload
         # we only care about packets that pass the bpf filter
         self.bw_lib.wait_for_reply(rx_ring)
 
-    def broadcast_bw(self, bw_map):
-        for iface, txrate in bw_map.items():
-            self.send_cntrl_pckt(iface, txrate)
-        for iface in bw_map.keys():
-            self.await_response(iface)
+    def broadcast_bw(self, txrates, host_ctrl_map):
+        for index, ctrl_iface in enumerate(host_ctrl_map):
+            self.send_cntrl_pckt(ctrl_iface, txrates[index])
+        for ctrl_iface in host_ctrl_map.keys():
+            self.await_response(ctrl_iface)
 
 
 # small script to test the functionality of the bw control operations

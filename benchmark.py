@@ -18,7 +18,7 @@ RL_ALGOS = ["PPO", "DDPG", "PG"]
 TCP_ALGOS = ["TCP", "DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 TRANSPORT = ["udp", "tcp"]
-RUNS = 5
+RUNS = 1
 STEPS = 50000
 TOPO = "dumbbell"
 TUNE = True
@@ -36,8 +36,8 @@ def check_dir(directory):
 def generate_testname(output_dir):
     n_folders = 0
     if os.path.isdir(output_dir):
-        list = os.listdir(output_dir)
-        n_folders = len(list)
+        f_list = os.listdir(output_dir)
+        n_folders = len(f_list)
     # Host name and a time stamp
     testname = "%s_%s" % (socket.gethostname(), n_folders)
     return testname
@@ -61,9 +61,9 @@ def dump_config(path):
 def run_tests():
     testname = generate_testname(OUTPUT_DIR)
     results_dir = "%s/%s" % (OUTPUT_DIR, testname)
-    print ("Saving results to %s" % results_dir)
+    print("Saving results to %s" % results_dir)
     check_dir(results_dir)
-    print ("Dumping configuration in %s" % results_dir)
+    print("Dumping configuration in %s" % results_dir)
     dump_config(results_dir)
     for transport in TRANSPORT:
         for index in range(RUNS):
@@ -74,12 +74,12 @@ def run_tests():
                 cmd += "-t %d " % STEPS
                 cmd += "--output %s " % results_subdir
                 cmd += "--topo %s " % TOPO
-                if (TUNE):
+                if TUNE:
                     cmd += "--tune "
-                if (RESTORE):
+                if RESTORE:
                     cmd += "--restore %s " % RESTORE_PATH
                 # always use TCP if we are dealing with a TCP algorithm
-                if (algo in TCP_ALGOS):
+                if algo in TCP_ALGOS:
                     cmd += "--transport tcp "
                 else:
                     cmd += "--transport %s " % transport

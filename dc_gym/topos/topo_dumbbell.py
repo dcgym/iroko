@@ -1,6 +1,6 @@
 import os
-from mininet.topo import Topo
 from topos.topo_base import BaseTopo
+from mininet.topo import Topo
 from mininet.log import info, output, warn, error, debug
 
 

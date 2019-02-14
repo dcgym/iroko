@@ -41,9 +41,9 @@ def test_run(input_dir, output_dir, env, topo):
     # Assemble a configuration dictionary for the environment
     env_config = {
         "input_dir": input_dir,
-        "output_dir": ARGS.output_dir,
-        "env": ARGS.env,
-        "topo": ARGS.topo,
+        "output_dir": output_dir,
+        "env": env,
+        "topo": topo,
         "agent": ARGS.agent,
         "transport": ARGS.transport,
         "iterations": ARGS.timesteps,
@@ -58,7 +58,7 @@ def test_run(input_dir, output_dir, env, topo):
 
 
 def clean():
-    print ("Removing all traces of Mininet")
+    print("Removing all traces of Mininet")
     os.system('sudo mn -c')
     os.system("sudo killall -9 goben")
     os.system("sudo killall -9 node_control")

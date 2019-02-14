@@ -5,17 +5,6 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
 
 
-DEFAULT_ENV_CONFIG = {
-    "input_dir": FILE_DIR + '/inputs',
-    "output_dir": cwd + '/results',
-    "topo": "dumbbell",
-    "agent": "PPO",
-    "transport": "udp",
-    "tf_index": 0,
-    "env": "iroko"
-}
-
-
 def import_from(module, name):
     """ Try to import a module and class directly instead of the typical
         Python method. Allows for dynamic imports. """
@@ -27,7 +16,7 @@ class EnvFactory(object):
     """ Generator class.
      Returns a target subclass based on the provided target option."""
     @staticmethod
-    def create(config=DEFAULT_ENV_CONFIG):
+    def create(config):
         env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
 

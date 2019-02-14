@@ -35,6 +35,9 @@ class Collector(multiprocessing.Process):
                 self.kill.set()
         self._clean()
 
+    def _collect(self):
+        raise NotImplementedError("Method _collect not implemented!")
+
     def terminate(self):
         print("%s: Received termination signal! Exiting.." % self.name)
         self.kill.set()
@@ -45,12 +48,12 @@ class Collector(multiprocessing.Process):
 
 class BandwidthCollector(Collector):
 
-    def __init__(self, iface_list, shared_stats, bw_dict):
+    def __init__(self, iface_list, shared_stats, stats_dict):
         Collector.__init__(self, iface_list)
         self.name = 'StatsCollector'
         self.stats = shared_stats
-        self.bw_dict = bw_dict
-        self.stats_offset = len(bw_dict)
+        self.stats_dict = stats_dict
+        self.stats_offset = len(stats_dict)
 
     def _get_bandwidths(self, iface_list):
 
@@ -63,21 +66,15 @@ class BandwidthCollector(Collector):
             processes.append((proc, iface))
 
         for index, (proc, iface) in enumerate(processes):
-            offset = self.stats_offset * index
             proc.wait()
             output, _ = proc.communicate()
             output = output.decode()
             bw = output.split(',')
-            try:
-                self.stats[offset + self.bw_dict["bw_rx"]
-                           ] = float(bw[0]) * 1000
-                self.stats[offset + self.bw_dict["bw_tx"]
-                           ] = float(bw[1]) * 1000
-            except Exception:
-                # print("Error Collecting Bandwidth: %s" % e)
-                self.stats[offset + self.bw_dict["bw_rx"]] = 0
-                self.stats[offset + self.bw_dict["bw_tx"]] = 0
-                self.kill.set()
+            if bw[0] != 'n/a' and bw[1] != ' n/a\n':
+                bps_rx = int(float(bw[0]) * 1000)
+                bps_tx = int(float(bw[1]) * 1000)
+                self.stats[index][self.stats_dict["bw_rx"]] = bps_rx
+                self.stats[index][self.stats_dict["bw_tx"]] = bps_tx
 
     def _collect(self):
         self._get_bandwidths(self.iface_list)
@@ -89,12 +86,12 @@ class Qdisc(ctypes.Structure):
 
 class QueueCollector(Collector):
 
-    def __init__(self, iface_list, shared_stats, q_dict):
+    def __init__(self, iface_list, shared_stats, stats_dict):
         Collector.__init__(self, iface_list)
         self.name = 'QueueCollector'
         self.stats = shared_stats
-        self.q_dict = q_dict
-        self.stats_offset = len(q_dict)
+        self.stats_dict = stats_dict
+        self.stats_offset = len(stats_dict)
         self.q_lib = self._init_stats()
 
     def _init_stats(self):
@@ -118,20 +115,19 @@ class QueueCollector(Collector):
 
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
-            offset = self.stats_offset * index
             qdisc = self.q_lib.init_qdisc_monitor(iface)
             queue_backlog = self.q_lib.get_qdisc_backlog(qdisc)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)
             queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
-            queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
-            queue_rate_pps = self.q_lib.get_qdisc_rate_pps(qdisc)
-            self.stats[offset + self.q_dict["backlog"]] = queue_backlog
-            self.stats[offset + self.q_dict["overlimits"]] = queue_overlimits
-            # tx rate
-            self.stats[offset + self.q_dict["rate_bps"]] = queue_rate_bps
-            # packet rate
-            self.stats[offset + self.q_dict["rate_pps"]] = queue_rate_pps
-            self.stats[offset + self.q_dict["drops"]] = queue_drops
+            # queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
+            # queue_rate_pps = self.q_lib.get_qdisc_rate_pps(qdisc)
+            self.stats[index][self.stats_dict["backlog"]] = queue_backlog
+            self.stats[index][self.stats_dict["olimit"]] = queue_overlimits
+            self.stats[index][self.stats_dict["drops"]] = queue_drops
+            # # tx rate
+            # self.stats[index][self.stats_dict["rate_bps"]] = queue_rate_bps
+            # # packet rate
+            # self.stats[index][self.stats_dict["rate_pps"]] = queue_rate_pps
             self.q_lib.delete_qdisc_monitor(qdisc)
 
     def _get_qdisc_stats_old(self, iface_list):
@@ -168,26 +164,26 @@ class QueueCollector(Collector):
 
 class FlowCollector(Collector):
 
-    def __init__(self, iface_list, host_ips, shared_flows, flow_dict):
+    def __init__(self, iface_list, host_ips, shared_flows):
         Collector.__init__(self, iface_list)
         self.name = 'FlowCollector'
         self.host_ips = host_ips
         self.shared_flows = shared_flows
-        self.flow_dict = flow_dict
-        self.stats_offset = len(flow_dict)
 
     def _get_flow_stats(self, iface_list):
         processes = []
         for iface in iface_list:
-            cmd = ("sudo timeout 1 tcpdump -l -i " + iface + " -n -c 20 ip 2>/dev/null | " +
-                   "grep -P -o \'([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+).*? > ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\' | " + "grep -P -o \'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\' | xargs -n 2 echo | awk \'!a[$0]++\'")
+            cmd = "sudo timeout 1 tcpdump -l -i %s " % iface
+            cmd += "-n -c 20 ip 2>/dev/null | "
+            cmd += "grep -P -o \'([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+).*? > "
+            cmd += "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)\' | "
+            cmd += "grep -P -o \'[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\' | "
+            cmd += "xargs -n 2 echo | awk \'!a[$0]++\'"
             # output = subprocess.check_output(cmd, shell=True)
             proc = subprocess.Popen(
                 [cmd], stdout=subprocess.PIPE, shell=True)
             processes.append((proc, iface))
-
         for index, (proc, iface) in enumerate(processes):
-            offset = self.stats_offset * index
             proc.wait()
             output, _ = proc.communicate()
             output = output.decode()
@@ -195,14 +191,14 @@ class FlowCollector(Collector):
                 if row != '':
                     src, dst = row.split(' ')
                     for i, ip in enumerate(self.host_ips):
-                        i_src = offset + self.flow_dict["src"] + i
-                        i_dst = offset + self.flow_dict["dst"] + i
-                        self.shared_flows[i_src] = 0
-                        self.shared_flows[i_dst] = 0
+                        i_src = 0
+                        i_dst = 1
+                        self.shared_flows[index][i_src][i] = 0
+                        self.shared_flows[index][i_dst][i] = 0
                         if src == ip:
-                            self.shared_flows[i_src] = 1
+                            self.shared_flows[index][i_src][i] = 1
                         if dst == ip:
-                            self.shared_flows[i_dst] = 1
+                            self.shared_flows[index][i_dst][i] = 1
 
     def _collect(self):
         self._get_flow_stats(self.iface_list)

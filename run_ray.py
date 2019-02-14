@@ -114,7 +114,7 @@ def set_tuning_parameters(agent, config):
         hype_params["train_batch_size"] = [1000, 2000, 4000]
         hype_params["sgd_minibatch_size"] = [16, 32, 64, 128]
         hype_params["num_sgd_iter"] = lambda: random.randint(1, 30)
-        hype_params["lambda"] = lambda: random.random()  # GAE param
+        hype_params["lambda"] = random.random()  # GAE param
         # initial coeff of KL term
         hype_params["kl_coeff"] = lambda: random.uniform(.1, .8)
         # size of clipping in PPO term
@@ -125,9 +125,9 @@ def set_tuning_parameters(agent, config):
             0.0, 0.05)  # .1 might be a bit high
         explore = ppo_explore
 
-    for k in hype_params.keys():
+    for k in hype_params:
         # just to give some variation at start
-        if isinstance(hype_params[k], list) and not (k == 'lr'):
+        if isinstance(hype_params[k], list) and not k == 'lr':
             if k == 'train_batch_size':
                 config[k] = lambda spec: random.choice([1000, 2000, 4000])
             if k == 'sgd_minibatch_size':
@@ -144,7 +144,7 @@ def set_tuning_parameters(agent, config):
 
 def clean():
     ''' A big fat hammer to get rid of all the debris left over by ray '''
-    print ("Removing all previous traces of Mininet and ray")
+    print("Removing all previous traces of Mininet and ray")
     ray_kill = "sudo kill -9 $(ps aux | grep 'ray/workers' | awk '{print $2}')"
     os.system(ray_kill)
     os.system('sudo mn -c')
@@ -156,7 +156,7 @@ def get_agent(agent_name):
     try:
         agent_class = get_agent_class(agent_name.upper())
     except Exception as e:
-        print ("%s Loading basic algorithm" % e)
+        print("%s Loading basic algorithm" % e)
         # We use PG as the base class for experiments
         agent_class = type(agent_name.upper(), (MaxAgent,), {})
     return agent_class
@@ -187,7 +187,7 @@ def get_tune_experiment(config, agent):
             # custom changes to experiment
             print("Performing tune experiment")
             config, scheduler = set_tuning_parameters(agent, config)
-    config["env_config"]["parallel_envs"] = True
+    # config["env_config"]["parallel_envs"] = True
     experiment[name]["config"] = config
     return experiment, scheduler
 

@@ -7,13 +7,11 @@ import numpy as np
 import itertools
 import os
 import json
-from itertools import islice
 
 
 MAX_BW = 10e6
-Q_DICT = {"backlog": 0, "overlimits": 1,
-          "drops": 2, "rate_bps": 3, "rate_pps": 4}
-BW_DICT = {"bw_rx": 0, "bw_tx": 1}
+STATS_DICT = {"backlog": 0, "olimit": 1,
+              "drops": 2, "bw_rx": 3, "bw_tx": 4}
 NUM_IFACES = 6
 
 
@@ -46,7 +44,7 @@ def average_dict(input_dict):
     tmp = []
     for key, val in input_dict.items():
         tmp.append(val)
-    return np.average(tmp, axis=0)
+    return np.mean(tmp, axis=0)
 
 
 def get_iface_ids(key_list, delim):
@@ -83,20 +81,22 @@ def collapse_nested_dict_list(dict_list, delim):
         for key in keys_list:
             # iface_id = delim + key.split(delim)[1]
             tmp.setdefault(key, []).append(d[key])
-    # ret_list = {k: np.average(tmp[k], axis=0) for k in tmp}
+    # ret_list = {k: np.mean(tmp[k], axis=0) for k in tmp}
     return tmp
 
 
-def collapse_nested_array(array_list, delim, dict_len):
+def collapse_nested_array(array_list, dict_len=None):
     ''' Take a list of dictionaries and merge them according to their keys.
       [{key1: valx, key2: valy}, {key1: vala, key2: valb}]
       -> {key1: [valx, vala], key2: [valy, valb]}'''
     tmp = []
     for arr in array_list:
-        # print(np.average(arr.reshape((NUM_IFACES, len(Q_DICT))), axis=0))
-        tmp_arr = np.average(arr.reshape((NUM_IFACES, dict_len)), axis=0)
-        tmp.append(tmp_arr)
-    return tmp
+        if dict_len:
+            tmp_arr = arr.reshape((NUM_IFACES, dict_len))
+        else:
+            tmp_arr = arr
+        tmp.append(np.average(tmp_arr, axis=0))
+    return np.array(tmp)
 
 
 def get_nested_values_from_array(array_list, nested_key, base_dict):
@@ -107,7 +107,7 @@ def get_nested_values_from_array(array_list, nested_key, base_dict):
     tmp = []
     for arr in array_list:
         tmp.append(arr[base_dict[nested_key]])
-    return tmp
+    return np.array(tmp)
 
 
 def parse_config(results_dir):
@@ -177,57 +177,56 @@ def plot(data_dir, plot_dir, name):
             drops_bar_list = []
             for index in range(runs):
                 run_dir = data_dir + "/%s/run%d" % (transport.lower(), index)
-                marker = mark_iterator.next()
-                linestyle = line_iterator.next()
+                marker = next(mark_iterator)
+                linestyle = next(line_iterator)
                 offset = num_timesteps * 0.25 + i * num_timesteps * 0.05
                 reward_file = '%s/reward_per_step_%s.npy' % (
                     run_dir, algo.lower())
                 actions_file = '%s/action_per_step_by_port_%s.npy' % (
                     run_dir, algo.lower())
-                queue_file = '%s/queues_per_step_by_port_%s.npy' % (
-                    run_dir, algo.lower())
-                bw_file = '%s/bandwidths_per_step_by_port_%s.npy' % (
+                stats_file = '%s/stats_per_step_by_port_%s.npy' % (
                     run_dir, algo.lower())
 
-                print ("Computing running reward mean...")
+                print("Computing running reward mean...")
                 # rewards
-                print ("Loading %s..." % reward_file)
+                print("Loading %s..." % reward_file)
                 np_rewards = load_file(reward_file)
                 rewards = running_mean(np_rewards)
                 np_rewards = None
-                if len(rewards) != 0:
+                if rewards:
                     rewards_list.append(rewards)
                 # actions
-                print ("Loading %s..." % actions_file)
+                print("Loading %s..." % actions_file)
                 np_actions = load_file(actions_file)
-                print ("Computing running action mean...")
-                actions = collapse_nested_dict_list(np_actions, DELIM)
+                print("Computing running action mean...")
+                actions = collapse_nested_array(np_actions)
                 np_actions = None
-                mean_actions = running_mean(average_dict(actions)) / MAX_BW
+                mean_actions = running_mean(actions) / MAX_BW
                 actions = None
                 # queues
-                print ("Loading %s..." % queue_file)
-                np_queues = load_file(queue_file)
-                if len(mean_actions) != 0:
+                print("Loading %s..." % stats_file)
+                np_stats = load_file(stats_file)
+                if mean_actions.size:
                     actions_list.append(mean_actions)
-                print ("Computing running queue mean...")
-                iface_queues = collapse_nested_array(
-                    np_queues, DELIM, len(Q_DICT))
-                np_queues = None
+                print("Computing running queue mean...")
+                iface_stats = collapse_nested_array(np_stats, len(STATS_DICT))
+                np_stats = None
                 queues = get_nested_values_from_array(
-                    iface_queues, "backlog", Q_DICT)
+                    iface_stats, "backlog", STATS_DICT)
                 drops = get_nested_values_from_array(
-                    iface_queues, "drops", Q_DICT)
+                    iface_stats, "drops", STATS_DICT)
                 overlimits = get_nested_values_from_array(
-                    iface_queues, "overlimits", Q_DICT)
-                iface_queues = None
-                mean_queues = running_mean(queues) / MAX_BW
-                mean_bar_overlimits = np.average(overlimits)
-                mean_bar_drops = np.average(drops)
+                    iface_stats, "olimit", STATS_DICT)
+                bws = get_nested_values_from_array(
+                    iface_stats, "bw_rx", STATS_DICT)
+                iface_stats = None
+                mean_queues = running_mean(queues)
+                mean_bar_overlimits = np.mean(overlimits)
+                mean_bar_drops = np.mean(drops)
                 queues = None
                 overlimits = None
                 drops = None
-                if len(mean_queues) != 0:
+                if mean_queues.size:
                     queues_list.append(mean_queues)
                     drops_bar_list.append(mean_bar_drops)
                     overlimits_bar_list.append(mean_bar_overlimits)
@@ -235,45 +234,37 @@ def plot(data_dir, plot_dir, name):
                 mean_bar_overlimits = None
                 mean_bar_drops = None
                 # bandwidths
-                print ("Loading %s..." % bw_file)
-                np_bws = load_file(bw_file)
-                print ("Computing running bandwidth mean...")
-                iface_bws = collapse_nested_array(np_bws, DELIM, len(BW_DICT))
-                np_bws = None
-                bws = get_nested_values_from_array(
-                    iface_bws, "bw_rx", BW_DICT)
-                iface_bws = None
                 mean_bw = 10 * running_mean(bws) / MAX_BW
                 bws = None
-                if len(mean_bw) != 0:
+                if mean_bw.size:
                     bandwidths_list.append(mean_bw)
-            plt_rewards[algo] = np.average(rewards_list, axis=0)
+            plt_rewards[algo] = np.mean(rewards_list, axis=0)
             rewards_list = None
-            plt_actions[algo] = np.average(actions_list, axis=0)
+            plt_actions[algo] = np.mean(actions_list, axis=0)
             actions_list = None
-            plt_queues[algo] = np.average(queues_list, axis=0)
+            plt_queues[algo] = np.mean(queues_list, axis=0)
             queues_list = None
-            plt_overlimits_bar[algo] = np.average(overlimits_bar_list, axis=0)
+            plt_overlimits_bar[algo] = np.mean(overlimits_bar_list, axis=0)
             overlimits_bar_list = None
-            plt_drops_bar[algo] = np.average(drops_bar_list, axis=0)
+            plt_drops_bar[algo] = np.mean(drops_bar_list, axis=0)
             drops_bar_list = None
-            plt_bandwidths[algo] = np.average(bandwidths_list, axis=0)
+            plt_bandwidths[algo] = np.mean(bandwidths_list, axis=0)
             bandwidths_list = None
 
-            if(np.amax(plt_rewards[algo]) > reward_max):
+            if np.amax(plt_rewards[algo]) > reward_max:
                 reward_max = np.amax(plt_rewards[algo])
-            if(np.amin(plt_rewards[algo]) < reward_min):
+            if np.amin(plt_rewards[algo]) < reward_min:
                 reward_min = np.amin(plt_rewards[algo])
-            if(np.amax(plt_queues[algo]) > queue_max):
+            if np.amax(plt_queues[algo]) > queue_max:
                 queue_max = np.amax(plt_queues[algo])
-            if(np.amax(plt_bandwidths[algo]) > bw_max):
+            if np.amax(plt_bandwidths[algo]) > bw_max:
                 bw_max = np.amax(plt_bandwidths[algo])
 
         for i, algo in enumerate(algos):
             if algo not in plt_rewards:
                 break
-            marker = mark_iterator.next()
-            linestyle = line_iterator.next()
+            marker = next(mark_iterator)
+            linestyle = next(line_iterator)
             offset = num_timesteps / 4 + i * num_timesteps / 10
             linewidth = 2
             normalized_reward = (plt_rewards[algo] -
@@ -343,6 +334,6 @@ if __name__ == '__main__':
     PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
     ROOT = "results"
     for folder in next(os.walk(ROOT))[1]:
-        print ("Crawling folder %s " % folder)
+        print("Crawling folder %s " % folder)
         machinedir = ROOT + "/" + folder
         plot(machinedir, PLOT_DIR, folder)

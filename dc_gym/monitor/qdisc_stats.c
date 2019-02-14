@@ -7,14 +7,22 @@ struct rtnl_qdisc *init_qdisc_monitor(char *interface) {
     struct nl_sock *sock;
     struct nl_cache *qdisc_cache;
     struct rtnl_qdisc *qdisc;
-    int ifindex;
+    int ifindex, err;
     ifindex = if_nametoindex(interface);
     /* Allocate a netlink socket and connect it with the netlink route module */
     sock = nl_socket_alloc();
-    nl_connect(sock, NETLINK_ROUTE);
+    if(!sock)
+        fprintf(stderr,"Could not allocated socket!\n");
+    err = nl_connect(sock, NETLINK_ROUTE);
+    if (err)
+        fprintf(stderr,"nl_connect: %s\n", nl_geterror(err));
     /* Get all active qdiscs and find the main qdisc of the target interface*/
-    rtnl_qdisc_alloc_cache(sock, &qdisc_cache);
+    err =rtnl_qdisc_alloc_cache(sock, &qdisc_cache);
+    if (err)
+        fprintf(stderr,"qdisc_alloc_cache: %s\n", nl_geterror(err));
     qdisc = rtnl_qdisc_get_by_parent(qdisc_cache, ifindex, TC_H_ROOT);
+    if(!qdisc)
+        fprintf(stderr,"Qdisc for interface %s not found!\n", interface);
 
     /* Free all allocated data structures */
     nl_cache_free(qdisc_cache);

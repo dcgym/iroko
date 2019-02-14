@@ -1,179 +1,154 @@
-import numpy as np
 from multiprocessing import Array
-from ctypes import c_ulong, c_double, c_ubyte
+from ctypes import c_ulong, c_ubyte
+import numpy as np
 
-from monitor.iroko_monitor import BandwidthCollector
-from monitor.iroko_monitor import QueueCollector
-from monitor.iroko_monitor import FlowCollector
+from dc_gym.monitor.iroko_monitor import BandwidthCollector
+from dc_gym.monitor.iroko_monitor import QueueCollector
+from dc_gym.monitor.iroko_monitor import FlowCollector
 from iroko_reward import RewardFunction
 
-# REWARD_MODEL = ["action", "queue", "std_dev"]
-REWARD_MODEL = ["action", "queue", "d_ol", "d_drops"]
-###########################################
+
+def shmem_to_nparray(shmem_array, dtype):
+    return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
 
 
-class StateManager():
-    DELTA_KEYS = ["delta_backlog"]
-    BW_KEYS = []
-    Q_KEYS = ["backlog"]
-    COLLECT_FLOWS = True
+class StateManager:
+    STATS_DICT = {"backlog": 0, "olimit": 1,
+                  "drops": 2, "bw_rx": 3, "bw_tx": 4}
+    DELTA_KEYS = ["backlog", "olimit", "drops"]
+    REWARD_MODEL = ["action", "queue", "olimit", "drops"]
+    STATS_KEYS = ["backlog"]
+    COLLECT_FLOWS = False
+    __slots__ = ["num_features", "num_ports", "deltas", "prev_stats",
+                 "data_files", "data", "dopamin", "stats", "flow_stats",
+                 "procs"]
 
-    def __init__(self, topo_conf, config, reward_fun=REWARD_MODEL):
-        self.conf = config
-        self.ports = topo_conf.get_sw_ports()
-        self.num_ports = len(self.ports)
-        self.topo_conf = topo_conf
-        self._set_feature_length()
-        self._spawn_collectors(topo_conf.host_ips)
-        self._set_reward(reward_fun, topo_conf)
-        self._set_data_checkpoints(topo_conf)
+    def __init__(self, topo_conf, config):
+        sw_ports = topo_conf.get_sw_ports()
+        self.num_ports = len(sw_ports)
+        self.deltas = None
+        self.prev_stats = None
+        self._set_feature_length(len(topo_conf.host_ips))
+        self._init_stats_matrices(self.num_ports, len(topo_conf.host_ips))
+        self._spawn_collectors(sw_ports, topo_conf.host_ips)
+        self.dopamin = RewardFunction(topo_conf.host_ctrl_map,
+                                      sw_ports, self.REWARD_MODEL,
+                                      topo_conf.MAX_QUEUE,
+                                      topo_conf.MAX_CAPACITY, self.STATS_DICT)
+        self._set_data_checkpoints(config)
 
     def terminate(self):
         self.flush()
         self._terminate_collectors()
-        self.reward_file.close()
-        self.action_file.close()
-        self.queue_file.close()
-        self.bw_file.close()
+        for file in self.data_files.values():
+            file.close()
 
     def reset(self):
         self.flush()
 
-    def _set_data_checkpoints(self, topo_conf):
-        data_dir = self.conf["output_dir"]
-        agent = self.conf["agent"]
+    def _set_feature_length(self, num_hosts):
+        self.num_features = len(self.STATS_KEYS)
+        self.num_features += len(self.DELTA_KEYS)
+        if self.COLLECT_FLOWS:
+            # There are two directions for flows, src and destination
+            self.num_features += num_hosts * 2
+
+    def get_feature_length(self):
+        return self.num_features
+
+    def _init_stats_matrices(self, num_ports, num_hosts):
+        self.stats = None
+        self.flow_stats = None
+        self.procs = []
+        # Set up the shared stats matrix
+        stats_arr_len = num_ports * len(self.STATS_DICT)
+        mp_stats = Array(c_ulong, stats_arr_len)
+        np_stats = shmem_to_nparray(mp_stats, np.int64)
+        self.stats = np_stats.reshape((num_ports, len(self.STATS_DICT)))
+        # Set up the shared flow matrix
+        flow_arr_len = num_ports * num_hosts * 2
+        mp_flows = Array(c_ubyte, flow_arr_len)
+        np_flows = shmem_to_nparray(mp_flows, np.uint8)
+        self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
+        # Save the initialized stats matrix to compute deltas
+        self.prev_stats = self.stats.copy()
+        self.deltas = np.zeros(shape=(num_ports, len(self.DELTA_KEYS)))
+
+    def _spawn_collectors(self, sw_ports, host_ips):
+        # Launch an asynchronous queue collector
+        proc = QueueCollector(sw_ports, self.stats, self.STATS_DICT)
+        proc.start()
+        self.procs.append(proc)
+        # Launch an asynchronous bandwidth collector
+        proc = BandwidthCollector(sw_ports, self.stats, self.STATS_DICT)
+        proc.start()
+        self.procs.append(proc)
+        # Launch an asynchronous flow collector
+        proc = FlowCollector(sw_ports, host_ips, self.flow_stats)
+        proc.start()
+        self.procs.append(proc)
+
+    def _set_data_checkpoints(self, conf):
+        self.data_files = {}
+        self.data = {}
+        data_dir = conf["output_dir"]
+        agent = conf["agent"]
+
         # define file names
         reward_name = "%s/reward_per_step_%s.npy" % (data_dir, agent)
         action_name = "%s/action_per_step_by_port_%s.npy" % (data_dir, agent)
-        queue_name = "%s/queues_per_step_by_port_%s.npy" % (data_dir, agent)
-        bw_name = "%s/bandwidths_per_step_by_port_%s.npy" % (data_dir, agent)
-        self.reward_file = open(reward_name, 'wb+')
-        self.action_file = open(action_name, 'wb+')
-        self.queue_file = open(queue_name, 'wb+')
-        self.bw_file = open(bw_name, 'wb+')
-        self.time_step_reward = []
-        self.queues_per_port = []
-        self.action_per_port = []
-        self.bws_per_port = []
+        stats_name = "%s/stats_per_step_by_port_%s.npy" % (data_dir, agent)
 
-    def _set_feature_length(self):
-        self.num_features = len(self.DELTA_KEYS)
-        self.num_features += len(self.Q_KEYS) + len(self.BW_KEYS)
-        if (self.COLLECT_FLOWS):
-            self.num_features += len(self.topo_conf.host_ips) * 2
-
-    def _set_reward(self, reward_fun, topo_conf):
-        self.dopamin = RewardFunction(topo_conf.host_ctrl_map,
-                                      self.ports,
-                                      reward_fun, topo_conf.MAX_QUEUE,
-                                      topo_conf.MAX_CAPACITY, self.q_dict)
-
-    def _spawn_collectors(self, host_ips):
-
-        # Launch an asynchronous queue collector
-        self.q_dict = {"backlog": 0, "overlimits": 1,
-                       "drops": 2, "rate_bps": 3, "rate_pps": 4}
-        self.q_stats = Array(c_ulong, self.num_ports * len(self.q_dict))
-        self.q_stats_proc = QueueCollector(
-            self.ports, self.q_stats, self.q_dict)
-        self.q_stats_proc.start()
-        # Launch an asynchronous bandwidth collector
-        self.bw_dict = {"bw_rx": 0, "bw_tx": 1}
-        self.bw_stats = Array(c_double, self.num_ports * len(self.bw_dict))
-        self.bw_stats_proc = BandwidthCollector(
-            self.ports, self.bw_stats, self.bw_dict)
-        self.bw_stats_proc.start()
-        # Launch an asynchronous flow collector
-        self.flow_dict = {"src": 0, "dst": 1}
-        self.flow_stats = Array(
-            c_ubyte, self.num_ports * len(self.flow_dict) * len(host_ips))
-        self.flows_proc = FlowCollector(
-            self.ports, host_ips, self.flow_stats, self.flow_dict)
-        self.flows_proc.start()
-        # initialize the stats matrix
-        self.prev_q_stats = list(self.q_stats)
+        self.data_files["reward"] = open(reward_name, 'wb+')
+        self.data_files["actions"] = open(action_name, 'wb+')
+        self.data_files["stats"] = open(stats_name, 'wb+')
+        self.data["reward"] = []
+        self.data["actions"] = []
+        self.data["stats"] = []
 
     def _terminate_collectors(self):
-        if (self.q_stats_proc is not None):
-            self.q_stats_proc.terminate()
-        if (self.bw_stats_proc is not None):
-            self.bw_stats_proc.terminate()
-        if (self.flows_proc is not None):
-            self.flows_proc.terminate()
+        for proc in self.procs:
+            if proc is not None:
+                proc.terminate()
 
-    def _compute_delta(self, ports, stats_prev, stats_now):
-        deltas = {}
-        for index, iface in enumerate(ports):
-            offset = len(self.q_dict) * index
-            # bws_rx_prev = stats_prev[iface]["bw_rx"]
-            # bws_tx_prev = stats_prev[iface]["bw_tx"]
-            drops_prev = stats_prev[offset + self.q_dict["drops"]]
-            overlimits_prev = stats_prev[offset + self.q_dict["overlimits"]]
-            queues_prev = stats_prev[offset + self.q_dict["backlog"]]
+    def _compute_deltas(self, num_ports, stats_prev, stats_now):
+        for iface_index in range(num_ports):
+            for delta_index, stat in enumerate(self.DELTA_KEYS):
+                stat_index = self.STATS_DICT[stat]
+                prev = stats_prev[iface_index][stat_index]
+                now = stats_now[iface_index][stat_index]
+                self.deltas[iface_index][delta_index] = now - prev
 
-            # bws_rx_now = stats_now[offset + self.q_dict["bw_rx"]]
-            # bws_tx_now = stats_now[offset + self.q_dict["bw_tx"]]
-            drops_now = stats_now[offset + self.q_dict["drops"]]
-            overlimits_now = stats_now[offset + self.q_dict["overlimits"]]
-            queues_now = stats_now[offset + self.q_dict["backlog"]]
-
-            deltas[iface] = {}
-            deltas[iface]["delta_backlog"] = queues_now - queues_prev
-            deltas[iface]["delta_overlimits"] = overlimits_now - overlimits_prev
-            deltas[iface]["delta_drops"] = drops_now - drops_prev
-            # deltas[iface]["delta_rx"] = bws_rx_now - bws_rx_prev
-            # deltas[iface]["delta_tx"] = bws_tx_now - bws_tx_prev
-        return deltas
-
-    def collect(self):
-        obs = np.zeros((self.num_ports, self.num_features))
-
+    def observe(self):
+        obs = []
         # retrieve the current deltas before updating total values
-        self.delta_vector = self._compute_delta(
-            self.ports, self.prev_q_stats, self.q_stats)
-        self.prev_q_stats = list(self.q_stats)
+        self._compute_deltas(self.num_ports, self.prev_stats, self.stats)
+        self.prev_stats = self.stats.copy()
         # Create the data matrix for the agent based on the collected stats
-        for index, iface in enumerate(self.ports):
+        for index in range(self.num_ports):
             state = []
-            deltas = self.delta_vector[iface]
-            for key in self.DELTA_KEYS:
-                state.append(deltas[key])
-            for key in self.Q_KEYS:
-                offset = len(self.q_dict) * index
-                state.append(int(self.q_stats[offset + self.q_dict[key]]))
-            for key in self.BW_KEYS:
-                offset = len(self.bw_dict) * index
-                state.append(float(self.bw_stats[offset + self.bw_dict[key]]))
+            for key in self.STATS_KEYS:
+                state.append(int(self.stats[index][self.STATS_DICT[key]]))
             if self.COLLECT_FLOWS:
-                flow_len = len(self.topo_conf.host_ips) * len(self.flow_dict)
-                offset = flow_len * index
-                state.extend(self.flow_stats[offset:(offset + flow_len)])
-            # print("State %s: %s " % (iface, state))
-            obs[index] = np.array(state)
+                state.extend(self.flow_stats[index])
+            state.extend(self.deltas[index])
+            # print("State %d: %s " % (index, state))
+            obs.append(np.array(state))
         # Save collected data
-        self.queues_per_port.append(list(self.q_stats))
-        self.bws_per_port.append(list(self.bw_stats))
-        return obs
+        self.data["stats"].append(self.stats)
+        return np.array(obs)
 
     def compute_reward(self, curr_action):
         # Compute the reward
         reward = self.dopamin.get_reward(
-            (self.q_stats, self.bw_stats, self.delta_vector), curr_action)
-        self.action_per_port.append(curr_action)
-        self.time_step_reward.append(reward)
+            self.stats, self.deltas, curr_action)
+        self.data["reward"].append(reward)
+        self.data["actions"].append(curr_action)
         return reward
 
     def flush(self):
-        print ("Saving statistics...")
-        np.save(self.reward_file, self.time_step_reward)
-        np.save(self.action_file, self.action_per_port)
-        np.save(self.queue_file, self.queues_per_port)
-        np.save(self.bw_file, self.bws_per_port)
-        self.reward_file.flush()
-        self.action_file.flush()
-        self.queue_file.flush()
-        self.bw_file.flush()
-        del self.time_step_reward[:]
-        del self.action_per_port[:]
-        del self.queues_per_port[:]
-        del self.bws_per_port[:]
+        print("Saving statistics...")
+        for key, file in self.data_files.items():
+            np.save(file, self.data[key])
+            file.flush()
+            del self.data[key][:]

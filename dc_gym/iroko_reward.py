@@ -3,83 +3,79 @@ import numpy as np
 
 
 class RewardFunction:
-    def __init__(self, host_ifaces, interfaces, reward_model,
-                 max_queue, max_bw, q_dict):
-        self.interfaces = interfaces
-        self.num_interfaces = len(interfaces)
-        self.host_ifaces = host_ifaces
+    def __init__(self, host_ports, sw_ports, reward_model,
+                 max_queue, max_bw, stats_dict):
+        self.sw_ports = sw_ports
+        self.num_sw_ports = len(sw_ports)
+        self.host_ports = host_ports
         self.reward_model = reward_model
         self.max_queue = max_queue
         self.max_bw = max_bw
-        self.q_dict = q_dict
+        self.stats_dict = stats_dict
 
-    def get_reward(self, stats, actions):
+    def get_reward(self, stats, deltas, actions):
         reward = 0
         if "action" in self.reward_model:
             action_reward = self._action_reward(actions)
-            print ("action pure: %f " % action_reward, end='')
-            print ("action adj: %f " % action_reward, end='')
-            action_reward = self._adjust_reward(action_reward, stats[2])
-            reward += action_reward
+            # print("action pure: %f " % action_reward, end='')
+            action_adj = self._adjust_reward(action_reward, deltas)
+            # print("action adj: %f " % action_adj, end='')
+            reward += action_adj
         if "bw" in self.reward_model:
-            bw_reward = self._bw_reward(stats[1])
-            print ("bw pure: %f " % bw_reward, end='')
-            bw_reward = self._adjust_reward(bw_reward, stats[2])
-            print ("bw adjusted: %f " % bw_reward, end='')
+            bw_reward = self._bw_reward(stats)
+            # print("bw pure: %f " % bw_reward, end='')
+            bw_reward = self._adjust_reward(bw_reward, deltas)
+            # print("bw adjusted: %f " % bw_reward, end='')
             reward += bw_reward
         if "queue" in self.reward_model:
-            queue_reward = self._queue_reward(stats[0])
+            queue_reward = self._queue_reward(stats)
             reward += queue_reward
-            print ("queue: %f " % queue_reward, end='')
+            # print("queue: %f " % queue_reward, end='')
         if "std_dev" in self.reward_model:
             std_dev_reward = self._std_dev_reward(actions)
             reward += std_dev_reward
-            print ("std_dev: %f " % std_dev_reward, end='')
-        print("Total: %f" % reward)
+            # print("std_dev: %f " % std_dev_reward, end='')
+        # print("Total: %f" % reward)
         return reward
 
     def _adjust_reward(self, reward, queue_deltas):
-        if "d_ol" in self.reward_model:
+        if "olimit" in self.reward_model:
             tmp_list = []
-            for d in queue_deltas.values():
-                tmp_list.append(d["delta_overlimits"])
-            if np.mean(tmp_list) > 0:
+            for port_stats in queue_deltas:
+                tmp_list.append(port_stats[self.stats_dict["olimit"]])
+            if any(tmp_list):
                 reward /= 2
-        if "d_drops" in self.reward_model:
+        if "drops" in self.reward_model:
             tmp_list = []
-            for d in queue_deltas.values():
-                tmp_list.append(d["delta_drops"])
-                d["delta_drops"]
-            if np.mean(tmp_list) > 0:
+            for port_stats in queue_deltas:
+                tmp_list.append(port_stats[self.stats_dict["drops"]])
+            if any(tmp_list):
                 reward /= 2
         return reward
 
     def _std_dev_reward(self, actions):
-        pb_bws = list(actions.values())
-        return -(np.std(pb_bws) / float(self.max_bw))
+        return -(np.std(actions) / float(self.max_bw))
 
     def _action_reward(self, actions):
         action_reward = 0.0
-        weight = float(len(self.host_ifaces)) / float(self.num_interfaces)
-        for bw in actions.values():
+        weight = len(self.host_ports) / float(self.num_sw_ports)
+        for bw in actions:
             action_reward += bw / float(self.max_bw)
         return action_reward * weight
 
     def _bw_reward(self, stats):
         bw_reward = 0.0
-        weight = float(len(self.host_ifaces)) / float(self.num_interfaces)
-        for index, iface in enumerate(self.interfaces):
-            if iface in self.host_ifaces:
-                offset = len(self.bw_dict) * index
-                bw = stats[offset + self.bw_dict["bw_rx"]]
+        weight = len(self.host_ports) / float(self.num_sw_ports)
+        for index, iface in enumerate(self.sw_ports):
+            if iface in self.host_ports:
+                bw = stats[index][self.stats_dict["bw_rx"]]
                 bw_reward += bw / float(self.max_bw)
         return bw_reward * weight
 
     def _queue_reward(self, stats):
         queue_reward = 0.0
-        weight = float(self.num_interfaces) / float(len(self.host_ifaces))
-        for index, iface in enumerate(self.interfaces):
-            offset = len(self.q_dict) * index
-            queue = stats[offset + self.q_dict["backlog"]]
+        weight = self.num_sw_ports / float(len(self.host_ports))
+        for index, _ in enumerate(self.sw_ports):
+            queue = stats[index][self.stats_dict["backlog"]]
             queue_reward -= weight * (float(queue) / float(self.max_queue))**2
         return queue_reward

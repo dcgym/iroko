@@ -15,18 +15,18 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
 
 
-class BaseTopo():
+class BaseTopo:
     NAME = "base"
     MAX_QUEUE = 0.5e6       # max queue of switches in bytes
     MAX_CAPACITY = 10e6     # max bw capacity of link in bytes
     MIN_RATE = 0.1e6       # min possible bw of an interface in bytes
 
     def __init__(self, options):
-        self.MAX_QUEUE = 500000
         self.num_hosts = self.NUM_HOSTS
         self.topo = None
         self.host_ctrl_map = {}
         self.host_ips = []
+        self.net = None
         self.switch_id = self._generate_switch_id(options)
         self.prev_cc = self._get_active_congestion_control()
         self._set_congestion_control(options)
@@ -80,8 +80,7 @@ class BaseTopo():
         raise NotImplementedError("Method _config_topo not implemented!")
 
     def _apply_qdisc(self, port):
-        ''' Here be dragons... '''
-
+        """ Here be dragons... """
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1: hfsc default 10"
         # print (tc_cmd + cmd)
@@ -93,7 +92,8 @@ class BaseTopo():
         # os.system(tc_cmd + cmd)
 
         tc_cmd = "tc qdisc add dev %s " % (port)
-        cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
+        cmd = "root handle 1: htb default 10 "
+        # cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
         cmd += " direct_qlen 0 "
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
@@ -233,7 +233,7 @@ class BaseTopo():
         return self.topo
 
     def delete_topo(self):
-        if (self.dctcp):
+        if self.dctcp:
             os.system("sysctl -w net.ipv4.tcp_ecn=0")
         # reset the active host congestion control to the previous value
         cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
