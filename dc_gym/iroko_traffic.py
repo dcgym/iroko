@@ -47,7 +47,10 @@ class TrafficGen():
         if transport.lower() in self.SUPPORTED_TRANSPORT:
             self.transport = transport.lower()
         else:
-            print("Fatal: Unknown transport protocol!")
+            print("Fatal: Unknown transport protocol %s!" % transport.lower())
+            print("Supported protocols are: ")
+            for transport in self.SUPPORTED_TRANSPORT:
+                print(transport)
             exit(1)
 
     def traffic_is_active(self):

@@ -103,22 +103,28 @@ class BaseTopo:
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
-        # Apply tc red to mark excess packets in the queue with ecn
-        limit = int(self.MAX_QUEUE)
-        max_q = limit / 4
-        min_q = max_q / 3
-        tc_cmd = "tc qdisc add dev %s " % (port)
-        cmd = "parent 1:10 handle 20:1 red "
-        cmd += "limit %d " % (limit)
-        cmd += "bandwidth  %dbit " % self.MAX_CAPACITY
-        cmd += "avpkt 1000 "
-        cmd += "min %d " % (min_q)
-        cmd += "max %d " % (max_q)
-        cmd += "probability 0.001"
         if self.dctcp:
+            # Apply aggressive RED to mark excess packets in the queue
+            limit = int(self.MAX_QUEUE)
+            max_q = limit / 3
+            min_q = max_q / 3
+            tc_cmd = "tc qdisc add dev %s " % (port)
+            cmd = "parent 1:10 handle 20:1 red "
+            cmd += "limit %d " % (limit)
+            cmd += "bandwidth  %dbit " % self.MAX_CAPACITY
+            cmd += "avpkt 1000 "
+            cmd += "min %d " % (min_q)
+            cmd += "max %d " % (max_q)
+            cmd += "probability 0.001"
             cmd += " ecn "
-        debug(tc_cmd + cmd)
-        os.system(tc_cmd + cmd)
+            debug(tc_cmd + cmd)
+            os.system(tc_cmd + cmd)
+        else:
+            limit = int(self.MAX_QUEUE)
+            tc_cmd = "tc qdisc add dev %s " % (port)
+            cmd = "parent 1:10 handle 20:1 bfifo "
+            cmd += " limit %d" % (limit)
+            os.system(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20:1 netem limit %d rate 10mbit" % (
@@ -148,11 +154,6 @@ class BaseTopo:
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-        # limit = int(self.MAX_QUEUE)
-        # tc_cmd = "tc qdisc add dev %s " % (port)
-        # cmd = "parent 1:10 handle 20:1 bfifo "
-        # cmd += " limit %d" % (limit * 1000)
-        # os.system(tc_cmd + cmd)
 
         # Apply tc choke to mark excess packets in the queue with ecn
         # limit = int(self.MAX_QUEUE)
@@ -233,6 +234,7 @@ class BaseTopo:
         return self.topo
 
     def delete_topo(self):
+        output("Cleaning up topology and restoring all network variables.")
         if self.dctcp:
             os.system("sysctl -w net.ipv4.tcp_ecn=0")
         # reset the active host congestion control to the previous value

@@ -201,7 +201,7 @@ def configure_ray(agent):
         # Specifically experiment 6.1
         config["train_batch_size"] = 4096
         config['model'] = {}
-        config['model']['fcnet_hiddens'] = [400, 300]
+        config['model']['fcnet_hiddens'] = [400, 300, 200]
         config['model']['fcnet_activation'] = 'tanh'
         # config['horizon'] = 2048
         config['lambda'] = 0.95
@@ -214,9 +214,9 @@ def configure_ray(agent):
         config['clip_param'] = 0.2
         config['kl_coeff'] = 0.0
     elif agent == "DDPG":
-        config["actor_hiddens"] = [400, 300]
+        config["actor_hiddens"] = [400, 300, 200]
         config["actor_hidden_activation"] = "relu"
-        config["critic_hiddens"] = [400, 300]
+        config["critic_hiddens"] = [400, 300, 200]
         config["critic_hidden_activation"] = "relu"
         config["tau"] = 0.001
         config["noise_scale"] = 1.0

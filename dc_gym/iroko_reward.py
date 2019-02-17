@@ -17,9 +17,9 @@ class RewardFunction:
         reward = 0
         if "action" in self.reward_model:
             action_reward = self._action_reward(actions)
-            # print("action pure: %f " % action_reward, end='')
+            print("action pure: %f " % action_reward, end='')
             action_adj = self._adjust_reward(action_reward, deltas)
-            # print("action adj: %f " % action_adj, end='')
+            print("action adj: %f " % action_adj, end='')
             reward += action_adj
         if "bw" in self.reward_model:
             bw_reward = self._bw_reward(stats)
@@ -27,15 +27,15 @@ class RewardFunction:
             bw_reward = self._adjust_reward(bw_reward, deltas)
             # print("bw adjusted: %f " % bw_reward, end='')
             reward += bw_reward
-        if "queue" in self.reward_model:
+        if "backlog" in self.reward_model:
             queue_reward = self._queue_reward(stats)
             reward += queue_reward
-            # print("queue: %f " % queue_reward, end='')
+            print("queue: %f " % queue_reward, end='')
         if "std_dev" in self.reward_model:
             std_dev_reward = self._std_dev_reward(actions)
             reward += std_dev_reward
             # print("std_dev: %f " % std_dev_reward, end='')
-        # print("Total: %f" % reward)
+        print("Total: %f" % reward)
         return reward
 
     def _adjust_reward(self, reward, queue_deltas):
@@ -44,13 +44,13 @@ class RewardFunction:
             for port_stats in queue_deltas:
                 tmp_list.append(port_stats[self.stats_dict["olimit"]])
             if any(tmp_list):
-                reward /= 2
+                reward /= 4
         if "drops" in self.reward_model:
             tmp_list = []
             for port_stats in queue_deltas:
                 tmp_list.append(port_stats[self.stats_dict["drops"]])
             if any(tmp_list):
-                reward /= 2
+                reward /= 4
         return reward
 
     def _std_dev_reward(self, actions):
@@ -70,12 +70,12 @@ class RewardFunction:
             if iface in self.host_ports:
                 bw = stats[index][self.stats_dict["bw_rx"]]
                 bw_reward += bw / float(self.max_bw)
-        return bw_reward * weight
+        return bw_reward
 
     def _queue_reward(self, stats):
         queue_reward = 0.0
         weight = self.num_sw_ports / float(len(self.host_ports))
         for index, _ in enumerate(self.sw_ports):
             queue = stats[index][self.stats_dict["backlog"]]
-            queue_reward -= weight * (float(queue) / float(self.max_queue))**2
-        return queue_reward
+            queue_reward -= (float(queue) / float(self.max_queue))**2
+        return queue_reward * weight * 5

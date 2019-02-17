@@ -32,14 +32,8 @@ class BaseEnv(openAIGym):
         # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
-        self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
-        self.progress_bar.clear()
-        # handle unexpected exits scenarios gracefully
-        print("Registering signal handler.")
-        signal.signal(signal.SIGINT, self._handle_interrupt)
-        signal.signal(signal.SIGTERM, self._handle_interrupt)
-        atexit.register(self.kill_env)
-        self.killed = False
+        # self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
+        # self.progress_bar.clear()
 
         # Finally, initialize traffic
         self.input_file = None
@@ -47,6 +41,13 @@ class BaseEnv(openAIGym):
         self.set_traffic_matrix(conf["tf_index"])
         self.start_traffic()
         self.start_time = time.time()
+
+        # handle unexpected exits scenarios gracefully
+        print("Registering signal handler.")
+        self.killed = False
+        signal.signal(signal.SIGINT, self._handle_interrupt)
+        signal.signal(signal.SIGTERM, self._handle_interrupt)
+        atexit.register(self.kill_env)
 
     def _create_topo(self, conf):
         topo_options = []
@@ -76,8 +77,8 @@ class BaseEnv(openAIGym):
 
     def step(self, action):
         self.steps = self.steps + 1
-        self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
-        self.progress_bar.update(1)
+        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
+        # self.progress_bar.update(1)
 
     def reset(self):
         print("Resetting environment...")
@@ -101,10 +102,14 @@ class BaseEnv(openAIGym):
             print("Chill, I am already cleaning up...")
             return
         self.killed = True
-        self.progress_bar.close()
-        self.state_man.terminate()
-        self.traffic_gen.stop_traffic()
-        self.topo.delete_topo()
+        # self.progress_bar.close()
+        if hasattr(self, 'state_man'):
+            self.state_man.terminate()
+        if hasattr(self, 'traffic_gen'):
+            print("Stopping traffic")
+            self.traffic_gen.stop_traffic()
+        if hasattr(self, 'topo'):
+            self.topo.delete_topo()
         print("Done with destroying myself.")
 
     def get_topo(self):

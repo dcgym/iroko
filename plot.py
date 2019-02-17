@@ -22,7 +22,7 @@ def check_plt_dir(plt_name):
         os.makedirs(plt_dir)
 
 
-def running_mean(x, N=300):
+def running_mean(x, N=100):
     if (len(x) < N):
         return x
     cumsum = np.cumsum(np.insert(x, 0, 0))
@@ -193,7 +193,7 @@ def plot(data_dir, plot_dir, name):
                 np_rewards = load_file(reward_file)
                 rewards = running_mean(np_rewards)
                 np_rewards = None
-                if rewards:
+                if rewards.size:
                     rewards_list.append(rewards)
                 # actions
                 print("Loading %s..." % actions_file)
@@ -218,7 +218,7 @@ def plot(data_dir, plot_dir, name):
                 overlimits = get_nested_values_from_array(
                     iface_stats, "olimit", STATS_DICT)
                 bws = get_nested_values_from_array(
-                    iface_stats, "bw_rx", STATS_DICT)
+                    iface_stats, "bw_tx", STATS_DICT)
                 iface_stats = None
                 mean_queues = running_mean(queues)
                 mean_bar_overlimits = np.mean(overlimits)
@@ -332,7 +332,7 @@ def plot(data_dir, plot_dir, name):
 
 if __name__ == '__main__':
     PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
-    ROOT = "results"
+    ROOT = "data"
     for folder in next(os.walk(ROOT))[1]:
         print("Crawling folder %s " % folder)
         machinedir = ROOT + "/" + folder

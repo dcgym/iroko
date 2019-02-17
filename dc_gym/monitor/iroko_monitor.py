@@ -115,7 +115,7 @@ class QueueCollector(Collector):
 
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
-            qdisc = self.q_lib.init_qdisc_monitor(iface)
+            qdisc = self.q_lib.init_qdisc_monitor(iface.encode('ascii'))
             queue_backlog = self.q_lib.get_qdisc_backlog(qdisc)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)
             queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
@@ -174,7 +174,7 @@ class FlowCollector(Collector):
         processes = []
         for iface in iface_list:
             cmd = "sudo timeout 1 tcpdump -l -i %s " % iface
-            cmd += "-n -c 20 ip 2>/dev/null | "
+            cmd += "-n -c 50 ip 2>/dev/null | "
             cmd += "grep -P -o \'([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+).*? > "
             cmd += "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)\' | "
             cmd += "grep -P -o \'[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\' | "

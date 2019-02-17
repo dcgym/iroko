@@ -15,9 +15,9 @@ def shmem_to_nparray(shmem_array, dtype):
 class StateManager:
     STATS_DICT = {"backlog": 0, "olimit": 1,
                   "drops": 2, "bw_rx": 3, "bw_tx": 4}
-    DELTA_KEYS = ["backlog", "olimit", "drops"]
-    REWARD_MODEL = ["action", "queue", "olimit", "drops"]
+    REWARD_MODEL = ["backlog", "action"]
     STATS_KEYS = ["backlog"]
+    DELTA_KEYS = []
     COLLECT_FLOWS = False
     __slots__ = ["num_features", "num_ports", "deltas", "prev_stats",
                  "data_files", "data", "dopamin", "stats", "flow_stats",
@@ -72,7 +72,7 @@ class StateManager:
         self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
         # Save the initialized stats matrix to compute deltas
         self.prev_stats = self.stats.copy()
-        self.deltas = np.zeros(shape=(num_ports, len(self.DELTA_KEYS)))
+        self.deltas = np.zeros(shape=(num_ports, len(self.STATS_DICT)))
 
     def _spawn_collectors(self, sw_ports, host_ips):
         # Launch an asynchronous queue collector
@@ -113,7 +113,7 @@ class StateManager:
 
     def _compute_deltas(self, num_ports, stats_prev, stats_now):
         for iface_index in range(num_ports):
-            for delta_index, stat in enumerate(self.DELTA_KEYS):
+            for delta_index, stat in enumerate(self.STATS_DICT.keys()):
                 stat_index = self.STATS_DICT[stat]
                 prev = stats_prev[iface_index][stat_index]
                 now = stats_now[iface_index][stat_index]
@@ -129,9 +129,10 @@ class StateManager:
             state = []
             for key in self.STATS_KEYS:
                 state.append(int(self.stats[index][self.STATS_DICT[key]]))
+            for key in self.DELTA_KEYS:
+                state.append(int(self.deltas[index][self.STATS_DICT[key]]))
             if self.COLLECT_FLOWS:
                 state.extend(self.flow_stats[index])
-            state.extend(self.deltas[index])
             # print("State %d: %s " % (index, state))
             obs.append(np.array(state))
         # Save collected data
