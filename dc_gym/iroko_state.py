@@ -20,7 +20,7 @@ class StateManager:
     DELTA_KEYS = []
     COLLECT_FLOWS = False
     __slots__ = ["num_features", "num_ports", "deltas", "prev_stats",
-                 "data_files", "data", "dopamin", "stats", "flow_stats",
+                 "stats_file", "data", "dopamin", "stats", "flow_stats",
                  "procs"]
 
     def __init__(self, topo_conf, config):
@@ -40,11 +40,10 @@ class StateManager:
     def terminate(self):
         self.flush()
         self._terminate_collectors()
-        for file in self.data_files.values():
-            file.close()
+        self.stats_file.close()
 
     def reset(self):
-        self.flush()
+        pass        # self.flush()
 
     def _set_feature_length(self, num_hosts):
         self.num_features = len(self.STATS_KEYS)
@@ -89,19 +88,13 @@ class StateManager:
         self.procs.append(proc)
 
     def _set_data_checkpoints(self, conf):
-        self.data_files = {}
         self.data = {}
         data_dir = conf["output_dir"]
         agent = conf["agent"]
 
-        # define file names
-        reward_name = "%s/reward_per_step_%s.npy" % (data_dir, agent)
-        action_name = "%s/action_per_step_by_port_%s.npy" % (data_dir, agent)
-        stats_name = "%s/stats_per_step_by_port_%s.npy" % (data_dir, agent)
-
-        self.data_files["reward"] = open(reward_name, 'wb+')
-        self.data_files["actions"] = open(action_name, 'wb+')
-        self.data_files["stats"] = open(stats_name, 'wb+')
+        # define file name
+        runtime_name = "%s/runtime_statistics_%s.npy" % (data_dir, agent)
+        self.stats_file = open(runtime_name, 'wb+')
         self.data["reward"] = []
         self.data["actions"] = []
         self.data["stats"] = []
@@ -149,7 +142,7 @@ class StateManager:
 
     def flush(self):
         print("Saving statistics...")
-        for key, file in self.data_files.items():
-            np.save(file, self.data[key])
-            file.flush()
+        np.save(self.stats_file, np.array(self.data))
+        self.stats_file.flush()
+        for key in self.data.keys():
             del self.data[key][:]

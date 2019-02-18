@@ -145,7 +145,7 @@ def set_tuning_parameters(agent, config):
 def clean():
     ''' A big fat hammer to get rid of all the debris left over by ray '''
     print("Removing all previous traces of Mininet and ray")
-    ray_kill = "sudo kill -9 $(ps aux | grep 'ray/workers' | awk '{print $2}')"
+    ray_kill = "sudo kill -9 $(ps aux | grep 'ray' | awk '{print $2}')"
     os.system(ray_kill)
     os.system('sudo mn -c')
     os.system("sudo killall -9 goben")
@@ -256,7 +256,7 @@ def run(config):
 def tune_run(config):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(config, agent)
-    tune.run_experiments(experiment, scheduler=scheduler, verbose=0)
+    tune.run_experiments(experiment, scheduler=scheduler)
 
 
 def init():

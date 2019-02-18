@@ -142,7 +142,7 @@ venv.bak/
 sftp-config*.json
 results/
 *.lock
-dc_gym/data
+data/
 plots/
 dc_gym/control/node_control
 dc_gym/monitor/qdisc_stats

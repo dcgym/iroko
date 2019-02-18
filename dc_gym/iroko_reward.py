@@ -17,25 +17,22 @@ class RewardFunction:
         reward = 0
         if "action" in self.reward_model:
             action_reward = self._action_reward(actions)
-            print("action pure: %f " % action_reward, end='')
-            action_adj = self._adjust_reward(action_reward, deltas)
-            print("action adj: %f " % action_adj, end='')
-            reward += action_adj
+            # print("action: %f" % action_reward, end='')
+            reward += action_reward
         if "bw" in self.reward_model:
             bw_reward = self._bw_reward(stats)
-            # print("bw pure: %f " % bw_reward, end='')
+            # print("bw: %f " % bw_reward, end='')
             bw_reward = self._adjust_reward(bw_reward, deltas)
-            # print("bw adjusted: %f " % bw_reward, end='')
             reward += bw_reward
         if "backlog" in self.reward_model:
             queue_reward = self._queue_reward(stats)
             reward += queue_reward
-            print("queue: %f " % queue_reward, end='')
+            # print("queue: %f " % queue_reward, end='')
         if "std_dev" in self.reward_model:
             std_dev_reward = self._std_dev_reward(actions)
             reward += std_dev_reward
             # print("std_dev: %f " % std_dev_reward, end='')
-        print("Total: %f" % reward)
+        # print("Total: %f" % reward)
         return reward
 
     def _adjust_reward(self, reward, queue_deltas):

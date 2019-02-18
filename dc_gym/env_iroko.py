@@ -5,7 +5,7 @@ from dc_gym.control.iroko_bw_control import BandwidthController
 
 
 class DCEnv(BaseEnv):
-    WAIT = 0.1      # amount of seconds the agent waits per iteration
+    WAIT = 0.0      # amount of seconds the agent waits per iteration
     __slots__ = ["bw_ctrl"]
 
     def __init__(self, conf):
