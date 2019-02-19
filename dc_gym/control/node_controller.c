@@ -164,8 +164,7 @@ int main(int argc, char **argv) {
     char *ctrldev = NULL;
     char *prog_name = argv[0];
     opterr = 0;
-    while ((c = getopt(argc, argv, "n:c:")) != -1)
-    {
+    while ((c = getopt(argc, argv, "n:c:")) != -1) {
         switch(c)
         {
             case 'n':

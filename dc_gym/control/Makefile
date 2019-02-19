@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O3 -g
+CFLAGS= -Wall -O3 -g
 LFLAGS= -lnl-3 -lnl-route-3
 DEPS = raw_udp_socket.c raw_udp_socket.h
 LIBNAME=libbw_control.so

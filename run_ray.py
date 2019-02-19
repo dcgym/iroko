@@ -1,6 +1,9 @@
 from __future__ import print_function
 import argparse
 import os
+import random
+import logging
+import time
 
 # Ray imports
 import ray
@@ -9,9 +12,6 @@ from ray.rllib.agents.agent import Agent, with_common_config
 from ray.tune.registry import register_env
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
-import random
-import logging
-
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
@@ -275,6 +275,8 @@ def init():
     tune_run(config)
     # else:
     #    run(config)
+    # Give enough time to shut down
+    time.sleep(5)
     print("Experiment has completed.")
 
 
