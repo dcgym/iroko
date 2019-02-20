@@ -3,6 +3,7 @@ import argparse
 import os
 import random
 import logging
+import time
 
 # Ray imports
 import ray
@@ -274,6 +275,8 @@ def init():
     tune_run(config)
     # else:
     #    run(config)
+    # Wait until the topology is torn down completely
+    # time.slee(10)
     print("Experiment has completed.")
 
 
