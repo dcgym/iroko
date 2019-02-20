@@ -65,7 +65,7 @@ class RewardFunction:
         weight = len(self.host_ports) / float(self.num_sw_ports)
         for index, iface in enumerate(self.sw_ports):
             if iface in self.host_ports:
-                bw = stats[index][self.stats_dict["bw_rx"]]
+                bw = stats[self.stats_dict["bw_rx"]][index]
                 bw_reward += bw / float(self.max_bw)
         return bw_reward
 
@@ -73,6 +73,6 @@ class RewardFunction:
         queue_reward = 0.0
         weight = self.num_sw_ports / float(len(self.host_ports))
         for index, _ in enumerate(self.sw_ports):
-            queue = stats[index][self.stats_dict["backlog"]]
+            queue = stats[self.stats_dict["backlog"]][index]
             queue_reward -= (float(queue) / float(self.max_queue))**2
         return queue_reward * weight * 5

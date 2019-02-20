@@ -110,6 +110,9 @@ class BaseEnv(openAIGym):
             self.traffic_gen.stop_traffic()
         if hasattr(self, 'topo'):
             self.topo.delete_topo()
+
+        if hasattr(self, 'state_man'):
+            self.state_man.flush_and_close()
         print("Done with destroying myself.")
 
     def get_topo(self):

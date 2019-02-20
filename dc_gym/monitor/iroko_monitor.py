@@ -73,8 +73,8 @@ class BandwidthCollector(Collector):
             if bw[0] != 'n/a' and bw[1] != ' n/a\n':
                 bps_rx = int(float(bw[0]) * 1000)
                 bps_tx = int(float(bw[1]) * 1000)
-                self.stats[index][self.stats_dict["bw_rx"]] = bps_rx
-                self.stats[index][self.stats_dict["bw_tx"]] = bps_tx
+                self.stats[self.stats_dict["bw_rx"]][index] = bps_rx
+                self.stats[self.stats_dict["bw_tx"]][index] = bps_tx
 
     def _collect(self):
         self._get_bandwidths(self.iface_list)
@@ -121,9 +121,9 @@ class QueueCollector(Collector):
             queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
             # queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
             # queue_rate_pps = self.q_lib.get_qdisc_rate_pps(qdisc)
-            self.stats[index][self.stats_dict["backlog"]] = queue_backlog
-            self.stats[index][self.stats_dict["olimit"]] = queue_overlimits
-            self.stats[index][self.stats_dict["drops"]] = queue_drops
+            self.stats[self.stats_dict["backlog"]][index] = queue_backlog
+            self.stats[self.stats_dict["olimit"]][index] = queue_overlimits
+            self.stats[self.stats_dict["drops"]][index] = queue_drops
             # # tx rate
             # self.stats[index][self.stats_dict["rate_bps"]] = queue_rate_bps
             # # packet rate

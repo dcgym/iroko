@@ -224,8 +224,6 @@ class BaseTopo:
         self.net.ping()
         # output("Testing bandwidth after configuration...\n")
         # self.net.iperf()
-        # self.net.stop()
-        # exit(1)
 
     def get_net(self):
         return self.net

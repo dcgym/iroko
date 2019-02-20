@@ -1,3 +1,4 @@
+from filelock import FileLock
 from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
 import numpy as np
@@ -37,10 +38,17 @@ class StateManager:
                                       topo_conf.MAX_CAPACITY, self.STATS_DICT)
         self._set_data_checkpoints(config)
 
-    def terminate(self):
-        self.flush()
-        self._terminate_collectors()
+    def flush_and_close(self):
+        print("Writing collected data to disk")
+        with FileLock(self.stats_file.name + ".lock"):
+            try:
+                self.flush()
+            except Exception:
+                print("Error flushing file %s" % self.stats_file.name)
         self.stats_file.close()
+
+    def terminate(self):
+        self._terminate_collectors()
 
     def reset(self):
         pass        # self.flush()
@@ -63,7 +71,7 @@ class StateManager:
         stats_arr_len = num_ports * len(self.STATS_DICT)
         mp_stats = Array(c_ulong, stats_arr_len)
         np_stats = shmem_to_nparray(mp_stats, np.int64)
-        self.stats = np_stats.reshape((num_ports, len(self.STATS_DICT)))
+        self.stats = np_stats.reshape((len(self.STATS_DICT), num_ports))
         # Set up the shared flow matrix
         flow_arr_len = num_ports * num_hosts * 2
         mp_flows = Array(c_ubyte, flow_arr_len)
@@ -71,7 +79,7 @@ class StateManager:
         self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
         # Save the initialized stats matrix to compute deltas
         self.prev_stats = self.stats.copy()
-        self.deltas = np.zeros(shape=(num_ports, len(self.STATS_DICT)))
+        self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
 
     def _spawn_collectors(self, sw_ports, host_ips):
         # Launch an asynchronous queue collector
@@ -108,9 +116,9 @@ class StateManager:
         for iface_index in range(num_ports):
             for delta_index, stat in enumerate(self.STATS_DICT.keys()):
                 stat_index = self.STATS_DICT[stat]
-                prev = stats_prev[iface_index][stat_index]
-                now = stats_now[iface_index][stat_index]
-                self.deltas[iface_index][delta_index] = now - prev
+                prev = stats_prev[stat_index][iface_index]
+                now = stats_now[stat_index][iface_index]
+                self.deltas[delta_index][iface_index] = now - prev
 
     def observe(self):
         obs = []
@@ -121,15 +129,15 @@ class StateManager:
         for index in range(self.num_ports):
             state = []
             for key in self.STATS_KEYS:
-                state.append(int(self.stats[index][self.STATS_DICT[key]]))
+                state.append(int(self.stats[self.STATS_DICT[key]][index]))
             for key in self.DELTA_KEYS:
-                state.append(int(self.deltas[index][self.STATS_DICT[key]]))
+                state.append(int(self.deltas[self.STATS_DICT[key]][index]))
             if self.COLLECT_FLOWS:
                 state.extend(self.flow_stats[index])
             # print("State %d: %s " % (index, state))
             obs.append(np.array(state))
         # Save collected data
-        self.data["stats"].append(self.stats)
+        self.data["stats"].append(self.stats.copy())
         return np.array(obs)
 
     def compute_reward(self, curr_action):

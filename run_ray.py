@@ -3,7 +3,6 @@ import argparse
 import os
 import random
 import logging
-import time
 
 # Ray imports
 import ray
@@ -275,8 +274,6 @@ def init():
     tune_run(config)
     # else:
     #    run(config)
-    # Give enough time to shut down
-    time.sleep(5)
     print("Experiment has completed.")
 
 

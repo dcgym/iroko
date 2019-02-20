@@ -7,6 +7,8 @@ import os
 import json
 import numpy as np
 import seaborn as sns
+from filelock import FileLock
+
 
 MAX_BW = 10e6
 STATS_DICT = {"backlog": 0, "olimit": 1,
@@ -79,6 +81,7 @@ def plot_lineplot(plt_stats, num_timesteps, plt_name):
     reward_min = np.inf
     queue_max = 0
     bw_max = 0
+
     for i, algo in enumerate(algos):
         if np.amax(plt_stats[algo]["rewards"]) > reward_max:
             reward_max = np.amax(plt_stats[algo]["rewards"])
@@ -156,10 +159,15 @@ def preprocess_data(algos, runs, transport_dir):
             stats_file = '%s/runtime_statistics_%s.npy' % (
                 run_dir, algo.lower())
             print("Loading %s..." % stats_file)
-            statistics = np.load(stats_file).item()
+            with FileLock(stats_file + ".lock"):
+                try:
+                    statistics = np.load(stats_file).item()
+                except Exception:
+                    print("Error loading file %s" % stats_file)
+                    exit(1)
             rewards = np.array(statistics["reward"])
-            host_actions = np.array(statistics["actions"]).transpose()
-            port_stats = np.array(statistics["stats"]).transpose()
+            host_actions = np.moveaxis(statistics["actions"], 0, -1)
+            port_stats = np.moveaxis(statistics["stats"], 0, -1)
             port_queues = np.array(port_stats[STATS_DICT["backlog"]])
             port_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
             port_overlimits = np.array(port_stats[STATS_DICT["olimit"]])
