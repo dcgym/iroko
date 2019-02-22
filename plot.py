@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 import json
+import argparse
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -16,19 +17,19 @@ STATS_DICT = {"backlog": 0, "olimit": 1,
 NUM_IFACES = 6
 NUM_ACTIONS = 4
 
+PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
+ROOT = "results"
+
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument('--input', '-i', dest='input_dir')
+ARGS = PARSER.parse_args()
+
 
 def check_plt_dir(plt_name):
     plt_dir = os.path.dirname(plt_name)
     if not plt_dir == '' and not os.path.exists(plt_dir):
         print("Folder %s does not exist! Creating..." % plt_name)
         os.makedirs(plt_dir)
-
-
-def running_mean(x, N=100):
-    if (len(x) < N or N < 1):
-        return x
-    cumsum = np.cumsum(np.insert(x, 0, 0))
-    return (cumsum[int(N):] - cumsum[:-int(N)]) / float(N)
 
 
 def parse_config(results_dir):
@@ -48,6 +49,12 @@ def load_file(filename):
     flat_out = [x for sublist in out for x in sublist]
     out = None
     return np.array(flat_out)
+
+
+def np_dict_to_pd(np_dict, key, df_type="float64"):
+    pd_frame = pd.DataFrame(
+        {k: pd.Series(v) for k, v in np_dict[key].items()})
+    return pd_frame.astype(df_type)
 
 
 def plot_barchart(algos, plt_stats, plt_name):
@@ -71,32 +78,45 @@ def plot_barchart(algos, plt_stats, plt_name):
     plt.savefig(plt_name + "_bar.png")
     plt.gcf().clear()
 
+# temp = np.vstack([x[i:-(5-i)] for i in range(5)]) # stacks vertically the strided arrays means = np.nanmean(temp, axis=0)
+
 
 def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     # Set seaborn style for plotting
     sns.set(style="white", font_scale=2)
     mean_smoothing = int(num_timesteps / 100)
 
-    rewards_pd = pd.DataFrame.from_dict(
-        plt_stats["rewards"], orient='index').transpose()
-    actions_pd = pd.DataFrame.from_dict(
-        plt_stats["actions"], orient='index').transpose()
-    queues_pd = pd.DataFrame.from_dict(
-        plt_stats["backlog"], orient='index').transpose()
-    bws_pd = pd.DataFrame.from_dict(
-        plt_stats["bw_tx"], orient='index').transpose()
+    print("Converting numpy arrays into pandas dataframes.")
+    # rewards_pd = pd.DataFrame.from_dict(
+    #     plt_stats["rewards"], orient='index').astype('float64').transpose()
+    rewards_pd = np_dict_to_pd(plt_stats, "rewards")
+    actions_pd = np_dict_to_pd(plt_stats, "actions")
+    queues_pd = np_dict_to_pd(plt_stats, "backlog")
+    bws_pd = np_dict_to_pd(plt_stats, "bw_tx")
+    print("Computing overlimit deltas.")
+    olimit_pd = np_dict_to_pd(plt_stats, "olimit").diff()
+    print("Computing drops deltas.")
+    drops_pd = np_dict_to_pd(plt_stats, "drops").diff()
 
     # get the maximum and minimum values
     # reward_max = rewards_pd.max().max()
     # reward_min = rewards_pd.min().min()
     # queue_max = queues_pd.max().max()
     # bw_max = bws_pd.max().max()
+    print("Computing rolling reward.")
     rolling_reward = rewards_pd.rolling(mean_smoothing).mean()
     # normalized_reward = (
     #     rolling_reward - rolling_reward.mean()) / rolling_reward.std()
+    print("Computing rolling actions.")
     rolling_actions = actions_pd.rolling(mean_smoothing).mean()
+    print("Computing rolling queues.")
     rolling_queue = queues_pd.rolling(mean_smoothing).mean()
+    print("Computing rolling bandwidth.")
     rolling_bw = bws_pd.rolling(mean_smoothing).mean()
+    print("Computing rolling overlimits.")
+    rolling_olimit = olimit_pd.rolling(mean_smoothing).mean()
+    print("Computing rolling drops.")
+    rolling_drops = drops_pd.rolling(mean_smoothing).mean()
 
     markers = (".", ",", "o", "v", "^", "<", ">")
     linestyles = ('--', '-.', '-', ':')
@@ -104,12 +124,26 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     mark_iterator = itertools.cycle(markers)
     line_iterator = itertools.cycle(linestyles)
     colour = itertools.cycle(colours)
-
-    fig, ax = plt.subplots(4, 1, figsize=(20, 10))
-    ax[0] = sns.lineplot(data=rolling_reward, ax=ax[0], legend=False)
-    ax[1] = sns.lineplot(data=rolling_actions, ax=ax[1], legend=False)
-    ax[2] = sns.lineplot(data=rolling_queue, ax=ax[2], legend=False)
-    ax[3] = sns.lineplot(data=rolling_bw, ax=ax[3], legend=False)
+    print("Plotting lines.")
+    fig, ax = plt.subplots(6, 1, figsize=(20, 10))
+    # ax[0] = rolling_reward.plot(ax=ax[0], legend=False)
+    # ax[1] = rolling_actions.plot(ax=ax[1], legend=False)
+    # ax[2] = rolling_queue.plot(ax=ax[2], legend=False)
+    # ax[3] = rolling_bw.plot(ax=ax[3], legend=False)
+    # ax[4] = rolling_olimit.plot(ax=ax[4], legend=False)
+    # ax[5] = rolling_drops.plot(ax=ax[5], legend=False)
+    ax[0] = sns.lineplot(data=rolling_reward.sample(1000),
+                         ax=ax[0], legend=False)
+    ax[1] = sns.lineplot(data=rolling_actions.sample(1000),
+                         ax=ax[1], legend=False)
+    ax[2] = sns.lineplot(data=rolling_queue.sample(1000),
+                         ax=ax[2], legend=False)
+    ax[3] = sns.lineplot(data=rolling_bw.sample(1000),
+                         ax=ax[3], legend=False)
+    ax[4] = sns.lineplot(data=rolling_olimit.sample(1000),
+                         ax=ax[4], legend=False)
+    ax[5] = sns.lineplot(data=rolling_drops.sample(1000),
+                         ax=ax[5], legend=False)
     # for i, algo in enumerate(algos):
     #     marker = next(mark_iterator)
     #     linestyle = next(line_iterator)
@@ -132,14 +166,19 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     #     ax[2].plot(normalized_bw, label=algo, linestyle=linestyle,
     #                marker=marker, markevery=offset, linewidth=linewidth)
 
+    num_subplots = len(ax)
     ax[0].set_ylabel('rewards')
     ax[1].set_ylabel('actions')
     ax[2].set_ylabel('queue length')
     ax[3].set_ylabel('bandwidth')
+    ax[4].set_ylabel('overlimits')
+    ax[5].set_ylabel('drops')
     ax[0].get_xaxis().set_visible(False)
     ax[1].get_xaxis().set_visible(False)
     ax[2].get_xaxis().set_visible(False)
-    ax[3].set_xlabel('timestep')
+    ax[3].get_xaxis().set_visible(False)
+    ax[4].get_xaxis().set_visible(False)
+    ax[num_subplots - 1].set_xlabel('timestep')
     for subplot in ax:
         subplot.set_xlim([0, num_timesteps])
     # ax[0].set_ylim([0.2, 1.15])
@@ -148,11 +187,11 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     # ax[0].margins(y=0.15)
     # ax[1].margins(y=0.05)
     # ax[2].margins(y=0.15)
-    tcks = ax[3].get_xticks()
+    tcks = ax[num_subplots - 1].get_xticks()
     tcks[-1] = num_timesteps
-    ax[3].set_xticks(tcks)
+    ax[num_subplots - 1].set_xticks(tcks)
     # fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
-    fig.legend(algos, loc='upper center', fancybox=True,
+    fig.legend(rewards_pd.columns.values, loc='upper center', fancybox=True,
                shadow=True, ncol=len(algos))
     print("Saving plot %s" % plt_name)
     check_plt_dir(plt_name)
@@ -188,23 +227,28 @@ def preprocess_data(algos, runs, transport_dir):
             if rewards.size:
                 run_list["rewards"].append(rewards)
             # actions
+            print("Computing mean of host actions per step.")
             actions = host_actions.mean(axis=0)
             if actions.size:
                 run_list["actions"].append(actions)
             # queues
+            print("Computing mean of interface queues per step.")
             flat_queues = port_queues.mean(axis=0)
             if flat_queues.size:
                 run_list["backlog"].append(flat_queues)
             # bandwidths
+            print("Computing mean of interface bandwidth per step.")
             flat_bw = port_bws.mean(axis=0)
             if flat_bw.size:
                 run_list["bw_tx"].append(flat_bw)
             # overlimits
-            mean_overlimits = port_overlimits.mean()
+            print("Computing mean of interface overlimits per step.")
+            mean_overlimits = port_overlimits.mean(axis=0)
             if mean_overlimits.size:
                 run_list["olimit"].append(mean_overlimits)
             # drops
-            mean_drops = port_drops.mean()
+            mean_drops = port_drops.mean(axis=0)
+            print("Computing mean of interface drops per step.")
             if mean_drops.size:
                 run_list["drops"].append(mean_drops)
 
@@ -231,12 +275,16 @@ def plot(data_dir, plot_dir, name):
         plt_name += "_%s" % transport
         plt_name += "_%s" % num_timesteps
         plot_lineplot(algos, plt_stats, num_timesteps, plt_name)
-        plot_barchart(algos, plt_stats, plt_name)
+        # plot_barchart(algos, plt_stats, plt_name)
 
 
 if __name__ == '__main__':
-    PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
-    ROOT = "results"
+
+    if ARGS.input_dir:
+        plot(ARGS.input_dir, PLOT_DIR, os.path.basename(
+            os.path.normpath(ARGS.input_dir)))
+        exit(0)
+
     for folder in next(os.walk(ROOT))[1]:
         print("Crawling folder %s " % folder)
         machinedir = ROOT + "/" + folder

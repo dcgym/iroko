@@ -1,6 +1,7 @@
 from filelock import FileLock
 from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
+from collections import deque
 import numpy as np
 
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
@@ -103,9 +104,9 @@ class StateManager:
         # define file name
         runtime_name = "%s/runtime_statistics_%s.npy" % (data_dir, agent)
         self.stats_file = open(runtime_name, 'wb+')
-        self.data["reward"] = []
-        self.data["actions"] = []
-        self.data["stats"] = []
+        self.data["reward"] = deque()
+        self.data["actions"] = deque()
+        self.data["stats"] = deque()
 
     def _terminate_collectors(self):
         for proc in self.procs:
