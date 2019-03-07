@@ -14,12 +14,16 @@ file_dir = os.path.dirname(__file__)
 INPUT_DIR = file_dir + '/inputs'
 OUTPUT_DIR = exec_dir + '/results'
 PLOT_DIR = exec_dir + '/plots'
-RL_ALGOS = ["PPO", "DDPG", "PG"]
-TCP_ALGOS = ["TCP", "DCTCP", "TCP_NV"]
+
+# RL Algorithms: PPO, DDPG, PG
+# TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
+RL_ALGOS = ["PPO", "DDPG"]
+TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
+# Transport Protocols: tcp, udp
 TRANSPORT = ["udp", "tcp"]
 RUNS = 1
-STEPS = 50000
+STEPS = 100000
 TOPO = "dumbbell"
 TUNE = True
 RESTORE = False
