@@ -98,15 +98,28 @@ class TrafficGen():
         print('*** Starting load-generators')
         for host in hosts:
             iface_net = host.intfList()[0]
-            out_file = "%s/%s_ctrl" % (out_dir, host.name)
+            out_file = "%s/%s_client" % (out_dir, host.name)
+            dmp_file = "%s/%s_dmp" % (out_dir, host.name)
             for config_row in traffic_pattern:
                 if iface_net.IP() == config_row["src"]:
-                    traffic_cmd = ("%s -totalDuration %d -maxSpeed 10"
-                                   " -hosts %s -passiveServer" % (
-                                       traffic_gen,
-                                       duration, config_row["dst"]))
+                    # start a tcpdump capture process
+                    dmp_file = "%s/%s.pcap" % (out_dir, host.name)
+                    dmp_cmd = "tcpdump "
+                    dmp_cmd += "-i %s " % iface_net
+                    dmp_cmd += "-w %s " % dmp_file
+                    dmp_cmd += "-G 300 "
+                    dmp_cmd += "%s " % self.transport
+                    dmp_proc = start_process(host, dmp_cmd, dmp_file)
+                    self.procs.append(dmp_proc)
+
+                    # start the actual client
+                    traffic_cmd = "%s " % traffic_gen
+                    traffic_cmd += "-totalDuration %s " % duration
+                    traffic_cmd += "-hosts %s " % config_row["dst"]
+                    traffic_cmd += "-passiveServer "
+                    traffic_cmd += "-maxSpeed 10 "
                     if self.transport == "udp":
-                        traffic_cmd += " -udp "
+                        traffic_cmd += "-udp "
                     t_proc = start_process(host, traffic_cmd, out_file)
                     self.procs.append(t_proc)
 

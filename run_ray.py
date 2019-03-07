@@ -235,7 +235,7 @@ def configure_ray(agent):
     config["log_level"] = "ERROR"
     config['env_config'] = {
         "input_dir": INPUT_DIR,
-        "output_dir": ARGS.output_dir,
+        "output_dir": ARGS.output_dir + "/" + ARGS.agent,
         "env": ARGS.env,
         "topo": ARGS.topo,
         "agent": ARGS.agent,
@@ -243,6 +243,9 @@ def configure_ray(agent):
         "iterations": ARGS.timesteps,
         "tf_index": 0,
     }
+    if ARGS.timesteps > 10000:
+        config['env_config']["sample_delta"] = ARGS.timesteps / 10000
+
     return config
 
 
@@ -260,7 +263,7 @@ def tune_run(config):
 
 
 def init():
-    check_dir(ARGS.output_dir)
+    check_dir(ARGS.output_dir + "/" + ARGS.agent)
 
     print("Registering the DC environment...")
     register_env("dc_env", get_env)
@@ -276,7 +279,7 @@ def init():
     # else:
     #    run(config)
     # Wait until the topology is torn down completely
-    # time.slee(10)
+    time.sleep(10)
     print("Experiment has completed.")
 
 

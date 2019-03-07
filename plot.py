@@ -132,17 +132,17 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     # ax[3] = rolling_bw.plot(ax=ax[3], legend=False)
     # ax[4] = rolling_olimit.plot(ax=ax[4], legend=False)
     # ax[5] = rolling_drops.plot(ax=ax[5], legend=False)
-    ax[0] = sns.lineplot(data=rolling_reward.sample(1000),
+    ax[0] = sns.lineplot(data=rolling_reward,
                          ax=ax[0], legend=False)
-    ax[1] = sns.lineplot(data=rolling_actions.sample(1000),
+    ax[1] = sns.lineplot(data=rolling_actions,
                          ax=ax[1], legend=False)
-    ax[2] = sns.lineplot(data=rolling_queue.sample(1000),
+    ax[2] = sns.lineplot(data=rolling_queue,
                          ax=ax[2], legend=False)
-    ax[3] = sns.lineplot(data=rolling_bw.sample(1000),
+    ax[3] = sns.lineplot(data=rolling_bw,
                          ax=ax[3], legend=False)
-    ax[4] = sns.lineplot(data=rolling_olimit.sample(1000),
+    ax[4] = sns.lineplot(data=rolling_olimit,
                          ax=ax[4], legend=False)
-    ax[5] = sns.lineplot(data=rolling_drops.sample(1000),
+    ax[5] = sns.lineplot(data=rolling_drops,
                          ax=ax[5], legend=False)
     # for i, algo in enumerate(algos):
     #     marker = next(mark_iterator)
@@ -207,7 +207,7 @@ def preprocess_data(algos, runs, transport_dir):
         run_list = dict((key, []) for key in plt_stats.keys())
         for index in range(runs):
             run_dir = transport_dir + "/run%d" % index
-            stats_file = '%s/runtime_statistics_%s.npy' % (
+            stats_file = '%s/%s/runtime_statistics.npy' % (
                 run_dir, algo.lower())
             print("Loading %s..." % stats_file)
             with FileLock(stats_file + ".lock"):

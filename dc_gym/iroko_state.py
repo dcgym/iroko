@@ -1,7 +1,6 @@
 from filelock import FileLock
 from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
-from collections import deque
 import numpy as np
 
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
@@ -44,8 +43,8 @@ class StateManager:
         with FileLock(self.stats_file.name + ".lock"):
             try:
                 self.flush()
-            except Exception:
-                print("Error flushing file %s" % self.stats_file.name)
+            except Exception as e:
+                print("Error flushing file %s" % self.stats_file.name, e)
         self.stats_file.close()
 
     def terminate(self):
@@ -102,11 +101,11 @@ class StateManager:
         agent = conf["agent"]
 
         # define file name
-        runtime_name = "%s/runtime_statistics_%s.npy" % (data_dir, agent)
+        runtime_name = "%s/runtime_statistics.npy" % (data_dir)
         self.stats_file = open(runtime_name, 'wb+')
-        self.data["reward"] = deque()
-        self.data["actions"] = deque()
-        self.data["stats"] = deque()
+        self.data["reward"] = []
+        self.data["actions"] = []
+        self.data["stats"] = []
 
     def _terminate_collectors(self):
         for proc in self.procs:
@@ -121,7 +120,7 @@ class StateManager:
                 now = stats_now[stat_index][iface_index]
                 self.deltas[delta_index][iface_index] = now - prev
 
-    def observe(self):
+    def observe(self, curr_action, do_sample):
         obs = []
         # retrieve the current deltas before updating total values
         self._compute_deltas(self.num_ports, self.prev_stats, self.stats)
@@ -137,17 +136,16 @@ class StateManager:
                 state.extend(self.flow_stats[index])
             # print("State %d: %s " % (index, state))
             obs.append(np.array(state))
-        # Save collected data
-        self.data["stats"].append(self.stats.copy())
-        return np.array(obs)
-
-    def compute_reward(self, curr_action):
         # Compute the reward
         reward = self.dopamin.get_reward(
             self.stats, self.deltas, curr_action)
-        self.data["reward"].append(reward)
-        self.data["actions"].append(curr_action)
-        return reward
+
+        if (do_sample):
+            # Save collected data
+            self.data["stats"].append(self.stats.copy())
+            self.data["reward"].append(reward)
+            self.data["actions"].append(curr_action)
+        return np.array(obs), reward
 
     def flush(self):
         print("Saving statistics...")

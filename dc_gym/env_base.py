@@ -51,7 +51,7 @@ class BaseEnv(openAIGym):
 
     def _create_topo(self, conf):
         topo_options = []
-        if "parallel_envs" in conf.keys():
+        if conf["parallel_envs"]:
             topo_options.append("parallel_envs")
         topo_options.append(conf["agent"].lower())
         return TopoFactory.create(conf["topo"], topo_options)
@@ -73,7 +73,7 @@ class BaseEnv(openAIGym):
         traffic_file = traffic_files[index]
         self.input_file = '%s/%s/%s' % (
             self.conf["input_dir"], self.conf["topo"], traffic_file)
-        self.output_dir = '%s/%s' % (self.conf["output_dir"], traffic_file)
+        self.output_dir = '%s' % (self.conf["output_dir"])
 
     def step(self, action):
         self.steps = self.steps + 1

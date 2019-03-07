@@ -41,7 +41,7 @@ def test_run(input_dir, output_dir, env, topo):
     # Assemble a configuration dictionary for the environment
     env_config = {
         "input_dir": input_dir,
-        "output_dir": output_dir,
+        "output_dir": output_dir + "/" + ARGS.agent,
         "env": env,
         "topo": topo,
         "agent": ARGS.agent,
