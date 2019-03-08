@@ -45,6 +45,11 @@ class BandwidthController():
             ring_list[sw_iface]["tx"] = tx_ring
         return ring_list
 
+    def destroy_transmissions_rings(self):
+        for ring_pair in self.ring_list.values():
+            self.bw_lib.teardown_ring(ring_pair["rx"])
+            self.bw_lib.teardown_ring(ring_pair["tx"])
+
     def send_cntrl_pckt(self, iface, txrate):
         # Get the tx ring to transmit a packet
         tx_ring = self.ring_list[iface]["tx"]

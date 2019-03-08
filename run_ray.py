@@ -75,6 +75,31 @@ class MaxAgent(Agent):
         }
 
 
+class RandomAgent(Agent):
+    """Agent that always takes the maximum available action."""
+    _agent_name = "RandomAgent"
+    _default_config = with_common_config({})
+
+    def _init(self):
+        self.env = self.env_creator(self.config["env_config"])
+
+    def _train(self):
+        steps = 0
+        done = False
+        reward = 0.0
+        while not done:
+            action = self.env.action_space.sample()
+            obs, r, done, info = self.env.step(action)
+            reward += r
+            steps += 1
+            if steps >= self.config["env_config"]["iterations"]:
+                done = True
+        return {
+            "episode_reward_mean": reward,
+            "timesteps_this_iter": steps,
+        }
+
+
 def check_dir(directory):
     # create the folder if it does not exit
     if not directory == '' and not os.path.exists(directory):
@@ -143,6 +168,10 @@ def clean():
 
 
 def get_agent(agent_name):
+
+    if agent_name.lower() == "rnd":
+        agent_class = type(agent_name.upper(), (RandomAgent,), {})
+        return agent_class
     try:
         agent_class = get_agent_class(agent_name.upper())
     except Exception as e:

@@ -15,9 +15,9 @@ INPUT_DIR = file_dir + '/inputs'
 OUTPUT_DIR = exec_dir + '/results'
 PLOT_DIR = exec_dir + '/plots'
 
-# RL Algorithms: PPO, DDPG, PG
+# RL Algorithms: PPO, APPO, DDPG, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["PPO", "DDPG"]
+RL_ALGOS = ["PPO", "DDPG", "PG", "A2C", "RND"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp

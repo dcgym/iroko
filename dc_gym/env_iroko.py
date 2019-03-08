@@ -52,11 +52,11 @@ class DCEnv(BaseEnv):
         done = not self.is_traffic_proc_alive()
 
         pred_bw = action * self.topo.MAX_CAPACITY
-        # print("Iteration %d Actions: " % self.steps, end='')
-        # for index, h_iface in enumerate(self.topo.host_ctrl_map):
-        #     rate = action[index] * 10
-        #     print(" %s:%.3f " % (h_iface, rate), end='')
-        # print('')
+        print("Iteration %d Actions: " % self.steps, end='')
+        for index, h_iface in enumerate(self.topo.host_ctrl_map):
+            rate = action[index] * 10
+            print(" %s:%.3f " % (h_iface, rate), end='')
+        print('')
         self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
 
         # observe for WAIT seconds minus time needed for computation

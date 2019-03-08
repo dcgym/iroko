@@ -49,6 +49,7 @@ class BaseEnv(openAIGym):
         signal.signal(signal.SIGTERM, self._handle_interrupt)
         atexit.register(self.kill_env)
 
+
     def _create_topo(self, conf):
         topo_options = []
         if conf["parallel_envs"]:
@@ -110,7 +111,6 @@ class BaseEnv(openAIGym):
             self.traffic_gen.stop_traffic()
         if hasattr(self, 'topo'):
             self.topo.delete_topo()
-
         if hasattr(self, 'state_man'):
             self.state_man.flush_and_close()
         print("Done with destroying myself.")
