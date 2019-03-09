@@ -29,13 +29,15 @@ class StateManager:
         self.num_ports = len(sw_ports)
         self.deltas = None
         self.prev_stats = None
+        host_ports = topo_conf.get_host_ports()
         self._set_feature_length(len(topo_conf.host_ips))
         self._init_stats_matrices(self.num_ports, len(topo_conf.host_ips))
-        self._spawn_collectors(sw_ports, topo_conf.host_ips)
-        self.dopamin = RewardFunction(topo_conf.host_ctrl_map,
-                                      sw_ports, self.REWARD_MODEL,
-                                      topo_conf.MAX_QUEUE,
-                                      topo_conf.MAX_CAPACITY, self.STATS_DICT)
+        self._spawn_collectors(sw_ports, host_ports, topo_conf.host_ips)
+        max_queue = topo_conf.conf["max_queue"]
+        max_capacity = topo_conf.conf["max_capacity"]
+        self.dopamin = RewardFunction(host_ports, sw_ports,
+                                      self.REWARD_MODEL,
+                                      max_queue, max_capacity, self.STATS_DICT)
         self._set_data_checkpoints(config)
 
     def flush_and_close(self):
@@ -81,13 +83,13 @@ class StateManager:
         self.prev_stats = self.stats.copy()
         self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
 
-    def _spawn_collectors(self, sw_ports, host_ips):
+    def _spawn_collectors(self, sw_ports, host_ports, host_ips):
         # Launch an asynchronous queue collector
         proc = QueueCollector(sw_ports, self.stats, self.STATS_DICT)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector
-        proc = BandwidthCollector(sw_ports, self.stats, self.STATS_DICT)
+        proc = BandwidthCollector(host_ports, self.stats, self.STATS_DICT)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector

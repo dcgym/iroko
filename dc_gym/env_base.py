@@ -11,6 +11,36 @@ from iroko_traffic import TrafficGen
 from iroko_state import StateManager
 from factories import TopoFactory
 
+DEFAULT_CONF = {
+    # Input folder of the traffic matrix.
+    "input_dir": "../inputs/",
+    # Which traffic matrix to run. Defaults to the first item in the list.
+    "tf_index": 0,
+    # Output folder for the measurements during trial runs.
+    "output_dir": "../results/",
+    # When to take state samples. Defaults to taking a sample at every step.
+    "sample_delta": 1,
+    # Basic environment name.
+    "env": "iroko",
+    # Use the simplest topology for tests.
+    "topo": "dumbbell",
+    # Which agent to use for traffic management. By default this is TCP.
+    "agent": "TCP",
+    # Which transport protocol to use. Defaults to the common TCP.
+    "transport": "tcp",
+    # How many steps to run the analysis for.
+    "iterations": 10000,
+    # Topology specific configuration (traffic pattern, number of hosts)
+    "topo_conf": {},
+}
+
+
+def merge_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+
 
 class BaseEnv(openAIGym):
     WAIT = 0.0      # amount of seconds the agent waits per iteration
@@ -20,13 +50,13 @@ class BaseEnv(openAIGym):
                  "reward", "progress_bar", "killed",
                  "input_file", "output_dir", "start_time"]
 
-    def __init__(self, conf):
-        self.conf = conf
+    def __init__(self, conf={}):
+        self.conf = merge_dicts(DEFAULT_CONF, conf)
         # initialize the topology
-        self.topo = self._create_topo(conf)
+        self.topo = self._create_topo(self.conf)
         # initialize the traffic generator and state manager
-        self.traffic_gen = TrafficGen(self.topo, conf["transport"])
-        self.state_man = StateManager(self.topo, conf)
+        self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
+        self.state_man = StateManager(self.topo, self.conf)
         self._set_gym_spaces()
 
         # set up variables for the progress bar
@@ -49,13 +79,9 @@ class BaseEnv(openAIGym):
         signal.signal(signal.SIGTERM, self._handle_interrupt)
         atexit.register(self.kill_env)
 
-
     def _create_topo(self, conf):
-        topo_options = []
-        if conf["parallel_envs"]:
-            topo_options.append("parallel_envs")
-        topo_options.append(conf["agent"].lower())
-        return TopoFactory.create(conf["topo"], topo_options)
+        conf["topo_conf"]["tcp_policy"] = conf["agent"].lower()
+        return TopoFactory.create(conf["topo"], conf["topo_conf"])
 
     def _set_gym_spaces(self):
         # set configuration for the gym environment
@@ -70,8 +96,7 @@ class BaseEnv(openAIGym):
             shape=(num_ports * num_features,))
 
     def set_traffic_matrix(self, index):
-        traffic_files = self.topo.TRAFFIC_FILES
-        traffic_file = traffic_files[index]
+        traffic_file = self.topo.get_traffic_pattern(index)
         self.input_file = '%s/%s/%s' % (
             self.conf["input_dir"], self.conf["topo"], traffic_file)
         self.output_dir = '%s' % (self.conf["output_dir"])

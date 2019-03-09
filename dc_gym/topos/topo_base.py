@@ -14,28 +14,40 @@ cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
 
+DEFAULT_CONF = {
+    "max_queue": 0.5e6,         # max queue of switches in bytes
+    "max_capacity": 10e6,       # max bw capacity of link in bytes
+    "min_rate": 0.1e6,          # min possible bw of an interface in bytes
+    "parallel_envs": False,     # enable ids to support multiple topologies
+    "tcp_policy": "tcp"
+}
+
+
+def merge_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+
 
 class BaseTopo:
-    NAME = "base"
-    MAX_QUEUE = 0.5e6       # max queue of switches in bytes
-    MAX_CAPACITY = 10e6     # max bw capacity of link in bytes
-    MIN_RATE = 0.1e6       # min possible bw of an interface in bytes
 
-    def __init__(self, options):
-        self.num_hosts = self.NUM_HOSTS
+    def __init__(self, conf={}):
+        self.conf = merge_dicts(DEFAULT_CONF, conf)
+        self.name = "base"
         self.topo = None
         self.host_ctrl_map = {}
         self.host_ips = []
         self.net = None
-        self.switch_id = self._generate_switch_id(options)
+        self.switch_id = self._generate_switch_id(self.conf)
         self.prev_cc = self._get_active_congestion_control()
-        self._set_congestion_control(options)
+        self._set_congestion_control(self.conf)
 
-    def _generate_switch_id(self, options):
+    def _generate_switch_id(self, conf):
         ''' Mininet needs unique ids if we want to launch
          multiple topologies at once '''
-        if "parallel_envs" not in options:
-            return""
+        if not conf["parallel_envs"]:
+            return ""
         # Best collision-free technique for the limited amount of characters
         sw_id = ''.join(random.choice(''.join([random.choice(
                 string.ascii_letters + string.digits)
@@ -46,19 +58,13 @@ class BaseTopo:
         prev_cc = os.popen("sysctl -n net.ipv4.tcp_congestion_control").read()
         return prev_cc
 
-    def _set_congestion_control(self, options):
-        self.dctcp = False
-        self.tcp_nv = False
-        self.pcc = False
-        if "dctcp" in options:
+    def _set_congestion_control(self, conf):
+        if conf["tcp_policy"] == "dctcp":
             os.system("modprobe tcp_dctcp")
             os.system("sysctl -w net.ipv4.tcp_ecn=1")
-            self.dctcp = True
-        elif "tcp_nv" in options:
-            self.tcp_nv = True
+        elif conf["tcp_policy"] == "tcp_nv":
             os.system("modprobe tcp_nv")
-        elif "pcc" in options:
-            self.pcc = True
+        elif conf["tcp_policy"] == "pcc":
             if (os.popen("lsmod | grep pcc").read() == ""):
                 os.system("insmod %s/tcp_pcc.ko" % FILE_DIR)
 
@@ -87,7 +93,7 @@ class BaseTopo:
         # os.system(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
-        #     self.MAX_CAPACITY, self.MAX_CAPACITY)
+        #     self.conf["max_capacity"], self.conf["max_capacity"])
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
@@ -99,19 +105,19 @@ class BaseTopo:
         os.system(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
         cmd = "parent 1: classid 1:10 htb rate %dbit burst %d" % (
-            self.MAX_CAPACITY, self.MAX_CAPACITY)
+            self.conf["max_capacity"], self.conf["max_capacity"])
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
-        if self.dctcp:
+        if self.conf["tcp_policy"] == "dctcp":
             # Apply aggressive RED to mark excess packets in the queue
-            limit = int(self.MAX_QUEUE)
+            limit = int(self.conf["max_queue"])
             max_q = limit / 3
             min_q = max_q / 3
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
-            cmd += "bandwidth  %dbit " % self.MAX_CAPACITY
+            cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
             cmd += "avpkt 1000 "
             cmd += "min %d " % (min_q)
             cmd += "max %d " % (max_q)
@@ -120,7 +126,7 @@ class BaseTopo:
             debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)
         else:
-            limit = int(self.MAX_QUEUE)
+            limit = int(self.conf["max_queue"])
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
             cmd += " limit %d" % (limit)
@@ -128,22 +134,22 @@ class BaseTopo:
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20:1 netem limit %d rate 10mbit" % (
-        #     self.MAX_QUEUE)
+        #     self.conf["max_queue"])
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-        # limit = int(self.MAX_QUEUE)
+        # limit = int(self.conf["max_queue"])
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20: codel "
         # cmd += " limit %d" % (limit)
         # os.system(tc_cmd + cmd)
 
-        # limit = int(self.MAX_QUEUE)
-        # max_q = self.MAX_QUEUE / 4
+        # limit = int(self.conf["max_queue"])
+        # max_q = self.conf["max_queue"] / 4
         # min_q = max_q / 3
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20:1 sfq limit %d" % (
-        #     self.MAX_QUEUE)
+        #     self.conf["max_queue"])
         # if self.dctcp:
         #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
@@ -154,14 +160,13 @@ class BaseTopo:
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-
         # Apply tc choke to mark excess packets in the queue with ecn
-        # limit = int(self.MAX_QUEUE)
-        # max_q = self.MAX_QUEUE
+        # limit = int(self.conf["max_queue"])
+        # max_q = self.conf["max_queue"]
         # min_q = 400
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 10:1 choke limit %d " % limit
-        # cmd += "bandwidth  %dbit " % self.MAX_CAPACITY
+        # cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
         # cmd += "min %d " % (min_q)
         # cmd += "max %d " % (max_q)
         # cmd += "probability 0.001"
@@ -172,8 +177,8 @@ class BaseTopo:
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 30:1 fq_codel limit %d " % (
-        #     self.MAX_QUEUE)
-        # if ("dctcp" in self.options) and self.options["dctcp"]:
+        #     self.conf["max_queue"])
+        # if ("dctcp" in self.conf) and self.conf["dctcp"]:
         #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
         # print (tc_cmd + cmd)
@@ -204,13 +209,13 @@ class BaseTopo:
             # host.cmd("sysctl -w net.ipv4.tcp_sack=1")
             # host.cmd("sysctl -w net.ipv4.tcp_syn_retries=10")
             # host.cmd("sysctl -w net.core.default_qdisc=pfifo_fast")
-            if self.dctcp:
+            if self.conf["tcp_policy"] == "dctcp":
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=dctcp")
                 host.cmd("sysctl -w net.ipv4.tcp_ecn=1")
                 host.cmd("sysctl -w net.ipv4.tcp_ecn_fallback=0")
-            elif self.tcp_nv:
+            elif self.conf["tcp_policy"] == "tcp_nv":
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=nv")
-            elif self.pcc:
+            elif self.conf["tcp_policy"] == "pcc":
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=pcc")
 
     def _configure_network(self):
@@ -231,15 +236,11 @@ class BaseTopo:
     def get_topo(self):
         return self.topo
 
-    def delete_topo(self):
-        output("Cleaning up topology and restoring all network variables.")
-        if self.dctcp:
-            os.system("sysctl -w net.ipv4.tcp_ecn=0")
-        # reset the active host congestion control to the previous value
-        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-        os.system(cmd)
-        # destroy the mininet
-        self.net.stop()
+    def get_traffic_pattern(self, index):
+        # start an all-to-all pattern if the list index is -1
+        if index == -1:
+            return "all"
+        return self.conf["traffic_files"][index]
 
     def get_sw_ports(self):
         switches = self.net.switches
@@ -249,6 +250,19 @@ class BaseTopo:
                 if intf is not 'lo':
                     sw_intfs.append(intf)
         return sw_intfs
+
+    def get_host_ports(self):
+        return self.host_ctrl_map.keys()
+
+    def delete_topo(self):
+        output("Cleaning up topology and restoring all network variables.")
+        if self.conf["tcp_policy"] == "dctcp":
+            os.system("sysctl -w net.ipv4.tcp_ecn=0")
+        # reset the active host congestion control to the previous value
+        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+        os.system(cmd)
+        # destroy the mininet
+        self.net.stop()
 
     def _create_network(self, cpu=-1):
         setLogLevel('warning')

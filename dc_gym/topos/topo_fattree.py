@@ -1,19 +1,36 @@
 import os
 from mininet.topo import Topo
-from topos.topo_base import BaseTopo
+from topos.topo_base import BaseTopo, merge_dicts
+
+DEFAULT_CONF = {
+    "num_hosts": 16,            # number of hosts in the topology
+    "traffic_files": ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
+                      'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
+                      'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
+                      'stride1_data', 'stride2_data', 'stride4_data',
+                      'stride8_data', 'random0_data', 'random1_data',
+                      'random2_data', 'random0_bij_data', 'random1_bij_data',
+                      'random2_bij_data', 'random_2_flows_data',
+                      'random_3_flows_data', 'random_4_flows_data',
+                      'hotspot_one_to_one_data'],
+    "traffic_files": ['stride4_data'],
+    "fanout": 4,
+    "density": 2,
+    "ecmp": True,
+}
 
 
 class Fattree(Topo):
     """ Class of Fattree Topology. """
 
-    def __init__(self, k, density, switch_id):
+    def __init__(self, fanout, density, switch_id):
         # Init Topo
         Topo.__init__(self)
-        self.pod = k
+        self.pod = fanout
         self.density = density
-        self.core_switch_num = (k / 2)**2
-        self.agg_switch_num = k * k / 2
-        self.edge_switch_num = k * k / 2
+        self.core_switch_num = (fanout / 2)**2
+        self.agg_switch_num = fanout * fanout / 2
+        self.edge_switch_num = fanout * fanout / 2
         self.iHost = self.edge_switch_num * density
         self.switch_id = switch_id
         self.core_switches = []
@@ -65,24 +82,15 @@ class Fattree(Topo):
 
 
 class TopoConfig(BaseTopo):
-    NAME = "fattree"
-    NUM_HOSTS = 16  # the basic amount of hosts in the network
-    TRAFFIC_FILES = ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
-                     'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
-                     'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
-                     'stride1_data', 'stride2_data', 'stride4_data',
-                     'stride8_data', 'random0_data', 'random1_data',
-                     'random2_data', 'random0_bij_data', 'random1_bij_data',
-                     'random2_bij_data', 'random_2_flows_data',
-                     'random_3_flows_data', 'random_4_flows_data',
-                     'hotspot_one_to_one_data']
-    TRAFFIC_FILES = ['stride4_data']
 
-    def __init__(self, options):
-        BaseTopo.__init__(self, options)
-        self.topo = Fattree(k=4, density=2, switch_id=self.switch_id)
+    def __init__(self, conf={}):
+        conf = merge_dicts(DEFAULT_CONF, conf)
+        BaseTopo.__init__(self, conf)
+        self.name = "fattree"
+        self.topo = Fattree(
+            fanout=conf["fanout"], density=conf["density"],
+            switch_id=self.switch_id)
         self.net = self._create_network()
-        self.is_ecmp = True
         self._configure_network()
 
     def _set_host_ip(self, net, topo):
@@ -227,5 +235,5 @@ class TopoConfig(BaseTopo):
         # Set hosts IP addresses.
         self._set_host_ip(self.net, self.topo)
         # Install proactive flow entries
-        if self.is_ecmp:
+        if self.conf["ecmp"]:
             self._install_proactive(self.net, self.topo)

@@ -1,6 +1,20 @@
 import os
 from mininet.topo import Topo
-from topos.topo_base import BaseTopo
+from topos.topo_base import BaseTopo, merge_dicts
+
+DEFAULT_CONF = {
+    "num_hosts": 16,            # number of hosts in the topology
+    "traffic_files": ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
+                      'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
+                      'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
+                      'stride1_data', 'stride2_data', 'stride4_data',
+                      'stride8_data', 'random0_data', 'random1_data',
+                      'random2_data', 'random0_bij_data', 'random1_bij_data',
+                      'random2_bij_data', 'random_2_flows_data',
+                      'random_3_flows_data', 'random_4_flows_data',
+                      'hotspot_one_to_one_data'],
+    "traffic_files": ['stride4_data'],
+}
 
 
 class NonBlocking(Topo):
@@ -10,42 +24,33 @@ class NonBlocking(Topo):
     switchlist = []
     hostlist = []
 
-    def __init__(self, k, switch_id):
+    def __init__(self, num_hosts, switch_id):
         # Topo initiation
         Topo.__init__(self)
-        self.pod = k
         self.core_switch = 1
-        self.iHost = k**3 / 4
+        self.num_hosts = num_hosts
         self.switch_id = switch_id
 
     def create_nodes(self):
         self.create_core_switch(self.core_switch)
-        self.create_host(self.iHost)
+        self.create_hosts(self.num_hosts)
 
-    def _add_switch(self, number, level, switch_list):
+    def _add_switch(self, number, switch_list):
         """
                 Create switches.
         """
-        for i in range(1, number + 1):
-            sw_name = "%s-%d-%d" % (self.switch_id, level, i)
+        for index in range(1, number + 1):
+            sw_name = "%ssw%d" % (self.switch_id, index)
             switch_list.append(self.addSwitch(sw_name))
 
     def create_core_switch(self, NUMBER):
-        self._add_switch(NUMBER, 1, self.switchlist)
+        self._add_switch(NUMBER, self.switchlist)
 
-    def create_host(self, NUMBER):
-        """
-                Create hosts.
-        """
-        for i in range(1, NUMBER + 1):
-            if i >= 100:
-                PREFIX = "h"
-            elif i >= 10:
-                PREFIX = "h0"
-            else:
-                PREFIX = "h00"
-            self.hostlist.append(self.addHost(
-                PREFIX + str(i), cpu=1.0 / float(NUMBER)))
+    def create_hosts(self, num):
+        """ Create hosts. """
+        for i in range(1, num + 1):
+            host_name = "h%d" % i
+            self.hostlist.append(self.addHost(host_name, cpu=1.0 / num))
 
     def create_links(self):
         """
@@ -59,20 +64,12 @@ class NonBlocking(Topo):
 
 class TopoConfig(BaseTopo):
     NAME = "nonblock"
-    NUM_HOSTS = 16  # the basic amount of hosts in the network
-    TRAFFIC_FILES = ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
-                     'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
-                     'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
-                     'stride1_data', 'stride2_data', 'stride4_data',
-                     'stride8_data', 'random0_data', 'random1_data',
-                     'random2_data', 'random0_bij_data', 'random1_bij_data',
-                     'random2_bij_data', 'random_2_flows_data',
-                     'random_3_flows_data', 'random_4_flows_data',
-                     'hotspot_one_to_one_data']
 
-    def __init__(self, options):
-        BaseTopo.__init__(self, options)
-        self.topo = NonBlocking(k=4, switch_id=self.switch_id)
+    def __init__(self, conf={}):
+        conf = merge_dicts(DEFAULT_CONF, conf)
+        BaseTopo.__init__(self, conf)
+        self.topo = NonBlocking(
+            num_hosts=conf["num_hosts"], switch_id=self.switch_id)
         self.net = self._create_network()
         self._configure_network()
 
@@ -98,7 +95,7 @@ class TopoConfig(BaseTopo):
         for sw in topo.switchlist:
             i = 1
             j = 1
-            for k in range(1, topo.iHost + 1):
+            for k in range(1, topo.num_hosts + 1):
                 cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                     'table=0,idle_timeout=0,hard_timeout=0,priority=40,arp, \
                     nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, i, j, k)

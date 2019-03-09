@@ -1,7 +1,13 @@
 import os
-from topos.topo_base import BaseTopo
+from topos.topo_base import BaseTopo, merge_dicts
 from mininet.topo import Topo
 from mininet.log import info, output, warn, error, debug
+
+
+DEFAULT_CONF = {
+    "num_hosts": 4,             # number of hosts in the topology
+    "traffic_files": ['incast_2', 'incast_4', 'incast_8'],
+}
 
 
 class DumbbellTopo(Topo):
@@ -64,14 +70,12 @@ class DumbbellTopo(Topo):
 
 
 class TopoConfig(BaseTopo):
-    NAME = "dumbbell"
-    NUM_HOSTS = 4   # the basic amount of hosts in the network
-    TRAFFIC_FILES = ['incast_2']
-    LABELS = ['incast']
 
-    def __init__(self, options):
-        BaseTopo.__init__(self, options)
-        self.topo = DumbbellTopo(self.NUM_HOSTS, self.switch_id)
+    def __init__(self, conf={}):
+        conf = merge_dicts(DEFAULT_CONF, conf)
+        BaseTopo.__init__(self, conf)
+        self.name = "dumbbell"
+        self.topo = DumbbellTopo(conf["num_hosts"], self.switch_id)
         self.net = self._create_network()
         self._configure_network()
 

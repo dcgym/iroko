@@ -4,11 +4,15 @@ import csv
 
 from time import sleep
 
+
 # The binaries are located in the control subfolder
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_traffic_file(traffic_file):
+    if not os.path.isfile(traffic_file):
+        print("The input traffic pattern does not exist.")
+        return None
     traffic_pattern = []
     with open(traffic_file, 'r') as tf:
         traffic_reader = csv.DictReader(tf)
@@ -86,42 +90,53 @@ class TrafficGen():
             c_proc = start_process(host, ctrl_cmd, out_file)
             self.procs.append(c_proc)
 
+    def _start_client(self, traffic_gen, host, out_dir, dst):
+        out_file = "%s/%sto%s_client" % (out_dir, host.name, dst)
+        # start the actual client
+        traffic_cmd = "%s " % traffic_gen
+        traffic_cmd += "-totalDuration %s " % 2147483647  # infinite runtime
+        traffic_cmd += "-hosts %s " % dst
+        traffic_cmd += "-maxSpeed %d " % 10
+        traffic_cmd += "-passiveServer "
+        if self.transport == "udp":
+            traffic_cmd += "-udp "
+        t_proc = start_process(host, traffic_cmd, out_file)
+        self.procs.append(t_proc)
+
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):
+        print (out_dir)
         print('*** Loading file:\n%s' % input_file)
-        if not os.path.isfile(input_file):
-            print("The input traffic pattern does not exist.")
-            kill_processes(self.procs)
-            exit(1)
-        traffic_pattern = parse_traffic_file(input_file)
-        duration = 2147483647  # effectively infinite runtime
+        if not os.path.basename(input_file) == "all":
+            traffic_pattern = parse_traffic_file(input_file)
+            if traffic_pattern is None:
+                kill_processes(self.procs)
+                exit(1)
         # The binary of the host rate limiter
         print('*** Starting load-generators')
-        for host in hosts:
-            iface_net = host.intfList()[0]
-            out_file = "%s/%s_client" % (out_dir, host.name)
-            dmp_file = "%s/%s_dmp" % (out_dir, host.name)
-            for config_row in traffic_pattern:
-                if iface_net.IP() == config_row["src"]:
-                    # start a tcpdump capture process
-                    dmp_file = "%s/%s.pcap" % (out_dir, host.name)
-                    dmp_cmd = "tcpdump "
-                    dmp_cmd += "-i %s " % iface_net
-                    dmp_cmd += "-w %s " % dmp_file
-                    dmp_cmd += "-G 300 "
-                    dmp_cmd += "%s " % self.transport
-                    dmp_proc = start_process(host, dmp_cmd, dmp_file)
-                    self.procs.append(dmp_proc)
-
-                    # start the actual client
-                    traffic_cmd = "%s " % traffic_gen
-                    traffic_cmd += "-totalDuration %s " % duration
-                    traffic_cmd += "-hosts %s " % config_row["dst"]
-                    traffic_cmd += "-passiveServer "
-                    traffic_cmd += "-maxSpeed 10 "
-                    if self.transport == "udp":
-                        traffic_cmd += "-udp "
-                    t_proc = start_process(host, traffic_cmd, out_file)
-                    self.procs.append(t_proc)
+        for src_host in hosts:
+            iface_net = src_host.intfList()[0]
+            if os.path.basename(input_file) == "all":
+                # generate an all-to-all pattern
+                for dst_host in hosts:
+                    if src_host != dst_host:
+                        dst_ip = dst_host.intfList()[0].IP()
+                        self._start_client(traffic_gen, src_host,
+                                           out_dir, dst_ip)
+            else:
+                # generate a pattern according to the traffic matrix
+                for config_row in traffic_pattern:
+                    if iface_net.IP() == config_row["src"]:
+                        self._start_client(traffic_gen, src_host,
+                                           out_dir, config_row["dst"])
+            # start a tcpdump capture process
+            dmp_file = "%s/%s.pcap" % (out_dir, src_host.name)
+            dmp_cmd = "tcpdump "
+            dmp_cmd += "-i %s " % iface_net
+            dmp_cmd += "-w %s " % dmp_file
+            dmp_cmd += "-G 300 "
+            dmp_cmd += "%s " % self.transport
+            dmp_proc = start_process(src_host, dmp_cmd, dmp_file)
+            self.procs.append(dmp_proc)
 
     def start_traffic(self, input_file, out_dir):
         ''' Run the traffic generator and monitor all of the interfaces '''

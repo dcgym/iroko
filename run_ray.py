@@ -25,8 +25,10 @@ OUTPUT_DIR = cwd + '/results'
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--env', '-e', dest='env',
                     default='iroko', help='The platform to run.')
-PARSER.add_argument('--topo', '-to', dest='topo',
+PARSER.add_argument('--topo', dest='topo',
                     default='dumbbell', help='The topology to operate on.')
+PARSER.add_argument('--num_hosts', dest='num_hosts',
+                    default='4', help='The number of hosts in the topology.')
 PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
                     help='must be string of either: PPO, DDPG, PG,'
                          ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
@@ -260,8 +262,8 @@ def configure_ray(agent):
         "iterations": ARGS.timesteps,
         "tf_index": 0,
     }
-    if ARGS.timesteps > 10000:
-        config['env_config']["sample_delta"] = ARGS.timesteps / 10000
+    if ARGS.timesteps > 50000:
+        config['env_config']["sample_delta"] = ARGS.timesteps / 50000
 
     return config
 

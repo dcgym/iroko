@@ -14,8 +14,6 @@ from filelock import FileLock
 MAX_BW = 10e6
 STATS_DICT = {"backlog": 0, "olimit": 1,
               "drops": 2, "bw_rx": 3, "bw_tx": 4}
-NUM_IFACES = 6
-NUM_ACTIONS = 4
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 ROOT = "results"
@@ -78,13 +76,11 @@ def plot_barchart(algos, plt_stats, plt_name):
     plt.savefig(plt_name + "_bar.png")
     plt.gcf().clear()
 
-# temp = np.vstack([x[i:-(5-i)] for i in range(5)]) # stacks vertically the strided arrays means = np.nanmean(temp, axis=0)
-
 
 def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     # Set seaborn style for plotting
     sns.set(style="white", font_scale=2)
-    mean_smoothing = int(num_timesteps / 100)
+    mean_smoothing = int(num_timesteps / 1000)
 
     print("Converting numpy arrays into pandas dataframes.")
     # rewards_pd = pd.DataFrame.from_dict(
@@ -178,18 +174,18 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     ax[2].get_xaxis().set_visible(False)
     ax[3].get_xaxis().set_visible(False)
     ax[4].get_xaxis().set_visible(False)
-    ax[num_subplots - 1].set_xlabel('timestep')
-    for subplot in ax:
-        subplot.set_xlim([0, num_timesteps])
+    ax[num_subplots - 1].set_xlabel('time')
+    # for subplot in ax:
+    #     subplot.set_xlim([0, num_timesteps])
     # ax[0].set_ylim([0.2, 1.15])
     # ax[1].set_ylim([-0.15, 1.15])
     # ax[2].set_ylim([-0.15, 1.15])
     # ax[0].margins(y=0.15)
     # ax[1].margins(y=0.05)
     # ax[2].margins(y=0.15)
-    tcks = ax[num_subplots - 1].get_xticks()
-    tcks[-1] = num_timesteps
-    ax[num_subplots - 1].set_xticks(tcks)
+    # tcks = ax[num_subplots - 1].get_xticks()
+    # tcks[-1] = num_timesteps
+    # ax[num_subplots - 1].set_xticks(tcks)
     # fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
     fig.legend(rewards_pd.columns.values, loc='upper center', fancybox=True,
                shadow=True, ncol=len(algos))
