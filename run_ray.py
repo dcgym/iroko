@@ -115,7 +115,7 @@ def get_env(env_config):
 
 def set_tuning_parameters(agent, config):
     scheduler = None
-    if agent.lower() == "PPO":
+    if agent.lower() == "ppo":
         # Postprocess the perturbed config to ensure it's still valid
         def explore(config):
             # ensure we collect enough timesteps to do sgd
@@ -150,10 +150,10 @@ def set_tuning_parameters(agent, config):
                                             hyperparam_mutations=hype_params,
                                             custom_explore_fn=explore)
 
-    if agent == "DDPG":
+    if agent.lower() == "ddpg":
         pass
 
-    if agent == "PG":
+    if agent.lower() == "pg":
         pass
 
     return config, scheduler
@@ -214,7 +214,7 @@ def get_tune_experiment(config, agent):
 
 def configure_ray(agent):
     config = {}
-    if agent.lower() == "PPO":
+    if agent.lower() == "ppo":
         # TODO this number should be like 4k, 8k, 16k, etc.
         # config based on paper: "Proximal Policy Optimization Algrothm"
         # Specifically experiment 6.1
@@ -232,7 +232,7 @@ def configure_ray(agent):
         # config['kl_target'] = 0.0
         # config['clip_param'] = 0.2
         # config['kl_coeff'] = 0.0
-    elif agent.lower() == "DDPG":
+    elif agent.lower() == "ddpg":
         config["actor_hiddens"] = [400, 300, 200]
         config["actor_hidden_activation"] = "relu"
         config["critic_hiddens"] = [400, 300, 200]

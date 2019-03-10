@@ -196,75 +196,81 @@ def plot_lineplot(algos, plt_stats, num_timesteps, plt_name):
     plt.gcf().clear()
 
 
-def preprocess_data(algos, runs, transport_dir):
-    plt_stats = {"rewards": {}, "actions": {}, "backlog": {},
-                 "bw_tx": {}, "bw_rx": {}, "olimit": {}, "drops": {}}
-    for i, algo in enumerate(algos):
-        run_list = dict((key, []) for key in plt_stats.keys())
-        for index in range(runs):
-            run_dir = transport_dir + "/run%d" % index
-            stats_file = '%s/%s/runtime_statistics.npy' % (
-                run_dir, algo.lower())
-            print("Loading %s..." % stats_file)
-            with FileLock(stats_file + ".lock"):
-                try:
-                    statistics = np.load(stats_file).item()
-                except Exception:
-                    print("Error loading file %s" % stats_file)
-                    exit(1)
-            rewards = np.array(statistics["reward"])
-            host_actions = np.moveaxis(statistics["actions"], 0, -1)
-            port_stats = np.moveaxis(statistics["stats"], 0, -1)
-            port_queues = np.array(port_stats[STATS_DICT["backlog"]])
-            port_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
-            port_overlimits = np.array(port_stats[STATS_DICT["olimit"]])
-            port_drops = np.array(port_stats[STATS_DICT["drops"]])
-            # rewards
-            if rewards.size:
-                run_list["rewards"].append(rewards)
-            # actions
-            print("Computing mean of host actions per step.")
-            actions = host_actions.mean(axis=0)
-            if actions.size:
-                run_list["actions"].append(actions)
-            # queues
-            print("Computing mean of interface queues per step.")
-            flat_queues = port_queues.mean(axis=0)
-            if flat_queues.size:
-                run_list["backlog"].append(flat_queues)
-            # bandwidths
-            print("Computing mean of interface bandwidth per step.")
-            flat_bw = port_bws.mean(axis=0)
-            if flat_bw.size:
-                run_list["bw_tx"].append(flat_bw)
-            # overlimits
-            print("Computing mean of interface overlimits per step.")
-            mean_overlimits = port_overlimits.mean(axis=0)
-            if mean_overlimits.size:
-                run_list["olimit"].append(mean_overlimits)
-            # drops
-            mean_drops = port_drops.mean(axis=0)
-            print("Computing mean of interface drops per step.")
-            if mean_drops.size:
-                run_list["drops"].append(mean_drops)
+def preprocess_data(algo, runs, transport_dir):
+    run_list = {"rewards": [], "actions": [], "backlog": [],
+                "bw_tx": [], "bw_rx": [], "olimit": [], "drops": []}
+    for index in range(runs):
+        run_dir = transport_dir + "run%d" % index
+        stats_file = '%s/%s/runtime_statistics.npy' % (
+            run_dir, algo.lower())
+        print("Loading %s..." % stats_file)
+        with FileLock(stats_file + ".lock"):
+            try:
+                statistics = np.load(stats_file).item()
+            except Exception as e:
+                print("Error loading file %s" % stats_file, e)
+                exit(1)
+        rewards = np.array(statistics["reward"])
+        host_actions = np.moveaxis(statistics["actions"], 0, -1)
+        port_stats = np.moveaxis(statistics["stats"], 0, -1)
+        port_queues = np.array(port_stats[STATS_DICT["backlog"]])
+        port_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
+        port_overlimits = np.array(port_stats[STATS_DICT["olimit"]])
+        port_drops = np.array(port_stats[STATS_DICT["drops"]])
+        # rewards
+        if rewards.size:
+            run_list["rewards"].append(rewards)
+        # actions
+        print("Computing mean of host actions per step.")
+        actions = host_actions.mean(axis=0)
+        if actions.size:
+            run_list["actions"].append(actions)
+        # queues
+        print("Computing mean of interface queues per step.")
+        flat_queues = port_queues.mean(axis=0)
+        if flat_queues.size:
+            run_list["backlog"].append(flat_queues)
+        # bandwidths
+        print("Computing mean of interface bandwidth per step.")
+        flat_bw = port_bws.mean(axis=0)
+        if flat_bw.size:
+            run_list["bw_tx"].append(flat_bw)
+        # overlimits
+        print("Computing mean of interface overlimits per step.")
+        mean_overlimits = port_overlimits.mean(axis=0)
+        if mean_overlimits.size:
+            run_list["olimit"].append(mean_overlimits)
+        # drops
+        mean_drops = port_drops.mean(axis=0)
+        print("Computing mean of interface drops per step.")
+        if mean_drops.size:
+            run_list["drops"].append(mean_drops)
 
-        # average over all runs
-        for stat in run_list.keys():
-            plt_stats[stat][algo] = np.mean(run_list[stat], axis=0)
-    return plt_stats
+    return run_list
 
 
 def plot(data_dir, plot_dir, name):
 
     test_config = parse_config(data_dir)
-    algos = test_config["algorithms"]
+    rl_algos = test_config["rl_algorithms"]
+    tcp_algos = test_config["tcp_algorithms"]
+    algos = rl_algos + tcp_algos
     runs = test_config["runs"]
     num_timesteps = test_config["timesteps"]
     transports = test_config["transport"]
     topo = test_config["topology"]
     for transport in transports:
-        transport_dir = data_dir + "/%s" % (transport.lower())
-        plt_stats = preprocess_data(algos, runs, transport_dir)
+        plt_stats = {"rewards": {}, "actions": {}, "backlog": {},
+                     "bw_tx": {}, "bw_rx": {}, "olimit": {}, "drops": {}}
+        for algo in algos:
+            if (algo in tcp_algos):
+                transport_dir = data_dir + "/tcp_"
+            else:
+                transport_dir = data_dir + "/%s_" % (transport.lower())
+            run_list = preprocess_data(algo, runs, transport_dir)
+            # average over all runs
+            for stat in run_list.keys():
+                plt_stats[stat][algo] = np.mean(run_list[stat], axis=0)
         plt_name = "%s/" % (plot_dir)
         plt_name += "%s" % name
         plt_name += "_%s" % topo
