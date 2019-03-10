@@ -40,7 +40,7 @@ class NonBlocking(Topo):
                 Create switches.
         """
         for index in range(1, number + 1):
-            sw_name = "%ssw%d" % (self.switch_id, index)
+            sw_name = "%ss%d" % (self.switch_id, index)
             switch_list.append(self.addSwitch(sw_name))
 
     def create_core_switch(self, NUMBER):

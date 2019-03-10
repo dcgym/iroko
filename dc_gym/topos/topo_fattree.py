@@ -47,7 +47,7 @@ class Fattree(Topo):
     def _add_switches(self, number, level, switch_list):
         """ Create switches. """
         for index in range(1, number + 1):
-            sw_name = "%ssw%d%d" % (self.switch_id, level, index)
+            sw_name = "%ss%d%d" % (self.switch_id, level, index)
             switch_list.append(self.addSwitch(sw_name))
 
     def create_hosts(self, num):

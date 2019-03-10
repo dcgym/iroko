@@ -24,6 +24,22 @@ from dc_gym.factories import EnvFactory
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 
+# These commands might help with scaling out the machine. After inserting
+# reboot the machine.
+
+# echo "* soft nofile 1048576" >> /etc/security/limits.conf
+# echo "* hard nofile 1048576" >> /etc/security/limits.conf
+# echo "root soft nproc unlimited" >> /etc/security/limits.conf
+# echo "root hard nproc unlimited" >> /etc/security/limits.conf
+# echo "root soft stack unlimited" >> /etc/security/limits.conf
+# echo "root hard stack unlimited" >> /etc/security/limits.conf
+# echo "kernel.threads-max = 2091845" >> /etc/sysctl.conf
+# echo "kernel.pty.max = 210000" >> /etc/sysctl.conf
+# echo "DefaultTasksMax=infinity" >> /etc/systemd/system.conf
+# echo "UserTasksMax=infinity" >> /etc/systemd/logind.conf
+# sysctl -p
+# systemctl daemon-reload
+# systemctl daemon-reexec
 
 # set up paths
 cwd = os.getcwd()
@@ -108,7 +124,7 @@ def configure_ray(num_hosts):
         "topo": "nonblock",
         "agent": "TCP",
         "transport": "tcp",
-        "iterations": 100,
+        "iterations": 1000,
         "tf_index": -1,
         "topo_conf": {"num_hosts": num_hosts, "max_capacity": 10e9},
     }
@@ -170,7 +186,7 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
 
 
 def init():
-    increments = np.arange(2, 11, 1)
+    increments = np.arange(2, 50, 1)
     check_dir(OUTPUT_DIR)
 
     print("Registering the DC environment...")

@@ -41,7 +41,7 @@ def test_run(input_dir, output_dir, env, topo):
     # Assemble a configuration dictionary for the environment
     env_config = {
         "input_dir": input_dir,
-        "output_dir": output_dir + "/" + ARGS.agent,
+        "output_dir": output_dir,
         "env": env,
         "topo": topo,
         "agent": ARGS.agent,
@@ -65,8 +65,9 @@ def clean():
 
 
 def init():
-    check_dir(ARGS.output_dir)
-    test_run(INPUT_DIR, ARGS.output_dir, ARGS.env, ARGS.topo)
+    output_dir = ARGS.output_dir + "/" + ARGS.agent
+    check_dir(output_dir)
+    test_run(INPUT_DIR, output_dir, ARGS.env, ARGS.topo)
 
 
 if __name__ == '__main__':

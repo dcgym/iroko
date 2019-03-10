@@ -32,8 +32,8 @@ class DumbbellTopo(Topo):
         self._create_hosts(self.num_hosts)
 
     def _create_switches(self):
-        sw_w_name = self.switch_id + "sw1"
-        sw_e_name = self.switch_id + "sw2"
+        sw_w_name = self.switch_id + "s1"
+        sw_e_name = self.switch_id + "s2"
         self.switch_w = self.addSwitch(name=sw_w_name)
         self.switch_e = self.addSwitch(name=sw_e_name)
         self.switchlist.append(self.switch_w)

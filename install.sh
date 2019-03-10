@@ -28,7 +28,7 @@ sudo make install PYTHON=python3    # install the Python3 version
 cd ../..
 
 # install traffic monitors
-sudo apt install -y bwm-ng
+sudo apt install -y tshark
 sudo apt install -y ifstat
 
 # install the traffic generator using Go
