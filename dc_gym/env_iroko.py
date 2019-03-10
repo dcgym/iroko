@@ -8,7 +8,7 @@ DEFAULT_CONF = {}
 
 
 class DCEnv(BaseEnv):
-    WAIT = 0.1      # amount of seconds the agent waits per iteration
+    WAIT = 0.05      # amount of seconds the agent waits per iteration
     __slots__ = ["bw_ctrl"]
 
     def __init__(self, conf={}):
@@ -29,7 +29,7 @@ class DCEnv(BaseEnv):
         #     rate = action[index] * 10
         #     print(" %s:%.3f " % (h_iface, rate), end='')
         # print('')
-        # self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
 
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)

@@ -158,7 +158,7 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
     bws_pd = pd.DataFrame.from_dict(bw_list)
     fig = sns.lineplot(data=bws_pd)
     tcks = fig.get_xticks()
-    tcks[-1] = increments
+    tcks[-1] = increments[len(increments) - 1]
     fig.set_xticks(tcks)
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
@@ -170,7 +170,7 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
 
 
 def init():
-    increments = np.arange(10, 50, 10)
+    increments = np.arange(2, 11, 1)
     check_dir(OUTPUT_DIR)
 
     print("Registering the DC environment...")

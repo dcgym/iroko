@@ -141,6 +141,7 @@ venv.bak/
 *.sublime-project
 sftp-config*.json
 results/
+scalability_test/
 *.lock
 data/
 plots/
