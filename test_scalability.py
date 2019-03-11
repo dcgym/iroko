@@ -176,6 +176,7 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
     tcks = fig.get_xticks()
     tcks[-1] = increments[len(increments) - 1]
     fig.set_xticks(tcks)
+    fig.legend(loc='upper left')
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
     print("Saving plot %s" % plt_name)
