@@ -142,7 +142,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     plt.gcf().clear()
 
 
-def preprocess_data(algo, runs, transport_dir, timesteps):
+def preprocess_data(algo, runs, transport_dir):
     run_list = {"rewards": [], "actions": [], "backlog": [],
                 "bw_tx": [], "bw_rx": [], "olimit": [], "drops": []}
     for index in range(runs):
@@ -165,34 +165,35 @@ def preprocess_data(algo, runs, transport_dir, timesteps):
         port_drops = np.array(port_stats[STATS_DICT["drops"]])
         # rewards
         if rewards.size:
-            run_list["rewards"].append(rewards[:timesteps])
+            run_list["rewards"].append(rewards)
+        num_samples = len(rewards)
         # actions
         print("Computing mean of host actions per step.")
         actions = host_actions.mean(axis=0)
         if actions.size:
-            run_list["actions"].append(actions[:timesteps])
+            run_list["actions"].append(actions)
         # queues
         print("Computing mean of interface queues per step.")
         flat_queues = port_queues.mean(axis=0)
         if flat_queues.size:
-            run_list["backlog"].append(flat_queues[:timesteps])
+            run_list["backlog"].append(flat_queues)
         # bandwidths
         print("Computing mean of interface bandwidth per step.")
         flat_bw = port_bws.mean(axis=0)
         if flat_bw.size:
-            run_list["bw_tx"].append(flat_bw[:timesteps])
+            run_list["bw_tx"].append(flat_bw)
         # overlimits
         print("Computing mean of interface overlimits per step.")
         mean_overlimits = port_overlimits.mean(axis=0)
         if mean_overlimits.size:
-            run_list["olimit"].append(mean_overlimits[:timesteps])
+            run_list["olimit"].append(mean_overlimits)
         # drops
         mean_drops = port_drops.mean(axis=0)
         print("Computing mean of interface drops per step.")
         if mean_drops.size:
-            run_list["drops"].append(mean_drops[:timesteps])
+            run_list["drops"].append(mean_drops)
 
-    return run_list
+    return run_list, num_samples
 
 
 def plot(data_dir, plot_dir, name):
@@ -203,6 +204,7 @@ def plot(data_dir, plot_dir, name):
     algos = rl_algos + tcp_algos
     runs = test_config["runs"]
     timesteps = test_config["timesteps"]
+    min_samples = timesteps
     transports = test_config["transport"]
     topo = test_config["topology"]
     for transport in transports:
@@ -213,7 +215,9 @@ def plot(data_dir, plot_dir, name):
                 transport_dir = data_dir + "/tcp_"
             else:
                 transport_dir = data_dir + "/%s_" % (transport.lower())
-            run_list = preprocess_data(algo, runs, transport_dir, timesteps)
+            run_list, num_samples, = preprocess_data(algo, runs, transport_dir)
+            if (num_samples < min_samples):
+                min_samples = num_samples
             # average over all runs
             for stat in run_list.keys():
                 plt_stats[stat][algo] = np.mean(run_list[stat], axis=0)
@@ -222,7 +226,7 @@ def plot(data_dir, plot_dir, name):
         plt_name += "_%s" % topo
         plt_name += "_%s" % transport
         plt_name += "_%s" % timesteps
-        plot_lineplot(algos, plt_stats, timesteps, plt_name)
+        plot_lineplot(algos, plt_stats, min_samples, plt_name)
         # plot_barchart(algos, plt_stats, plt_name)
 
 
