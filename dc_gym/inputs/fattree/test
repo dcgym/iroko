@@ -1,2 +1,3 @@
-127.0.0.1 127.0.0.1 12345 UDP 1 0.0 60.0 100000000000 exact 1000 0.001 exact
-#206.12.64.149 127.0.0.1 22345 UDP 1 0.0 60.0 100000000000 exact 1000 0.001 exact
+src,dst,port,seed,start_time,stop_time,flow_size,flow_size_pattern,reps,flow_gap,random_gap
+127.0.0.1,127.0.0.1,12345,1,0.0,60.0,2147483647,exact,-1,0.001,exact
+#206.12.64.149,127.0.0.1,22345,UDP,1,0.0,60.0,2147483647,exact,-1,0.001,exact
