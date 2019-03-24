@@ -9,7 +9,6 @@ from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import CPULimitedHost
 from mininet.util import custom
-
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
@@ -23,19 +22,23 @@ DEFAULT_CONF = {
 }
 
 
-def merge_dicts(x, y):
-    """Given two dicts, merge them into a new dict as a shallow copy."""
-    z = x.copy()
-    z.update(y)
-    return z
+def merge_dicts(dict1, dict2):
+    for key in dict1:
+        if key in dict2:
+            # create set to retain only unique values in list
+            prev_values = set(dict1[key])
+            prev_values.update(dict2[key])
+            dict1[key] = list(prev_values)
 
 
 class BaseTopo:
 
     def __init__(self, conf={}):
-        self.conf = merge_dicts(DEFAULT_CONF, conf)
+        self.conf = DEFAULT_CONF
+        self.conf.update(conf)
         self.name = "base"
         self.topo = None
+        self.started = False
         self.host_ctrl_map = {}
         self.host_ips = []
         self.net = None
@@ -251,28 +254,45 @@ class BaseTopo:
                     sw_intfs.append(intf)
         return sw_intfs
 
+    def get_num_sw_ports(self):
+        sw_ports = 0
+        for node, links in self.topo.ports.items():
+            if self.topo.isSwitch(node):
+                sw_ports += len(links)
+        return sw_ports
+
     def get_host_ports(self):
         return self.host_ctrl_map.keys()
 
-    def delete_topo(self):
-        output("Cleaning up topology and restoring all network variables.")
-        if self.conf["tcp_policy"] == "dctcp":
-            os.system("sysctl -w net.ipv4.tcp_ecn=0")
-        # reset the active host congestion control to the previous value
-        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-        os.system(cmd)
-        # destroy the mininet
-        self.net.stop()
+    def get_num_hosts(self):
+        num_hosts = 0
+        for node, links in self.topo.ports.items():
+            if not self.topo.isSwitch(node):
+                num_hosts += 1
+        return num_hosts
 
     def _create_network(self, cpu=-1):
         setLogLevel('warning')
         self.topo.create_nodes()
         self.topo.create_links()
 
+    def start_network(self):
         # Start Mininet
         host = custom(CPULimitedHost)
-        net = Mininet(topo=self.topo,
-                      controller=None, autoSetMacs=True)
+        self.net = Mininet(topo=self.topo,
+                           controller=None, autoSetMacs=True)
+        self.net.start()
+        self._configure_network()
+        self.started = True
 
-        net.start()
-        return net
+    def stop_network(self):
+        if self.started:
+            output("Cleaning up topology and restoring all network variables.")
+            if self.conf["tcp_policy"] == "dctcp":
+                os.system("sysctl -w net.ipv4.tcp_ecn=0")
+            # reset the active host congestion control to the previous value
+            cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+            os.system(cmd)
+            # destroy the mininet
+            self.net.stop()
+            self.started = False

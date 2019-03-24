@@ -113,7 +113,6 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     colour = itertools.cycle(colours)
     mean_smoothing = int(timesteps / 100)
     num_subplots = len(ax)
-    labels = metrics["reward"].columns.values
     print ("")
     for index, (metric, metric_df) in enumerate(metrics.items()):
         print("Computing rolling %s." % metric)
@@ -121,7 +120,12 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
         print("Normalizing %s." % metric)
         metric_df = normalize_df(metric_df)
         print ("Plotting %s...\n" % metric)
-        ax[index] = sns.lineplot(data=metric_df, ax=ax[index], legend=False)
+        if index == 0:
+            plt_legend = "brief"
+        else:
+            plt_legend = False
+        ax[index] = sns.lineplot(
+            data=metric_df, ax=ax[index], legend=plt_legend)
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
             ax[index].set_xlabel("steps")
@@ -133,8 +137,9 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     tcks[-1] = timesteps
     ax[num_subplots - 1].set_xticks(tcks)
     fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
-    fig.legend(labels, loc='upper center', fancybox=True, shadow=True,
-               ncol=len(algos))
+    # _, handles = ax[num_subplots - 1].get_legend_handles_labels()
+    ax[0].legend(bbox_to_anchor=(0.5, 1.8), loc="upper center",
+                 fancybox=True, shadow=True, ncol=len(algos))
     print("Saving plot %s" % plt_name)
     check_plt_dir(plt_name)
     plt.savefig(plt_name + ".pdf")

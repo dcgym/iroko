@@ -66,12 +66,12 @@ class TopoConfig(BaseTopo):
     NAME = "nonblock"
 
     def __init__(self, conf={}):
-        conf = merge_dicts(DEFAULT_CONF, conf)
-        BaseTopo.__init__(self, conf)
+        self.conf = DEFAULT_CONF
+        self.conf.update(conf)
+        BaseTopo.__init__(self, self.conf)
         self.topo = NonBlocking(
-            num_hosts=conf["num_hosts"], switch_id=self.switch_id)
-        self.net = self._create_network()
-        self._configure_network()
+            num_hosts=self.conf["num_hosts"], switch_id=self.switch_id)
+        self._create_network()
 
     def _set_host_ip(self, net, topo):
         hostlist = []

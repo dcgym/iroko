@@ -72,12 +72,12 @@ class DumbbellTopo(Topo):
 class TopoConfig(BaseTopo):
 
     def __init__(self, conf={}):
-        conf = merge_dicts(DEFAULT_CONF, conf)
-        BaseTopo.__init__(self, conf)
+        self.conf = DEFAULT_CONF
+        self.conf.update(conf)
+        BaseTopo.__init__(self, self.conf)
         self.name = "dumbbell"
-        self.topo = DumbbellTopo(conf["num_hosts"], self.switch_id)
-        self.net = self._create_network()
-        self._configure_network()
+        self.topo = DumbbellTopo(self.conf["num_hosts"], self.switch_id)
+        self._create_network()
 
     def _set_host_ip(self, net, topo):
         self.host_ips = self.topo.host_ips

@@ -207,7 +207,7 @@ def get_tune_experiment(config, agent):
         # custom changes to experiment
         print("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
-        config["env_config"]["parallel_envs"] = True
+    config["env_config"]["parallel_envs"] = True
     experiment[name]["config"] = config
     return experiment, scheduler
 

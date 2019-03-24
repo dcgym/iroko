@@ -16,27 +16,25 @@ def shmem_to_nparray(shmem_array, dtype):
 class StateManager:
     STATS_DICT = {"backlog": 0, "olimit": 1,
                   "drops": 2, "bw_rx": 3, "bw_tx": 4}
-    REWARD_MODEL = ["backlog", "action"]
-    STATS_KEYS = ["backlog"]
-    DELTA_KEYS = []
-    COLLECT_FLOWS = False
-    __slots__ = ["num_features", "num_ports", "deltas", "prev_stats",
-                 "stats_file", "data", "dopamin", "stats", "flow_stats",
-                 "procs"]
+    __slots__ = ["num_ports", "deltas", "prev_stats",
+                 "stats_file", "data", "dopamin",
+                 "stats", "flow_stats", "procs"]
 
     def __init__(self, topo_conf, config):
         sw_ports = topo_conf.get_sw_ports()
-        self.num_ports = len(sw_ports)
+        self.num_ports = topo_conf.get_num_sw_ports()
+        self.stats_keys = config["state_model"]
+        self.collect_flows = config["collect_flows"]
+        self.reward_model = config["reward_model"]
         self.deltas = None
         self.prev_stats = None
         host_ports = topo_conf.get_host_ports()
-        self._set_feature_length(len(topo_conf.host_ips))
         self._init_stats_matrices(self.num_ports, len(topo_conf.host_ips))
         self._spawn_collectors(sw_ports, host_ports, topo_conf.host_ips)
         max_queue = topo_conf.conf["max_queue"]
         max_capacity = topo_conf.conf["max_capacity"]
         self.dopamin = RewardFunction(host_ports, sw_ports,
-                                      self.REWARD_MODEL,
+                                      self.reward_model,
                                       max_queue, max_capacity, self.STATS_DICT)
         self._set_data_checkpoints(config)
 
@@ -55,16 +53,6 @@ class StateManager:
     def reset(self):
         pass        # self.flush()
 
-    def _set_feature_length(self, num_hosts):
-        self.num_features = len(self.STATS_KEYS)
-        self.num_features += len(self.DELTA_KEYS)
-        if self.COLLECT_FLOWS:
-            # There are two directions for flows, src and destination
-            self.num_features += num_hosts * 2
-
-    def get_feature_length(self):
-        return self.num_features
-
     def _init_stats_matrices(self, num_ports, num_hosts):
         self.stats = None
         self.flow_stats = None
@@ -75,10 +63,11 @@ class StateManager:
         np_stats = shmem_to_nparray(mp_stats, np.int64)
         self.stats = np_stats.reshape((len(self.STATS_DICT), num_ports))
         # Set up the shared flow matrix
-        flow_arr_len = num_ports * num_hosts * 2
-        mp_flows = Array(c_ubyte, flow_arr_len)
-        np_flows = shmem_to_nparray(mp_flows, np.uint8)
-        self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
+        if (self.collect_flows):
+            flow_arr_len = num_ports * num_hosts * 2
+            mp_flows = Array(c_ubyte, flow_arr_len)
+            np_flows = shmem_to_nparray(mp_flows, np.uint8)
+            self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
         # Save the initialized stats matrix to compute deltas
         self.prev_stats = self.stats.copy()
         self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
@@ -93,9 +82,10 @@ class StateManager:
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector
-        proc = FlowCollector(sw_ports, host_ips, self.flow_stats)
-        proc.start()
-        self.procs.append(proc)
+        if (self.collect_flows):
+            proc = FlowCollector(sw_ports, host_ips, self.flow_stats)
+            proc.start()
+            self.procs.append(proc)
 
     def _set_data_checkpoints(self, conf):
         self.data = {}
@@ -130,11 +120,12 @@ class StateManager:
         # Create the data matrix for the agent based on the collected stats
         for index in range(self.num_ports):
             state = []
-            for key in self.STATS_KEYS:
-                state.append(int(self.stats[self.STATS_DICT[key]][index]))
-            for key in self.DELTA_KEYS:
-                state.append(int(self.deltas[self.STATS_DICT[key]][index]))
-            if self.COLLECT_FLOWS:
+            for key in self.stats_keys:
+                if (key.startswith("d_")):
+                    state.append(int(self.deltas[self.STATS_DICT[key]][index]))
+                else:
+                    state.append(int(self.stats[self.STATS_DICT[key]][index]))
+            if self.collect_flows:
                 state.extend(self.flow_stats[index])
             # print("State %d: %s " % (index, state))
             obs.append(np.array(state))

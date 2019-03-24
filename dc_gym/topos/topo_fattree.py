@@ -84,14 +84,14 @@ class Fattree(Topo):
 class TopoConfig(BaseTopo):
 
     def __init__(self, conf={}):
-        conf = merge_dicts(DEFAULT_CONF, conf)
-        BaseTopo.__init__(self, conf)
+        self.conf = DEFAULT_CONF
+        self.conf.update(conf)
+        BaseTopo.__init__(self, self.conf)
         self.name = "fattree"
         self.topo = Fattree(
-            fanout=conf["fanout"], density=conf["density"],
+            fanout=self.conf["fanout"], density=self.conf["density"],
             switch_id=self.switch_id)
-        self.net = self._create_network()
-        self._configure_network()
+        self._create_network()
 
     def _set_host_ip(self, net, topo):
         hostlist = []
