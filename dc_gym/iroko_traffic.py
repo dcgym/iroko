@@ -177,7 +177,7 @@ class TrafficGen():
         self._start_servers(hosts, traffic_gen, out_dir)
         self._start_controllers(hosts, out_dir)
         self._start_generators(hosts, input_file, traffic_gen, out_dir)
-        self._start_pkt_capture(out_dir)
+        # self._start_pkt_capture(out_dir)
         # wait for load controllers to initialize
         sleep(0.5)
 

@@ -29,10 +29,10 @@ PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 
 # echo "* soft nofile 1048576" >> /etc/security/limits.conf
 # echo "* hard nofile 1048576" >> /etc/security/limits.conf
-# echo "root soft nproc unlimited" >> /etc/security/limits.conf
-# echo "root hard nproc unlimited" >> /etc/security/limits.conf
-# echo "root soft stack unlimited" >> /etc/security/limits.conf
-# echo "root hard stack unlimited" >> /etc/security/limits.conf
+# echo "* soft nproc unlimited" >> /etc/security/limits.conf
+# echo "* hard nproc unlimited" >> /etc/security/limits.conf
+# echo "* soft stack unlimited" >> /etc/security/limits.conf
+# echo "* hard stack unlimited" >> /etc/security/limits.conf
 # echo "kernel.threads-max = 2091845" >> /etc/sysctl.conf
 # echo "kernel.pty.max = 210000" >> /etc/sysctl.conf
 # echo "DefaultTasksMax=infinity" >> /etc/systemd/system.conf
@@ -55,6 +55,7 @@ class MaxAgent(Agent):
 
     def _init(self):
         self.env = self.env_creator(self.config["env_config"])
+        self.env.reset()
 
     def _train(self):
         steps = 0
@@ -187,7 +188,7 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
 
 
 def init():
-    increments = np.arange(2, 50, 1)
+    increments = np.arange(2, 100, 1)
     check_dir(OUTPUT_DIR)
 
     print("Registering the DC environment...")

@@ -36,7 +36,7 @@ class StateManager:
         self.dopamin = RewardFunction(host_ports, sw_ports,
                                       self.reward_model,
                                       max_queue, max_capacity, self.STATS_DICT)
-        self._set_data_checkpoints(config)
+        self._set_data_checkpoints(config["output_dir"])
 
     def flush_and_close(self):
         print("Writing collected data to disk")
@@ -51,7 +51,8 @@ class StateManager:
         self._terminate_collectors()
 
     def reset(self):
-        pass        # self.flush()
+        # self.flush()
+        pass
 
     def _init_stats_matrices(self, num_ports, num_hosts):
         self.stats = None
@@ -87,11 +88,8 @@ class StateManager:
             proc.start()
             self.procs.append(proc)
 
-    def _set_data_checkpoints(self, conf):
+    def _set_data_checkpoints(self, data_dir):
         self.data = {}
-        data_dir = conf["output_dir"]
-        agent = conf["agent"]
-
         # define file name
         runtime_name = "%s/runtime_statistics.npy" % (data_dir)
         self.stats_file = open(runtime_name, 'wb+')

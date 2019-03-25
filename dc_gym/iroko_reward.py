@@ -17,7 +17,7 @@ class RewardFunction:
         reward = 0
         if "action" in self.reward_model:
             action_reward = self._action_reward(actions)
-            # print("action: %f" % action_reward, end='')
+            # print("action: %f " % action_reward, end='')
             reward += action_reward
         if "bw" in self.reward_model:
             bw_reward = self._bw_reward(stats)
@@ -54,11 +54,10 @@ class RewardFunction:
         return -(np.std(actions) / float(self.max_bw))
 
     def _action_reward(self, actions):
-        action_reward = 0.0
-        weight = len(self.host_ports) / float(self.num_sw_ports)
+        action_reward = []
         for bw in actions:
-            action_reward += bw / float(self.max_bw)
-        return action_reward * weight
+            action_reward.append(bw / float(self.max_bw))
+        return np.average(action_reward)
 
     def _bw_reward(self, stats):
         bw_reward = 0.0

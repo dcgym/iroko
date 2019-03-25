@@ -157,7 +157,7 @@ def preprocess_data(algo, runs, transport_dir):
         print("Loading %s..." % stats_file)
         with FileLock(stats_file + ".lock"):
             try:
-                statistics = np.load(stats_file).item()
+                statistics = np.load(stats_file, encoding="bytes").item()
             except Exception as e:
                 print("Error loading file %s" % stats_file, e)
                 exit(1)

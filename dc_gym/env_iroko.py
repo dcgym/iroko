@@ -128,10 +128,9 @@ class DCEnv(openAIGym):
         self.steps = self.steps + 1
         self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
         self.progress_bar.update(1)
-        # if the traffic generator still going then the simulation is not over
-        # let the agent predict bandwidth based on all previous information
-        # perform actions
-        done = not self.is_traffic_proc_alive()
+
+        # done = not self.is_traffic_proc_alive()
+        done = False
 
         pred_bw = action * self.topo.conf["max_capacity"]
         # print("Iteration %d Actions: " % self.steps, end='')

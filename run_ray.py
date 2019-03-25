@@ -89,6 +89,7 @@ class RandomAgent(Agent):
 
     def _init(self):
         self.env = self.env_creator(self.config["env_config"])
+        self.env.reset()
 
     def _train(self):
         steps = 0
