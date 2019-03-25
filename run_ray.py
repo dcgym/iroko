@@ -4,6 +4,7 @@ import os
 import random
 import logging
 import time
+import json
 
 # Ray imports
 import ray
@@ -36,6 +37,9 @@ PARSER.add_argument('--timesteps', '-t', dest='timesteps',
                     type=int, default=10000,
                     help='total number of timesteps to train rl agent, '
                          'if tune specified is wall clock time')
+PARSER.add_argument('--pattern', '-p', dest='pattern_index',
+                    type=int, default=0,
+                    help='Traffic pattern we are testing.')
 PARSER.add_argument('--checkpoint_freq', '-cf', dest='checkpoint_freq',
                     type=int, default=0,
                     help='how often to checkpoint model')
@@ -59,6 +63,7 @@ class MaxAgent(Agent):
 
     def _init(self):
         self.env = self.env_creator(self.config["env_config"])
+        self.env.reset()
 
     def _train(self):
         steps = 0
@@ -207,48 +212,24 @@ def get_tune_experiment(config, agent):
         # custom changes to experiment
         print("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
-    config["env_config"]["parallel_envs"] = True
+    config["env_config"]["topo_conf"] = {}
+    config["env_config"]["topo_conf"]["parallel_envs"] = True
     experiment[name]["config"] = config
     return experiment, scheduler
 
 
 def configure_ray(agent):
-    config = {}
-    if agent.lower() == "ppo":
-        # TODO this number should be like 4k, 8k, 16k, etc.
-        # config based on paper: "Proximal Policy Optimization Algrothm"
-        # Specifically experiment 6.1
-        config["train_batch_size"] = 8128
-        config['model'] = {}
-        config['model']['fcnet_hiddens'] = [400, 300, 200]
-        config['model']['fcnet_activation'] = 'tanh'
-        # config['horizon'] = 2048
-        config['lambda'] = 0.95
-        config['sgd_minibatch_size'] = 64
-        config['num_sgd_iter'] = 10  # assuming this is epochs...
-        config['lr'] = 3e-4
-        # use only clip objective as paper found this worked best
-        # TODO: pick these vals specific for data centers
-        # config['kl_target'] = 0.0
-        # config['clip_param'] = 0.2
-        # config['kl_coeff'] = 0.0
-    elif agent.lower() == "ddpg":
-        config["actor_hiddens"] = [400, 300, 200]
-        config["actor_hidden_activation"] = "relu"
-        config["critic_hiddens"] = [400, 300, 200]
-        config["critic_hidden_activation"] = "relu"
-        config["tau"] = 0.001
-        config["noise_scale"] = 1.0
-        config["l2_reg"] = 1e-2
-        config["train_batch_size"] = 64
-        config["exploration_fraction"] = 0.8
-        config["prioritized_replay"] = False
-        config["lr"] = 1e-3
-        config["actor_loss_coeff"] = 0.1
-        config["critic_loss_coeff"] = 1.0
-
+    # Load the config specific to the agent
+    try:
+        with open("%s/ray_configs/%s.json" % (cwd, ARGS.agent), 'r') as fp:
+            config = json.load(fp)
+    except IOError:
+        # File does not exist, just initialize an empty configuration.
+        print("Agent configuration does not exist, starting with default.")
+        config = {}
+    # Add the dynamic environment configuration
     config['clip_actions'] = True
-    config['num_workers'] = 0
+    config['num_workers'] = 1
     config['num_gpus'] = 0
     config["batch_mode"] = "truncate_episodes"
     config["log_level"] = "ERROR"
@@ -260,7 +241,7 @@ def configure_ray(agent):
         "agent": ARGS.agent,
         "transport": ARGS.transport,
         "iterations": ARGS.timesteps,
-        "tf_index": 0,
+        "tf_index": ARGS.pattern_index,
     }
     if ARGS.timesteps > 50000:
         config['env_config']["sample_delta"] = ARGS.timesteps / 50000
@@ -283,20 +264,18 @@ def tune_run(config):
 
 def init():
     check_dir(ARGS.output_dir + "/" + ARGS.agent)
-
     print("Registering the DC environment...")
     register_env("dc_env", get_env)
-
     print("Starting Ray...")
-    ray.init(num_cpus=1, logging_level=logging.WARN)
+    ray.init(num_cpus=2, logging_level=logging.WARN)
 
     config = configure_ray(ARGS.agent)
     print("Starting experiment.")
     # Basic ray train currently does not work, always use tune for now
-    # if ARGS.tune:
-    tune_run(config)
-    # else:
-    #    run(config)
+    if ARGS.tune:
+        tune_run(config)
+    else:
+        run(config)
     # Wait until the topology is torn down completely
     time.sleep(10)
     print("Experiment has completed.")

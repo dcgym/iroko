@@ -5,7 +5,7 @@ from mininet.log import info, output, warn, error, debug
 
 
 DEFAULT_CONF = {
-    "num_hosts": 4,             # number of hosts in the topology
+    "num_hosts": 8,             # number of hosts in the topology
     "traffic_files": ['incast_2', 'incast_4', 'incast_8'],
 }
 

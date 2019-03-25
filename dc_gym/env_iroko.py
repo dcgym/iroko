@@ -4,7 +4,7 @@ import atexit
 import numpy as np
 from gym import Env as openAIGym, spaces
 from dc_gym.control.iroko_bw_control import BandwidthController
-
+from tqdm import tqdm
 
 from iroko_traffic import TrafficGen
 from iroko_state import StateManager
@@ -30,7 +30,7 @@ DEFAULT_CONF = {
     # How many steps to run the analysis for.
     "iterations": 10000,
     # Topology specific configuration (traffic pattern, number of hosts)
-    "topo_conf": {},
+    "topo_conf": {"parallel_envs": False},
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
     # "backlog", "olimit", "drops","bw_rx","bw_tx"
@@ -84,8 +84,8 @@ class DCEnv(openAIGym):
         # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
-        # self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
-        # self.progress_bar.clear()
+        self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
+        self.progress_bar.clear()
 
         # Finally, initialize traffic
         self.start_traffic()
@@ -101,7 +101,7 @@ class DCEnv(openAIGym):
 
     def _create_topo(self, conf):
         conf["topo_conf"]["tcp_policy"] = conf["agent"].lower()
-        conf["topo_conf"]["parallel_envs"] = conf["parallel_envs"]
+        # conf["topo_conf"]["parallel_envs"] = conf["parallel_envs"]
         return TopoFactory.create(conf["topo"], conf["topo_conf"])
 
     def _set_gym_spaces(self, conf):
@@ -126,8 +126,8 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         self.steps = self.steps + 1
-        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
-        # self.progress_bar.update(1)
+        self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
+        self.progress_bar.update(1)
         # if the traffic generator still going then the simulation is not over
         # let the agent predict bandwidth based on all previous information
         # perform actions
@@ -162,7 +162,8 @@ class DCEnv(openAIGym):
         #     print("Chill, I am already cleaning up...")
         #     return
         # self.active = False
-        # self.progress_bar.close()
+        if hasattr(self, 'progress_bar'):
+            self.progress_bar.close()
         if hasattr(self, 'state_man'):
             print("Cleaning all state")
             self.state_man.terminate()
