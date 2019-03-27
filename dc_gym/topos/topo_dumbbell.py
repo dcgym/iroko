@@ -93,7 +93,7 @@ class TopoConfig(BaseTopo):
         for index, host in enumerate(topo.hosts_w):
             sw = topo.switch_w
             port = index + 2
-            host_ip = self.topo.host_ips[host]
+            host_ip = self.host_ips[host]
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
                 nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)
@@ -105,7 +105,7 @@ class TopoConfig(BaseTopo):
         for index, host in enumerate(topo.hosts_e):
             sw = topo.switch_e
             port = index + 2
-            host_ip = self.topo.host_ips[host]
+            host_ip = self.host_ips[host]
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
                 nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)

@@ -4,7 +4,7 @@ import atexit
 import numpy as np
 from gym import Env as openAIGym, spaces
 from dc_gym.control.iroko_bw_control import BandwidthController
-from tqdm import tqdm
+# from tqdm import tqdm
 
 from iroko_traffic import TrafficGen
 from iroko_state import StateManager
@@ -84,8 +84,8 @@ class DCEnv(openAIGym):
         # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
-        self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
-        self.progress_bar.clear()
+        # self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
+        # self.progress_bar.clear()
 
         # Finally, initialize traffic
         self.start_traffic()
@@ -126,8 +126,8 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         self.steps = self.steps + 1
-        self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
-        self.progress_bar.update(1)
+        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
+        # self.progress_bar.update(1)
 
         # done = not self.is_traffic_proc_alive()
         done = False
@@ -161,8 +161,8 @@ class DCEnv(openAIGym):
         #     print("Chill, I am already cleaning up...")
         #     return
         # self.active = False
-        if hasattr(self, 'progress_bar'):
-            self.progress_bar.close()
+        # if hasattr(self, 'progress_bar'):
+        #     self.progress_bar.close()
         if hasattr(self, 'state_man'):
             print("Cleaning all state")
             self.state_man.terminate()

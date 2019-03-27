@@ -229,12 +229,12 @@ def configure_ray(agent):
         print("Agent configuration does not exist, starting with default.")
         config = {}
     # Add the dynamic environment configuration
-    config['clip_actions'] = True
-    config['num_workers'] = 1
-    config['num_gpus'] = 0
+    config["clip_actions"] = True
+    config["num_workers"] = 1
+    config["num_gpus"] = 0
     config["batch_mode"] = "truncate_episodes"
     config["log_level"] = "ERROR"
-    config['env_config'] = {
+    config["env_config"] = {
         "input_dir": INPUT_DIR,
         "output_dir": ARGS.output_dir + "/" + ARGS.agent,
         "env": ARGS.env,
@@ -245,13 +245,14 @@ def configure_ray(agent):
         "tf_index": ARGS.pattern_index,
     }
     if ARGS.timesteps > 50000:
-        config['env_config']["sample_delta"] = ARGS.timesteps / 50000
+        config["env_config"]["sample_delta"] = ARGS.timesteps / 50000
 
     return config
 
 
 def run(config):
     agent_class = get_agent(config["env_config"]["agent"])
+    config["horizon"] = ARGS.timesteps
     agent = agent_class(config=config, env="dc_env")
     agent.train()
     print('Generator Finished. Simulation over. Clearing dc_env...')

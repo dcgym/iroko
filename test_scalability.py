@@ -67,7 +67,6 @@ class MaxAgent(Agent):
             obs, r, done, info = self.env.step(action)
             reward += r
             steps = steps + 1
-
         return {
             "episode_reward_mean": reward,
             "timesteps_this_iter": steps,
@@ -112,7 +111,7 @@ def get_tune_experiment(config, agent):
     return experiment, scheduler
 
 
-def configure_ray(num_hosts):
+def configure_ray(num_hosts, tf_index):
     config = {}
     config['num_workers'] = 0
     config['num_gpus'] = 0
@@ -122,11 +121,11 @@ def configure_ray(num_hosts):
         "input_dir": INPUT_DIR,
         "output_dir": OUTPUT_DIR + "/%d_hosts" % num_hosts,
         "env": "iroko",
-        "topo": "nonblock",
+        "topo": "dumbbell",
         "agent": "TCP",
         "transport": "tcp",
         "iterations": 1000,
-        "tf_index": -1,
+        "tf_index": tf_index,
         "topo_conf": {"num_hosts": num_hosts, "max_capacity": 10e9},
     }
     return config
@@ -171,12 +170,11 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
         bw_list["rx"].append(port_rx_bws.mean())
         bw_list["tx"].append(port_tx_bws.mean())
     # Set seaborn style for plotting
-    sns.set(style="white", font_scale=2)
+    sns.set(style="white", font_scale=1)
     bws_pd = pd.DataFrame.from_dict(bw_list)
+    bws_pd.index = increments
+    print (bws_pd)
     fig = sns.lineplot(data=bws_pd)
-    tcks = fig.get_xticks()
-    tcks[-1] = increments[len(increments) - 1]
-    fig.set_xticks(tcks)
     fig.legend(loc='upper left')
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
@@ -187,8 +185,18 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
     plt.gcf().clear()
 
 
+def run(config):
+    agent_class = get_agent(config["env_config"]["agent"])
+    agent = agent_class(config=config, env="dc_env")
+    agent.train()
+    print('Generator Finished. Simulation over. Clearing dc_env...')
+
+
 def init():
-    increments = np.arange(2, 100, 1)
+    increments = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+    plot_scalability_graph(increments, OUTPUT_DIR,
+                           PLOT_DIR, "scalability_test")
+    exit(1)
     check_dir(OUTPUT_DIR)
 
     print("Registering the DC environment...")
@@ -197,14 +205,12 @@ def init():
     print("Starting Ray...")
     ray.init(num_cpus=1, logging_level=logging.WARN)
 
-    for num_hosts in increments:
-        config = configure_ray(num_hosts)
+    for tf_index, num_hosts in enumerate(increments):
+        config = configure_ray(num_hosts, tf_index)
         print("Starting experiment.")
         tune_run(config)
         time.sleep(10)
         print("Experiment has completed.")
-    plot_scalability_graph(increments, OUTPUT_DIR,
-                           PLOT_DIR, "scalability_test")
 
 
 if __name__ == '__main__':

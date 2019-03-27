@@ -28,7 +28,7 @@ sudo make install PYTHON=python3    # install the Python3 version
 cd ../..
 
 # install traffic monitors
-sudo apt install -y tshark
+sudo apt install -y tcpdump
 sudo apt install -y ifstat
 
 # install the traffic generator using Go
@@ -78,8 +78,8 @@ pip install --upgrade --user dist/*.whl
 pip3 install --upgrade --user dist/*.whl
 
 # Install the latest ray build for Python 2 and 3
-pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
-pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.6.2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
+pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.7.0.dev2-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
+pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.7.0.dev2-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray runtime dependencies...
 sudo apt install -y libsm6 libxext6 libxrender-dev
