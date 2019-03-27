@@ -144,6 +144,7 @@ results/
 scalability_test/
 *.lock
 data/
+candidates/
 plots/
 dc_gym/control/node_control
 dc_gym/monitor/qdisc_stats

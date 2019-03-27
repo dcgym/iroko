@@ -48,7 +48,7 @@ DEFAULT_CONF = {
 
 class DCEnv(openAIGym):
     WAIT = 0.05      # amount of seconds the agent waits per iteration
-    ACTION_MIN = 0.01
+    ACTION_MIN = 0.001
     ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",

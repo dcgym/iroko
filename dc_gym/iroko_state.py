@@ -120,7 +120,8 @@ class StateManager:
             state = []
             for key in self.stats_keys:
                 if (key.startswith("d_")):
-                    state.append(int(self.deltas[self.STATS_DICT[key]][index]))
+                    state.append(
+                        int(self.deltas[self.STATS_DICT[key[2:]]][index]))
                 else:
                     state.append(int(self.stats[self.STATS_DICT[key]][index]))
             if self.collect_flows:

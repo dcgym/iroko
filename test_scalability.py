@@ -1,26 +1,26 @@
 from __future__ import print_function
 from __future__ import division  # For Python 2
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from filelock import FileLock
 import os
 import logging
 import time
-
 # Ray imports
 import ray
 from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.agent import Agent, with_common_config
 from ray.tune.registry import register_env
 import ray.tune as tune
-from ray.tune.schedulers import PopulationBasedTraining
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
+# Fixed matplotlib import
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 

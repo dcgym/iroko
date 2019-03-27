@@ -1,15 +1,15 @@
 from __future__ import division  # For Python 2
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import itertools
 import os
 import json
 import argparse
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from filelock import FileLock
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 MAX_BW = 10e6
 STATS_DICT = {"backlog": 0, "olimit": 1,
@@ -149,7 +149,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
 
 def preprocess_data(algo, runs, transport_dir):
     run_list = {"rewards": [], "actions": [], "backlog": [],
-                "bw_tx": [], "bw_rx": [], "olimit": [], "drops": []}
+                "bw_tx": [], "olimit": [], "drops": []}
     for index in range(runs):
         run_dir = transport_dir + "run%d" % index
         stats_file = '%s/%s/runtime_statistics.npy' % (
@@ -157,7 +157,7 @@ def preprocess_data(algo, runs, transport_dir):
         print("Loading %s..." % stats_file)
         with FileLock(stats_file + ".lock"):
             try:
-                statistics = np.load(stats_file, encoding="bytes").item()
+                statistics = np.load(stats_file).item()
             except Exception as e:
                 print("Error loading file %s" % stats_file, e)
                 exit(1)
@@ -202,7 +202,6 @@ def preprocess_data(algo, runs, transport_dir):
 
 
 def plot(data_dir, plot_dir, name):
-
     test_config = parse_config(data_dir)
     rl_algos = test_config["rl_algorithms"]
     tcp_algos = test_config["tcp_algorithms"]
@@ -224,8 +223,11 @@ def plot(data_dir, plot_dir, name):
             if (num_samples < min_samples):
                 min_samples = num_samples
             # average over all runs
+            print ("Computing the average across all runs.")
             for stat in run_list.keys():
-                plt_stats[stat][algo] = np.mean(run_list[stat], axis=0)
+                min_len = min([len(ls) for ls in run_list[stat]])
+                pruned_list = [ls[:min_len] for ls in run_list[stat]]
+                plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
         plt_name = "%s/" % (plot_dir)
         plt_name += "%s" % name
         plt_name += "_%s" % topo
