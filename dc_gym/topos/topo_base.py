@@ -54,7 +54,7 @@ class BaseTopo:
         # Best collision-free technique for the limited amount of characters
         sw_id = ''.join(random.choice(''.join([random.choice(
                 string.ascii_letters + string.digits)
-            for ch in range(5)])) for _ in range(5))
+            for ch in range(4)])) for _ in range(4))
         return sw_id
 
     def _get_active_congestion_control(self):
@@ -229,7 +229,7 @@ class BaseTopo:
         self._connect_controller(c0)
         self._configure_hosts()
         output("Testing reachability after configuration...\n")
-        self.net.ping()
+        # self.net.ping()
         # output("Testing bandwidth after configuration...\n")
         # self.net.iperf()
 

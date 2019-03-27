@@ -36,7 +36,7 @@ DEFAULT_CONF = {
     # "backlog", "olimit", "drops","bw_rx","bw_tx"
     # To measure the deltas between steps, prepend "d_" in front of a state.
     # For example: "d_backlog"
-    "state_model": ["backlog"],
+    "state_model": ["backlog", "d_backlog"],
     # Add the flow matrix to state?
     "collect_flows": False,
     # Specifies which variables represent the state of the environment:

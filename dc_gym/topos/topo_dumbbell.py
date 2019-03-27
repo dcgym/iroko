@@ -5,8 +5,10 @@ from mininet.log import info, output, warn, error, debug
 
 
 DEFAULT_CONF = {
-    "num_hosts": 8,             # number of hosts in the topology
-    "traffic_files": ['incast_2', 'incast_4', 'incast_8'],
+    "num_hosts": 4,             # number of hosts in the topology
+    "traffic_files": ['incast_2', 'incast_4', 'incast_8', 'incast_16',
+                      'incast_32', 'incast_64', 'incast_128', 'incast_256',
+                      'incast_512', 'incast_1024'],
 }
 
 
@@ -24,7 +26,7 @@ class DumbbellTopo(Topo):
         self.hosts_w = []
         self.hosts_e = []
         self.switchlist = []
-        self.host_ips = []
+        self.host_ips = {}
         self.switch_id = switch_id
 
     def create_nodes(self):
@@ -45,16 +47,18 @@ class DumbbellTopo(Topo):
         """
         for i in range(1, num + 1):
             name = "h" + str(i)
+            c_class = i / 256
+            d_class = i % 510
             if (i % 2) == 1:
-                ip = "10.1.0.%d" % ((i + 1) / 2)
+                ip = "10.1.%d.%d" % (c_class, (d_class + 1) / 2)
                 host = self.addHost(name=name, cpu=1.0 / num, ip=ip)
                 self.hosts_w.append(host)
             else:
-                ip = "10.2.0.%d" % ((i + 1) / 2)
+                ip = "10.2.%d.%d" % (c_class, (d_class + 2) / 2)
                 host = self.addHost(name=name, cpu=1.0 / num, ip=ip)
                 self.hosts_e.append(host)
             output("Host %s IP %s\n" % (host, ip))
-            self.host_ips.append(ip)
+            self.host_ips[host] = ip
 
         self.hostlist = self.hosts_w + self.hosts_e
 
@@ -88,44 +92,44 @@ class TopoConfig(BaseTopo):
         """
         for index, host in enumerate(topo.hosts_w):
             sw = topo.switch_w
-            j = index + 1
             port = index + 2
+            host_ip = self.topo.host_ips[host]
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
-                nw_dst=10.1.0.%d,actions=output:%d'" % (sw, j, port)
+                nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)
             os.system(cmd)
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,ip, \
-                nw_dst=10.1.0.%d,actions=output:%d'" % (sw, j, port)
+                nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)
             os.system(cmd)
         for index, host in enumerate(topo.hosts_e):
             sw = topo.switch_e
-            j = index + 1
             port = index + 2
+            host_ip = self.topo.host_ips[host]
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
-                nw_dst=10.2.0.%d,actions=output:%d'" % (sw, j, port)
+                nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)
             os.system(cmd)
             cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                 'table=0,idle_timeout=0,hard_timeout=0,priority=10,ip, \
-                nw_dst=10.2.0.%d,actions=output:%d'" % (sw, j, port)
+                nw_dst=%s,actions=output:%d'" % (sw, host_ip, port)
             os.system(cmd)
 
         cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
             'table=0,idle_timeout=0,hard_timeout=0,priority=10,ip, \
-            nw_dst=10.2.0.0/24,actions=output:1'" % (topo.switch_w)
+            nw_dst=10.2.0.0/16,actions=output:1'" % (topo.switch_w)
         os.system(cmd)
         cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
             'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
-            nw_dst=10.2.0.0/24,actions=output:1'" % (topo.switch_w)
+            nw_dst=10.2.0.0/16,actions=output:1'" % (topo.switch_w)
         os.system(cmd)
         cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
             'table=0,idle_timeout=0,hard_timeout=0,priority=10,ip, \
-            nw_dst=10.1.0.0/24,actions=output:1'" % (topo.switch_e)
+            nw_dst=10.1.0.0/16,actions=output:1'" % (topo.switch_e)
         os.system(cmd)
         cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
             'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
-            nw_dst=10.1.0.0/24,actions=output:1'" % (topo.switch_e)
+            nw_dst=10.1.0.0/16,actions=output:1'" % (topo.switch_e)
         os.system(cmd)
 
     def _config_topo(self):

@@ -27,6 +27,7 @@ gym = { version = "*", python = "~2.7 || ^3.2"}
 seaborn = { version = "*", python = "~2.7 || ^3.2"}
 matplotlib = { version = "*", python = "~2.7 || ^3.2"}
 gevent = { version = "*", python = "~2.7 || ^3.2"}
+pandas = { version = "*", python = "~2.7 || ^3.2"}
 tqdm = { version = "*", python = "~2.7 || ^3.2"}
 
 # Ray dependencies
