@@ -123,10 +123,10 @@ def configure_ray(num_hosts, tf_index):
         "env": "iroko",
         "topo": "dumbbell",
         "agent": "TCP",
-        "transport": "tcp",
+        "transport": "udp",
         "iterations": 1000,
         "tf_index": tf_index,
-        "topo_conf": {"num_hosts": num_hosts, "max_capacity": 10e9},
+        "topo_conf": {"num_hosts": num_hosts, "parallel_envs": True},
     }
     return config
 
@@ -167,14 +167,15 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
         port_tx_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
         # bandwidths
         print("Computing mean of interface bandwidth per step.")
-        bw_list["rx"].append(port_rx_bws.mean())
-        bw_list["tx"].append(port_tx_bws.mean())
+        bw_list["rx"].append(port_rx_bws.sum())
+        bw_list["tx"].append(port_tx_bws.sum())
     # Set seaborn style for plotting
     sns.set(style="white", font_scale=1)
     bws_pd = pd.DataFrame.from_dict(bw_list)
     bws_pd.index = increments
     print (bws_pd)
     fig = sns.lineplot(data=bws_pd)
+    fig.set_xticklabels(increments)
     fig.legend(loc='upper left')
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
@@ -193,12 +194,8 @@ def run(config):
 
 
 def init():
-    increments = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
-    plot_scalability_graph(increments, OUTPUT_DIR,
-                           PLOT_DIR, "scalability_test")
-    exit(1)
+    increments = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     check_dir(OUTPUT_DIR)
-
     print("Registering the DC environment...")
     register_env("dc_env", get_env)
 
@@ -211,6 +208,9 @@ def init():
         tune_run(config)
         time.sleep(10)
         print("Experiment has completed.")
+    time.sleep(10)
+    plot_scalability_graph(increments, OUTPUT_DIR,
+                           PLOT_DIR, "scalability_test")
 
 
 if __name__ == '__main__':

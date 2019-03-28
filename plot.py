@@ -93,7 +93,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     # Set seaborn style for plotting
     sns.set(style="white", font_scale=2, rc={"lines.linewidth": 2.5})
     metrics = {}
-
+    plt_metrics = ["reward", "queues", "bw", "drops"]
     print("Converting numpy arrays into pandas dataframes.")
     metrics["reward"] = np_dict_to_pd(plt_stats, "rewards")
     metrics["actions"] = np_dict_to_pd(plt_stats, "actions")
@@ -104,28 +104,28 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     print("Computing drops deltas.")
     metrics["drops"] = np_dict_to_pd(plt_stats, "drops").diff()
 
-    fig, ax = plt.subplots(6, 1, figsize=(20, 10))
+    fig, ax = plt.subplots(len(plt_metrics), 1, figsize=(20, 10))
     markers = (".", ",", "o", "v", "^", "<", ">")
     linestyles = ('--', '-.', '-', ':')
     colours = ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
     mark_iterator = itertools.cycle(markers)
     line_iterator = itertools.cycle(linestyles)
     colour = itertools.cycle(colours)
-    mean_smoothing = int(timesteps / 100)
+    mean_smoothing = int(timesteps / 200)
     num_subplots = len(ax)
-    print ("")
-    for index, (metric, metric_df) in enumerate(metrics.items()):
+    for index, metric in enumerate(plt_metrics):
+        metric_df = metrics[metric]
         print("Computing rolling %s." % metric)
         metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
         print("Normalizing %s." % metric)
         metric_df = normalize_df(metric_df)
-        print ("Plotting %s...\n" % metric)
+        print ("Plotting %s..." % metric)
         if index == 0:
             plt_legend = "brief"
         else:
             plt_legend = False
         ax[index] = sns.lineplot(
-            data=metric_df, ax=ax[index], legend=plt_legend)
+            data=metric_df.sample(10000), ax=ax[index], legend=plt_legend)
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
             ax[index].set_xlabel("steps")
@@ -136,7 +136,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     tcks = ax[num_subplots - 1].get_xticks()
     tcks[-1] = timesteps
     ax[num_subplots - 1].set_xticks(tcks)
-    fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
+    # fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
     # _, handles = ax[num_subplots - 1].get_legend_handles_labels()
     ax[0].legend(bbox_to_anchor=(0.5, 1.8), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))

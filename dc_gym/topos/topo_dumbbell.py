@@ -45,9 +45,9 @@ class DumbbellTopo(Topo):
         """
             Create hosts.
         """
-        for i in range(1, num + 1):
+        for i in range(num):
             name = "h" + str(i)
-            c_class = i / 256
+            c_class = i / 510
             d_class = i % 510
             if (i % 2) == 1:
                 ip = "10.1.%d.%d" % (c_class, (d_class + 1) / 2)

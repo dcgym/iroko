@@ -32,10 +32,10 @@ def start_process(cmd, host=None, out_file="proc"):
 
 def kill_processes(procs):
     for proc in procs:
-        # kill process, 15 is SIGTERM
+        # kill process, 15 is SIGTERM, 9 is SIGKILL
         try:
             os.kill(proc.pid, 15)
-            os.kill(proc.pid, 9)
+            # os.kill(proc.pid, 9)
         except OSError:
             pass
 
@@ -99,6 +99,7 @@ class TrafficGen():
         dst_string = ""
         for dst in dst_hosts:
             dst_string += "%s," % dst
+        dst_string = dst_string[:len(dst_string) - 1]
         out_file = "%s/%s_client" % (out_dir, host.name)
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
@@ -106,6 +107,7 @@ class TrafficGen():
         traffic_cmd += "-hosts %s " % dst_string
         traffic_cmd += "-maxSpeed %d " % 10
         traffic_cmd += "-passiveServer "
+        traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
         t_proc = start_process(traffic_cmd, host, out_file)
