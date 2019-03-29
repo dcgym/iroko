@@ -39,8 +39,11 @@ class BaseTopo:
         self._set_congestion_control(self.conf)
 
     def _calculate_max_queue(self, conf):
-        max_queue = 4e6 / (1e9 / conf["max_capacity"])
-        return max_queue
+        if conf["max_capacity"] < 1e9:
+            threshold = 4e6 / (1e9 / conf["max_capacity"])
+            if (threshold > 2e6):
+                return threshold
+        return 2e6
 
     def _generate_switch_id(self, conf):
         ''' Mininet needs unique ids if we want to launch
@@ -116,17 +119,24 @@ class BaseTopo:
             # set the threshold to around 4 packets
             if (marking_threshold < avg_pkt_size):
                 marking_threshold = avg_pkt_size * 4
+            elif marking_threshold > 50e3:
+                marking_threshold = 50e3
             # Apply aggressive RED to mark excess packets in the queue
             limit = int(self.max_queue)
-            max_q = limit
-            min_q = marking_threshold
+            max_q = int(limit)
+            min_q = int(marking_threshold)
+            burst = (min_q + min_q + max_q) / (3 * avg_pkt_size)
+            # Ballpark burst hard limit...
+            if (burst > 100):
+                burst = 100
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
             cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
-            cmd += "avpkt 1500 "
-            cmd += "min %d " % (min_q)
-            cmd += "max %d " % (max_q)
+            cmd += "avpkt %d " % avg_pkt_size
+            cmd += "burst %d " % burst
+            cmd += "min %d " % min_q
+            cmd += "max %d " % max_q
             cmd += "probability 0.001"
             cmd += " ecn "
             debug(tc_cmd + cmd)

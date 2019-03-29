@@ -45,7 +45,7 @@ class StateManager:
                 self.flush()
             except Exception as e:
                 print("Error flushing file %s" % self.stats_file.name, e)
-        self.stats_file.close()
+        # self.stats_file.close()
 
     def terminate(self):
         self._terminate_collectors()
