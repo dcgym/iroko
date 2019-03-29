@@ -20,7 +20,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from matplotlib.ticker import FormatStrFormatter
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 
@@ -42,10 +42,11 @@ PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 # systemctl daemon-reexec
 
 # set up paths
+TESTNAME = "scalability_test_10mbit"
 cwd = os.getcwd()
 lib_dir = os.path.dirname(dc_gym.__file__)
 INPUT_DIR = lib_dir + '/inputs'
-OUTPUT_DIR = cwd + '/scalability_test'
+OUTPUT_DIR = cwd + '/' + TESTNAME
 
 
 class MaxAgent(Agent):
@@ -126,7 +127,8 @@ def configure_ray(num_hosts, tf_index):
         "transport": "udp",
         "iterations": 1000,
         "tf_index": tf_index,
-        "topo_conf": {"num_hosts": num_hosts, "parallel_envs": True},
+        "topo_conf": {"num_hosts": num_hosts, "parallel_envs": True,
+                      "max_capacity": 10e9},
     }
     return config
 
@@ -163,19 +165,35 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
                 print("Error loading file %s" % stats_file)
                 exit(1)
         port_stats = np.moveaxis(statistics["stats"], 0, -1)
-        port_rx_bws = np.array(port_stats[STATS_DICT["bw_rx"]])
-        port_tx_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
+        port_rx_bws = np.array(port_stats[STATS_DICT["bw_rx"]].mean(axis=1))
+        port_tx_bws = np.array(port_stats[STATS_DICT["bw_tx"]].mean(axis=1))
         # bandwidths
         print("Computing mean of interface bandwidth per step.")
         bw_list["rx"].append(port_rx_bws.sum())
         bw_list["tx"].append(port_tx_bws.sum())
+    zero = [0]
+    increments = zero + increments
+    bw_list["rx"] = zero + bw_list["rx"]
+    bw_list["tx"] = zero + bw_list["tx"]
+    agg_bw = np.add(bw_list["rx"], bw_list["tx"])
     # Set seaborn style for plotting
-    sns.set(style="white", font_scale=1)
-    bws_pd = pd.DataFrame.from_dict(bw_list)
+    sns.set(style="white", font_scale=1.1, rc={"lines.linewidth": 2.5})
+    # bws_pd = pd.DataFrame.from_dict(bw_list)
+    bws_pd = pd.DataFrame(agg_bw, columns=['Aggregate Bandwidth'])
     bws_pd.index = increments
     print (bws_pd)
+
     fig = sns.lineplot(data=bws_pd)
+    fig.set_xscale('log', basex=2)
+    fig.set_yscale('log', basey=2)
+    fig.set(xlabel='Hosts', ylabel='Mbps (Avg)')
+    bw_label = np.round(np.array(agg_bw) / 10e6)
+    print (bw_label)
+    fig.set_yticklabels(bw_label)
     fig.set_xticklabels(increments)
+    # fig.set_xticks(increments)
+    fig.set_ylim(ymin=0)
+    fig.set_xlim(xmin=0, xmax=increments[len(increments) - 1] + 100)
     fig.legend(loc='upper left')
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
@@ -210,7 +228,7 @@ def init():
         print("Experiment has completed.")
     time.sleep(10)
     plot_scalability_graph(increments, OUTPUT_DIR,
-                           PLOT_DIR, "scalability_test")
+                           PLOT_DIR, TESTNAME)
 
 
 if __name__ == '__main__':
