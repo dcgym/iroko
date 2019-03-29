@@ -50,6 +50,7 @@ def test_run(input_dir, output_dir, env, topo):
         "tf_index": 0
     }
     dc_env = EnvFactory.create(env_config)
+    dc_env.reset()
     for epoch in range(ARGS.timesteps):
         action = dc_env.action_space.sample()
         dc_env.step(action)
@@ -62,6 +63,7 @@ def clean():
     os.system('sudo mn -c')
     os.system("sudo killall -9 goben")
     os.system("sudo killall -9 node_control")
+
 
 
 def init():
