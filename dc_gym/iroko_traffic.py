@@ -101,11 +101,12 @@ class TrafficGen():
             dst_string += "%s," % dst
         dst_string = dst_string[:len(dst_string) - 1]
         out_file = "%s/%s_client" % (out_dir, host.name)
+        max_rate = self.topo_conf.conf["max_capacity"] / 1e6
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
         traffic_cmd += "-totalDuration %s " % 2147483647  # infinite runtime
         traffic_cmd += "-hosts %s " % dst_string
-        traffic_cmd += "-maxSpeed %d " % 10
+        traffic_cmd += "-maxSpeed %d " % max_rate
         traffic_cmd += "-passiveServer "
         traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":

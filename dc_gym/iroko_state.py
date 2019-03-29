@@ -31,7 +31,7 @@ class StateManager:
         host_ports = topo_conf.get_host_ports()
         self._init_stats_matrices(self.num_ports, len(topo_conf.host_ips))
         self._spawn_collectors(sw_ports, host_ports, topo_conf.host_ips.values())
-        max_queue = topo_conf.conf["max_queue"]
+        max_queue = topo_conf.max_queue
         max_capacity = topo_conf.conf["max_capacity"]
         self.dopamin = RewardFunction(host_ports, sw_ports,
                                       self.reward_model,

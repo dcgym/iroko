@@ -14,21 +14,11 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
 
 DEFAULT_CONF = {
-    "max_queue": 0.5e6,         # max queue of switches in bytes
     "max_capacity": 10e6,       # max bw capacity of link in bytes
-    "min_rate": 0.1e6,          # min possible bw of an interface in bytes
+    "min_capacity": 0.1e6,      # min possible bw of an interface in bytes
     "parallel_envs": False,     # enable ids to support multiple topologies
     "tcp_policy": "tcp"
 }
-
-
-def merge_dicts(dict1, dict2):
-    for key in dict1:
-        if key in dict2:
-            # create set to retain only unique values in list
-            prev_values = set(dict1[key])
-            prev_values.update(dict2[key])
-            dict1[key] = list(prev_values)
 
 
 class BaseTopo:
@@ -42,9 +32,15 @@ class BaseTopo:
         self.host_ctrl_map = {}
         self.host_ips = []
         self.net = None
+        self.max_queue = 0
         self.switch_id = self._generate_switch_id(self.conf)
+        self.max_queue = self._calculate_max_queue(self.conf)
         self.prev_cc = self._get_active_congestion_control()
         self._set_congestion_control(self.conf)
+
+    def _calculate_max_queue(self, conf):
+        max_queue = 4e6 / (1e9 / conf["max_capacity"])
+        return max_queue
 
     def _generate_switch_id(self, conf):
         ''' Mininet needs unique ids if we want to launch
@@ -113,15 +109,22 @@ class BaseTopo:
         os.system(tc_cmd + cmd)
 
         if self.conf["tcp_policy"] == "dctcp":
+            # Calculate the marking threshold as part of the BDP
+            marking_threshold = self.conf["max_capacity"] * 0.0001
+            avg_pkt_size = 1500  # MTU packet size
+            # if the marking_threshold is smaller than the packet size
+            # set the threshold to around 4 packets
+            if (marking_threshold < avg_pkt_size):
+                marking_threshold = avg_pkt_size * 4
             # Apply aggressive RED to mark excess packets in the queue
-            limit = int(self.conf["max_queue"])
-            max_q = limit / 3
-            min_q = max_q / 3
+            limit = int(self.max_queue)
+            max_q = limit
+            min_q = marking_threshold
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
             cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
-            cmd += "avpkt 1000 "
+            cmd += "avpkt 1500 "
             cmd += "min %d " % (min_q)
             cmd += "max %d " % (max_q)
             cmd += "probability 0.001"
@@ -129,7 +132,7 @@ class BaseTopo:
             debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)
         else:
-            limit = int(self.conf["max_queue"])
+            limit = int(self.max_queue)
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
             cmd += " limit %d" % (limit)
@@ -137,22 +140,22 @@ class BaseTopo:
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20:1 netem limit %d rate 10mbit" % (
-        #     self.conf["max_queue"])
+        #     self.conf.max_queue)
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-        # limit = int(self.conf["max_queue"])
+        # limit = int(self.conf.max_queue)
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20: codel "
         # cmd += " limit %d" % (limit)
         # os.system(tc_cmd + cmd)
 
-        # limit = int(self.conf["max_queue"])
-        # max_q = self.conf["max_queue"] / 4
+        # limit = int(self.conf.max_queue)
+        # max_q = self.conf.max_queue / 4
         # min_q = max_q / 3
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20:1 sfq limit %d" % (
-        #     self.conf["max_queue"])
+        #     self.conf.max_queue)
         # if self.dctcp:
         #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
@@ -164,8 +167,8 @@ class BaseTopo:
         # os.system(tc_cmd + cmd)
 
         # Apply tc choke to mark excess packets in the queue with ecn
-        # limit = int(self.conf["max_queue"])
-        # max_q = self.conf["max_queue"]
+        # limit = int(self.conf.max_queue)
+        # max_q = self.conf.max_queue
         # min_q = 400
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 10:1 choke limit %d " % limit
@@ -180,7 +183,7 @@ class BaseTopo:
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 30:1 fq_codel limit %d " % (
-        #     self.conf["max_queue"])
+        #     self.conf.max_queue)
         # if ("dctcp" in self.conf) and self.conf["dctcp"]:
         #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "

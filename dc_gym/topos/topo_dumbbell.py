@@ -1,5 +1,5 @@
 import os
-from topos.topo_base import BaseTopo, merge_dicts
+from topos.topo_base import BaseTopo
 from mininet.topo import Topo
 from mininet.log import info, output, warn, error, debug
 

@@ -1,6 +1,6 @@
 import os
 from mininet.topo import Topo
-from topos.topo_base import BaseTopo, merge_dicts
+from topos.topo_base import BaseTopo
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology

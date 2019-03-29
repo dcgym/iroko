@@ -35,7 +35,10 @@ class RewardFunction:
         if "std_dev" in self.reward_model:
             std_dev_reward = self._std_dev_reward(actions)
             reward += std_dev_reward
-            # print("std_dev: %f " % std_dev_reward, end='')
+        if "fairness" in self.reward_model:
+            fairness_reward = self.fairness(actions)
+            reward += fairness_reward
+            print("fairness: %f " % fairness_reward, end='')
         # print("Total: %f" % reward)
         return reward
 
@@ -56,6 +59,16 @@ class RewardFunction:
 
     def _std_dev_reward(self, actions):
         return -(np.std(actions) / float(self.max_bw))
+
+    def _fairness_reward(self, actions):
+        '''Compute Jain's fairness index for a list of values.
+        See http://en.wikipedia.org/wiki/Fairness_measure for fairness equations.
+        @param values: list of values
+        @return fairness: JFI
+        '''
+        num = sum(actions) ** 2
+        denom = len(actions) * sum([i ** 2 for i in actions])
+        return num / float(denom)
 
     def _action_reward(self, actions):
         action_reward = []
