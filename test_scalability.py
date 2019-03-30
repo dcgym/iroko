@@ -6,6 +6,7 @@ from filelock import FileLock
 import os
 import logging
 import time
+import argparse
 # Ray imports
 import ray
 from ray.rllib.agents.registry import get_agent_class
@@ -21,6 +22,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import FormatStrFormatter
+
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument('--plot', '-p', action="store_true",
+                    default=False, help='Only plot results.')
+PARSER.add_argument('--input', '-i', dest='input_dir',
+                    default="scalability_test")
+ARGS = PARSER.parse_args()
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 
@@ -42,7 +50,7 @@ PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 # systemctl daemon-reexec
 
 # set up paths
-TESTNAME = "scalability_test_10mbit"
+TESTNAME = ARGS.input_dir
 cwd = os.getcwd()
 lib_dir = os.path.dirname(dc_gym.__file__)
 INPUT_DIR = lib_dir + '/inputs'
@@ -150,48 +158,51 @@ def check_plt_dir(plt_name):
         os.makedirs(plt_dir)
 
 
-def plot_scalability_graph(increments, data_dir, plot_dir, name):
-    bw_list = {}
-    bw_list["rx"] = []
-    bw_list["tx"] = []
-    for increment in increments:
-        stats_file = '%s/%s_hosts/runtime_statistics.npy' % (
-            data_dir, increment)
-        print("Loading %s..." % stats_file)
-        with FileLock(stats_file + ".lock"):
+def plot_scalability_graph(increments, data_dirs, plot_dir, name):
+    # Set seaborn style for plotting
+    sns.set(style="whitegrid", rc={"lines.linewidth": 2.5})
+    sns.set_context("paper")
+    files = increments
+    increments = [0] + increments
+    agg_df = pd.DataFrame({'Number of Hosts': increments})
+    for data_dir in data_dirs.keys():
+        bw_list = {}
+        bw_list["rx"] = []
+        bw_list["tx"] = []
+        for increment in files:
+            stats_file = '%s/%s_hosts/runtime_statistics.npy' % (
+                data_dir, increment)
+            print("Loading %s..." % stats_file)
             try:
-                statistics = np.load(stats_file).item()
+                with FileLock(stats_file + ".lock"):
+                    statistics = np.load(stats_file).item()
             except Exception:
                 print("Error loading file %s" % stats_file)
-                exit(1)
-        port_stats = np.moveaxis(statistics["stats"], 0, -1)
-        port_rx_bws = np.array(port_stats[STATS_DICT["bw_rx"]].mean(axis=1))
-        port_tx_bws = np.array(port_stats[STATS_DICT["bw_tx"]].mean(axis=1))
-        # bandwidths
-        print("Computing mean of interface bandwidth per step.")
-        bw_list["rx"].append(port_rx_bws.sum())
-        bw_list["tx"].append(port_tx_bws.sum())
-    zero = [0]
-    increments = zero + increments
-    bw_list["rx"] = zero + bw_list["rx"]
-    bw_list["tx"] = zero + bw_list["tx"]
-    agg_bw = np.add(bw_list["rx"], bw_list["tx"])
-    # Set seaborn style for plotting
-    sns.set(style="white", font_scale=1.1, rc={"lines.linewidth": 2.5})
-    # bws_pd = pd.DataFrame.from_dict(bw_list)
-    bws_pd = pd.DataFrame(agg_bw, columns=['Aggregate Bandwidth'])
-    bws_pd.index = increments
-    print (bws_pd)
+                continue
+            port_stats = np.moveaxis(statistics["stats"], 0, -1)
+            port_rx_bws = np.array(
+                port_stats[STATS_DICT["bw_rx"]].mean(axis=1))
+            port_tx_bws = np.array(
+                port_stats[STATS_DICT["bw_tx"]].mean(axis=1))
+            # bandwidths
+            print("Computing mean of interface bandwidth per step.")
+            bw_list["rx"].append(port_rx_bws.sum())
+            bw_list["tx"].append(port_tx_bws.sum())
+        bw_list["rx"] = [0] + bw_list["rx"]
+        bw_list["tx"] = [0] + bw_list["tx"]
+        agg_bw = np.add(bw_list["rx"], bw_list["tx"])
+        t_df = pd.DataFrame({data_dirs[data_dir]: agg_bw})
+        agg_df = pd.concat((agg_df, t_df), axis=1)
 
-    fig = sns.lineplot(data=bws_pd)
+    agg_df.set_index('Number of Hosts', inplace=True)
+    fig = sns.lineplot(data=agg_df, markers=True, markersize=8)
     fig.set_xscale('log', basex=2)
     fig.set_yscale('log', basey=2)
     fig.set(xlabel='Hosts', ylabel='Mbps (Avg)')
     bw_label = np.round(np.array(agg_bw) / 10e6)
-    print (bw_label)
     fig.set_yticklabels(bw_label)
     fig.set_xticklabels(increments)
-    # fig.set_xticks(increments)
+    fig.set_xticks(increments)
     fig.set_ylim(ymin=0)
     fig.set_xlim(xmin=0, xmax=increments[len(increments) - 1] + 100)
     fig.legend(loc='upper left')
@@ -199,8 +210,8 @@ def plot_scalability_graph(increments, data_dir, plot_dir, name):
     plt_name += "%s" % name
     print("Saving plot %s" % plt_name)
     check_plt_dir(plt_name)
-    plt.savefig(plt_name + ".pdf")
-    plt.savefig(plt_name + ".png")
+    plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
     plt.gcf().clear()
 
 
@@ -211,24 +222,32 @@ def run(config):
     print('Generator Finished. Simulation over. Clearing dc_env...')
 
 
+data_dirs = {
+    "candidates/scalability_test_10mbit_60core": "60 Core Rate Limited",
+    "candidates/scalability_test_gbit_60core": "60 Core Full",
+    "candidates/scalability_test_10mbit_8core": "8 Core Rate Limited",
+    "candidates/scalability_test_gbit_8core": "8 Core Full"}
+
+
 def init():
     increments = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-    check_dir(OUTPUT_DIR)
-    print("Registering the DC environment...")
-    register_env("dc_env", get_env)
+    if not ARGS.plot:
+        check_dir(OUTPUT_DIR)
+        print("Registering the DC environment...")
+        register_env("dc_env", get_env)
 
-    print("Starting Ray...")
-    ray.init(num_cpus=1, logging_level=logging.WARN)
+        print("Starting Ray...")
+        ray.init(num_cpus=1, logging_level=logging.WARN)
 
-    for tf_index, num_hosts in enumerate(increments):
-        config = configure_ray(num_hosts, tf_index)
-        print("Starting experiment.")
-        tune_run(config)
+        for tf_index, num_hosts in enumerate(increments):
+            config = configure_ray(num_hosts, tf_index)
+            print("Starting experiment.")
+            tune_run(config)
+            time.sleep(10)
+            print("Experiment has completed.")
         time.sleep(10)
-        print("Experiment has completed.")
-    time.sleep(10)
-    plot_scalability_graph(increments, OUTPUT_DIR,
-                           PLOT_DIR, TESTNAME)
+    plot_scalability_graph(increments, [OUTPUT_DIR],
+                           PLOT_DIR, os.path.basename(TESTNAME.strip("/")))
 
 
 if __name__ == '__main__':

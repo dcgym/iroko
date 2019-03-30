@@ -119,6 +119,7 @@ class BaseTopo:
             # set the threshold to around 4 packets
             if (marking_threshold < avg_pkt_size):
                 marking_threshold = avg_pkt_size * 4
+            # also limit the marking threshold to 50KB
             elif marking_threshold > 50e3:
                 marking_threshold = 50e3
             # Apply aggressive RED to mark excess packets in the queue
@@ -137,7 +138,7 @@ class BaseTopo:
             cmd += "burst %d " % burst
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
-            cmd += "probability 0.001"
+            # cmd += "probability 0.1"
             cmd += " ecn "
             debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)

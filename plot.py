@@ -82,16 +82,27 @@ def compute_rolling_df_mean(pd_df, roll):
     return rolling_df.reset_index(drop=True)
 
 
-def normalize_df(pd_df):
+def normalize_df_min_max(pd_df):
     df_max = np.nanmax(pd_df.values)
     df_min = np.nanmin(pd_df.values)
     normalized_df = (pd_df - df_min) / (df_max - df_min)
     return normalized_df
 
 
+def normalize_df_z_score(pd_df):
+    df_mean = np.mean(pd_df.values)
+    df_std = np.std(pd_df.values)
+    normalized_df = (pd_df - df_mean) / df_std
+    return normalized_df
+
+
 def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     # Set seaborn style for plotting
-    sns.set(style="white", font_scale=2, rc={"lines.linewidth": 2.5})
+    sns.set(style="ticks", rc={"lines.linewidth": 1.2,
+                               "axes.spines.right": False,
+                               "axes.spines.top": False,
+                               'lines.markeredgewidth': 0.1, })
+    # sns.set_context("paper")
     metrics = {}
     plt_metrics = ["reward", "queues", "bw", "drops"]
     print("Converting numpy arrays into pandas dataframes.")
@@ -104,46 +115,48 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     print("Computing drops deltas.")
     metrics["drops"] = np_dict_to_pd(plt_stats, "drops").diff()
 
-    fig, ax = plt.subplots(len(plt_metrics), 1, figsize=(20, 10))
-    markers = (".", ",", "o", "v", "^", "<", ">")
-    linestyles = ('--', '-.', '-', ':')
-    colours = ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
-    mark_iterator = itertools.cycle(markers)
-    line_iterator = itertools.cycle(linestyles)
-    colour = itertools.cycle(colours)
-    mean_smoothing = int(timesteps / 200)
+    fig, ax = plt.subplots(len(plt_metrics), 1, sharex=True, squeeze=True)
+    mean_smoothing = int(timesteps / 100)
+    sample = int(timesteps / 10)
     num_subplots = len(ax)
+    # newdict = {(k1, k2): v2 for k1, v1 in plt_stats.items()
+    #            for k2, v2 in plt_stats[k1].items()}
+    # df = pd.DataFrame([newdict[i] for i in sorted(newdict)],
+    #                   index=pd.MultiIndex.from_tuples([i for i in sorted(newdict.keys())]))
+    marker_range = list(np.arange(
+        int(sample / 10), sample, int(sample / 10)))
+
     for index, metric in enumerate(plt_metrics):
         metric_df = metrics[metric]
         print("Computing rolling %s." % metric)
         metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
         print("Normalizing %s." % metric)
-        metric_df = normalize_df(metric_df)
+        metric_df = normalize_df_min_max(metric_df)
         print ("Plotting %s..." % metric)
         if index == 0:
             plt_legend = "brief"
         else:
             plt_legend = False
-        ax[index] = sns.lineplot(
-            data=metric_df.sample(10000), ax=ax[index], legend=plt_legend)
+        ax[index] = sns.lineplot(data=metric_df.sample(sample),
+                                 ax=ax[index], legend=plt_legend,
+                                 markers=True, markevery=marker_range)
+        # markers=True, markersize=8)
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
-            ax[index].set_xlabel("steps")
-        else:
-            ax[index].get_xaxis().set_visible(False)
+            ax[index].set_xlabel("Steps")
         ax[index].set_xlim([0, timesteps])
         ax[index].margins(y=0.15)
-    tcks = ax[num_subplots - 1].get_xticks()
-    tcks[-1] = timesteps
-    ax[num_subplots - 1].set_xticks(tcks)
+    # tcks = ax[num_subplots - 1].get_xticks()
+    # tcks[-1] = timesteps
+    # ax[num_subplots - 1].set_xticks(tcks)
     # fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
     # _, handles = ax[num_subplots - 1].get_legend_handles_labels()
-    ax[0].legend(bbox_to_anchor=(0.5, 1.8), loc="upper center",
+    ax[0].legend(bbox_to_anchor=(0.5, 1.45), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))
     print("Saving plot %s" % plt_name)
     check_plt_dir(plt_name)
-    plt.savefig(plt_name + ".pdf")
-    plt.savefig(plt_name + ".png")
+    plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
     plt.gcf().clear()
 
 
