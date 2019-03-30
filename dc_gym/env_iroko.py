@@ -42,7 +42,7 @@ DEFAULT_CONF = {
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
     # "action", "bw", "backlog","std_dev"
-    "reward_model": ["backlog", "action"],
+    "reward_model": ["joint_backlog"],
 }
 
 
