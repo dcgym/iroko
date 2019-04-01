@@ -1,11 +1,11 @@
 from __future__ import division  # For Python 2
-import itertools
 import os
 import json
 import argparse
 import numpy as np
 import pandas as pd
 from filelock import FileLock
+import glob
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -89,9 +89,14 @@ def normalize_df_min_max(pd_df):
     return normalized_df
 
 
+def normalize_df_min_max_range(pd_df, df_min, df_max):
+    normalized_df = (pd_df - df_min) / (df_max - df_min)
+    return normalized_df
+
+
 def normalize_df_z_score(pd_df):
-    df_mean = np.mean(pd_df.values)
-    df_std = np.std(pd_df.values)
+    df_mean = np.nanmean(pd_df.values)
+    df_std = np.nanstd(pd_df.values)
     normalized_df = (pd_df - df_mean) / df_std
     return normalized_df
 
@@ -119,10 +124,6 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     mean_smoothing = int(timesteps / 100)
     sample = int(timesteps / 10)
     num_subplots = len(ax)
-    # newdict = {(k1, k2): v2 for k1, v1 in plt_stats.items()
-    #            for k2, v2 in plt_stats[k1].items()}
-    # df = pd.DataFrame([newdict[i] for i in sorted(newdict)],
-    #                   index=pd.MultiIndex.from_tuples([i for i in sorted(newdict.keys())]))
     marker_range = list(np.arange(
         int(sample / 10), sample, int(sample / 10)))
 
@@ -140,17 +141,11 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
         ax[index] = sns.lineplot(data=metric_df.sample(sample),
                                  ax=ax[index], legend=plt_legend,
                                  markers=True, markevery=marker_range)
-        # markers=True, markersize=8)
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
             ax[index].set_xlabel("Steps")
         ax[index].set_xlim([0, timesteps])
         ax[index].margins(y=0.15)
-    # tcks = ax[num_subplots - 1].get_xticks()
-    # tcks[-1] = timesteps
-    # ax[num_subplots - 1].set_xticks(tcks)
-    # fig.subplots_adjust(hspace=0.1, left=0.12, right=0.95)
-    # _, handles = ax[num_subplots - 1].get_legend_handles_labels()
     ax[0].legend(bbox_to_anchor=(0.5, 1.45), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))
     print("Saving plot %s" % plt_name)
@@ -160,13 +155,48 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     plt.gcf().clear()
 
 
-def preprocess_data(algo, runs, transport_dir):
-    run_list = {"rewards": [], "actions": [], "backlog": [],
-                "bw_tx": [], "olimit": [], "drops": []}
+def process_ping_files(results_folder):
+    ping_files = [i for i in glob.glob("%s/ping*.csv" % results_folder)]
+    host_pings = []
+    for pf in ping_files:
+        print("Import csv file: %s" % pf)
+        ping = np.genfromtxt(pf, delimiter=',', usecols=(1))
+        sample_start = int(len(ping) - len(ping) / 10)
+        host_pings.append(np.nanmean(ping[sample_start:]))
+    return np.nanmean(host_pings)
+
+
+def plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport):
+    algos = rl_algos + tcp_algos
+    host_pings = {}
+    for algo in algos:
+        if (algo in tcp_algos):
+            transport_dir = data_dir + "/tcp_"
+        else:
+            transport_dir = data_dir + "/%s_" % (transport.lower())
+        ping_runs = []
+        for index in range(runs):
+            run_dir = transport_dir + "run%d" % index
+            results_folder = '%s/%s' % (run_dir, algo.lower())
+            ping_runs.append(process_ping_files(results_folder))
+        host_pings[algo] = np.nanmean(ping_runs)
+    ping_df = pd.DataFrame.from_dict(host_pings, orient='index').transpose()
+    print(ping_df)
+    # Convert to milliseconds
+    ping_df = ping_df.div(1e6)
+    fig = sns.barplot(data=ping_df)
+    fig.set(xlabel='Algorithm', ylabel='Average RTT (ms)')
+    plt.savefig(plt_name + "_ping.png", bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(plt_name + "_ping.pdf", bbox_inches='tight', pad_inches=0.05)
+    plt.gcf().clear()
+
+
+def preprocess_data(algo, metrics, runs, transport_dir):
+    run_list = {metric: [] for metric in metrics}
     for index in range(runs):
         run_dir = transport_dir + "run%d" % index
-        stats_file = '%s/%s/runtime_statistics.npy' % (
-            run_dir, algo.lower())
+        results_folder = '%s/%s' % (run_dir, algo.lower())
+        stats_file = "%s/runtime_statistics.npy" % results_folder
         print("Loading %s..." % stats_file)
         with FileLock(stats_file + ".lock"):
             try:
@@ -206,11 +236,10 @@ def preprocess_data(algo, runs, transport_dir):
         if mean_overlimits.size:
             run_list["olimit"].append(mean_overlimits)
         # drops
-        mean_drops = port_drops.mean(axis=0)
         print("Computing mean of interface drops per step.")
+        mean_drops = port_drops.mean(axis=0)
         if mean_drops.size:
             run_list["drops"].append(mean_drops)
-
     return run_list, num_samples
 
 
@@ -225,14 +254,20 @@ def plot(data_dir, plot_dir, name):
     transports = test_config["transport"]
     topo = test_config["topology"]
     for transport in transports:
+        plt_name = "%s/" % (plot_dir)
+        plt_name += "%s" % name
+        plt_name += "_%s" % topo
+        plt_name += "_%s" % transport
+        plt_name += "_%s" % timesteps
         plt_stats = {"rewards": {}, "actions": {}, "backlog": {},
-                     "bw_tx": {}, "bw_rx": {}, "olimit": {}, "drops": {}}
+                     "bw_tx": {}, "olimit": {}, "drops": {}}
         for algo in algos:
             if (algo in tcp_algos):
                 transport_dir = data_dir + "/tcp_"
             else:
                 transport_dir = data_dir + "/%s_" % (transport.lower())
-            run_list, num_samples, = preprocess_data(algo, runs, transport_dir)
+            run_list, num_samples, = preprocess_data(
+                algo, plt_stats.keys(), runs, transport_dir)
             if (num_samples < min_samples):
                 min_samples = num_samples
             # average over all runs
@@ -241,12 +276,8 @@ def plot(data_dir, plot_dir, name):
                 min_len = min([len(ls) for ls in run_list[stat]])
                 pruned_list = [ls[:min_len] for ls in run_list[stat]]
                 plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
-        plt_name = "%s/" % (plot_dir)
-        plt_name += "%s" % name
-        plt_name += "_%s" % topo
-        plt_name += "_%s" % transport
-        plt_name += "_%s" % timesteps
         plot_lineplot(algos, plt_stats, min_samples, plt_name)
+        # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
         # plot_barchart(algos, plt_stats, plt_name)
 
 

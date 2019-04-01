@@ -1,3 +1,4 @@
+from __future__ import print_function
 import time
 import sys
 import atexit
@@ -78,7 +79,8 @@ class DCEnv(openAIGym):
         self.topo.start_network()
         # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
-        self.state_man = StateManager(self.topo, self.conf)
+        self.state_man = StateManager(self.conf)
+        self.state_man.start(self.topo)
         self.bw_ctrl = BandwidthController(self.topo.host_ctrl_map)
 
         # set up variables for the progress bar

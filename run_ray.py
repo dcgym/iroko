@@ -55,14 +55,14 @@ PARSER.add_argument('--tune', action="store_true", default=False,
                     help='Specify whether to perform hyperparameter tuning')
 ARGS = PARSER.parse_args()
 
-
 class MaxAgent(Agent):
     """Agent that always takes the maximum available action."""
     _agent_name = "MaxAgent"
     _default_config = with_common_config({})
 
-    def _init(self):
-        self.env = self.env_creator(self.config["env_config"])
+    def _init(self, config, env_creator):
+        self.config = config
+        self.env = env_creator(config["env_config"])
         self.env.reset()
 
     def _train(self):
@@ -87,8 +87,8 @@ class RandomAgent(Agent):
     _agent_name = "RandomAgent"
     _default_config = with_common_config({})
 
-    def _init(self):
-        self.env = self.env_creator(self.config["env_config"])
+    def _init(self, config, env_creator):
+        self.env = env_creator(config["env_config"])
         self.env.reset()
 
     def _train(self):
@@ -117,6 +117,17 @@ def check_dir(directory):
 
 def get_env(env_config):
     return EnvFactory.create(env_config)
+
+
+def get_gym(env_config):
+    import gym
+    iterations = env_config["iterations"]
+    gym.register(id='dc-iroko-v0',
+                 entry_point='dc_gym.env_iroko:DCEnv',
+                 max_episode_steps=iterations,
+                 )
+    env = gym.make('dc-iroko-v0', conf=env_config)
+    return env
 
 
 def set_tuning_parameters(agent, config):
@@ -213,8 +224,6 @@ def get_tune_experiment(config, agent):
         # custom changes to experiment
         print("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
-    config["env_config"]["topo_conf"] = {}
-    config["env_config"]["topo_conf"]["parallel_envs"] = True
     experiment[name]["config"] = config
     return experiment, scheduler
 
@@ -243,10 +252,16 @@ def configure_ray(agent):
         "transport": ARGS.transport,
         "iterations": ARGS.timesteps,
         "tf_index": ARGS.pattern_index,
+        "topo_conf": {},
+
     }
     if ARGS.timesteps > 50000:
         config["env_config"]["sample_delta"] = ARGS.timesteps / 50000
-
+    if config["num_workers"] > 1:
+        config["env_config"]["topo_conf"]["parallel_envs"] = True
+    if agent.lower() == "td3":
+        config["twin_q"] = True
+        config['env_config']['agent'] = "ddpg"
     return config
 
 
@@ -260,6 +275,7 @@ def run(config):
 
 def tune_run(config):
     agent = config['env_config']['agent']
+    config["env_config"]["topo_conf"]["parallel_envs"] = True
     experiment, scheduler = get_tune_experiment(config, agent)
     tune.run_experiments(experiment, scheduler=scheduler)
 
@@ -267,10 +283,9 @@ def tune_run(config):
 def init():
     check_dir(ARGS.output_dir + "/" + ARGS.agent)
     print("Registering the DC environment...")
-    register_env("dc_env", get_env)
+    register_env("dc_env", get_gym)
     print("Starting Ray...")
-    ray.init(num_cpus=2, logging_level=logging.WARN)
-
+    ray.init(num_cpus=2, logging_level=logging.INFO)
     config = configure_ray(ARGS.agent)
     print("Starting experiment.")
     # Basic ray train currently does not work, always use tune for now

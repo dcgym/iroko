@@ -20,23 +20,26 @@ class StateManager:
                  "stats_file", "data", "dopamin",
                  "stats", "flow_stats", "procs"]
 
-    def __init__(self, topo_conf, config):
-        sw_ports = topo_conf.get_sw_ports()
-        self.num_ports = topo_conf.get_num_sw_ports()
+    def __init__(self, config):
         self.stats_keys = config["state_model"]
         self.collect_flows = config["collect_flows"]
         self.reward_model = config["reward_model"]
         self.deltas = None
         self.prev_stats = None
+        self._set_data_checkpoints(config["output_dir"])
+
+    def start(self, topo_conf):
+        sw_ports = topo_conf.get_sw_ports()
+        self.num_ports = topo_conf.get_num_sw_ports()
         host_ports = topo_conf.get_host_ports()
         self._init_stats_matrices(self.num_ports, len(topo_conf.host_ips))
-        self._spawn_collectors(sw_ports, host_ports, topo_conf.host_ips.values())
+        self._spawn_collectors(sw_ports, host_ports,
+                               topo_conf.host_ips.values())
         max_queue = topo_conf.max_queue
         max_capacity = topo_conf.conf["max_capacity"]
         self.dopamin = RewardFunction(host_ports, sw_ports,
                                       self.reward_model,
                                       max_queue, max_capacity, self.STATS_DICT)
-        self._set_data_checkpoints(config["output_dir"])
 
     def flush_and_close(self):
         print("Writing collected data to disk")
