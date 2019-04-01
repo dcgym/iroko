@@ -30,7 +30,6 @@ class BaseTopo:
         self.topo = None
         self.started = False
         self.host_ctrl_map = {}
-        self.host_ips = []
         self.net = None
         self.max_queue = 0
         self.switch_id = self._generate_switch_id(self.conf)

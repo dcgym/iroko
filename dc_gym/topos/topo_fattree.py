@@ -13,7 +13,6 @@ DEFAULT_CONF = {
                       'random2_bij_data', 'random_2_flows_data',
                       'random_3_flows_data', 'random_4_flows_data',
                       'hotspot_one_to_one_data'],
-    "traffic_files": ['stride4_data'],
     "fanout": 4,
     "density": 2,
     "ecmp": True,
@@ -92,6 +91,7 @@ class TopoConfig(BaseTopo):
             fanout=self.conf["fanout"], density=self.conf["density"],
             switch_id=self.switch_id)
         self._create_network()
+        self.host_ips = {}
 
     def _set_host_ip(self, net, topo):
         hostlist = []
@@ -102,7 +102,7 @@ class TopoConfig(BaseTopo):
         for host in hostlist:
             ip = "10.%d.0.%d" % (i, j)
             host.setIP(ip)
-            self.host_ips.append(ip)
+            self.host_ips[host] = ip
             j += 1
             if j == topo.density + 1:
                 j = 1

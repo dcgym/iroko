@@ -136,7 +136,7 @@ def configure_ray(num_hosts, tf_index):
         "iterations": 1000,
         "tf_index": tf_index,
         "topo_conf": {"num_hosts": num_hosts, "parallel_envs": True,
-                      "max_capacity": 10e9},
+                      "max_capacity": 1000e9},
     }
     return config
 
