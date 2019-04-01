@@ -88,8 +88,10 @@ class TrafficGen():
             iface_net = host.intfList()[0]
             ifaces_ctrl = host.intfList()[1]
             out_file = "%s/%s_ctrl" % (out_dir, host.name)
-            ctrl_cmd = "%s -n %s -c %s &" % (traffic_ctrl,
-                                             iface_net, ifaces_ctrl)
+            ctrl_cmd = "%s " % traffic_ctrl
+            ctrl_cmd += "-n %s " % iface_net
+            ctrl_cmd += "-c %s " % ifaces_ctrl
+            ctrl_cmd += "-r %d " % self.topo_conf.conf["max_capacity"]
             c_proc = start_process(ctrl_cmd, host, out_file)
             self.procs.append(c_proc)
 

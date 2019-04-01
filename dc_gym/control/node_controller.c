@@ -6,6 +6,7 @@
 #include <libnl3/netlink/route/qdisc.h>
 #include <libnl3/netlink/route/qdisc/netem.h>
 #include <libnl3/netlink/route/qdisc/tbf.h>
+#include <libnl3/netlink/route/qdisc/htb.h>
 
 #include "raw_udp_socket.h"
 
@@ -120,7 +121,33 @@ static void sighandler(int num) {
     sigint = 1;
 }
 
-struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev){
+struct rtnl_class *setup_class(struct nl_sock *qdisc_sock, const char *netdev, long rate){
+    struct rtnl_class *fq_class;
+    int if_index;
+    int err = 0;
+
+    if_index = if_nametoindex(netdev);
+    fq_class = rtnl_class_alloc();
+    rtnl_tc_set_ifindex(TC_CAST(fq_class), if_index);
+    rtnl_tc_set_parent(TC_CAST(fq_class), TC_HANDLE(1,0));
+    rtnl_tc_set_handle(TC_CAST(fq_class), TC_HANDLE(1,1));
+    if ((err = rtnl_tc_set_kind(TC_CAST(fq_class), "htb"))) {
+            printf("Can not allocate HTB\n");
+        exit (-1);
+    }
+    rtnl_htb_set_rate(fq_class, rate/8);
+    // rtnl_htb_set_ceil(fq_class, 10e6);
+    /* Submit request to kernel and wait for response */
+    if ((err = rtnl_class_add(qdisc_sock, fq_class, NLM_F_CREATE))) {
+        printf("Can not allocate HTB Class\n");
+        return fq_class;
+    }
+    // rtnl_class_put(fq_class);
+    return fq_class;
+}
+
+
+struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev, long rate){
     struct rtnl_qdisc *fq_qdisc;
     int if_index;
     int err = 0;
@@ -136,16 +163,21 @@ struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev){
     fq_qdisc = rtnl_qdisc_alloc();
     rtnl_tc_set_ifindex(TC_CAST(fq_qdisc), if_index);
     rtnl_tc_set_parent(TC_CAST(fq_qdisc), TC_H_ROOT);
-    rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1, 0));
-    rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf");
-    rtnl_qdisc_tbf_set_limit(fq_qdisc, 10e6);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, 10e6/8, 15000, 0);
-    rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE);
+    rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1,0));
+    if ((err = rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf"))) {
+            perror("Can not allocate TBF");
+        exit (1);
+    }
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, rate/8);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, rate/8, 15000, 0);
+    if ((err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE))) {
+        perror("Can not set TBF qdisc");
+        exit (1);
+    }
     return fq_qdisc;
 }
 
-void clean_qdisc(struct nl_sock *qdisc_sock, struct rtnl_qdisc *fq_qdisc) {
-    rtnl_qdisc_put(fq_qdisc);
+void clean_qdisc(struct nl_sock *qdisc_sock,struct rtnl_qdisc *fq_qdisc) {
     nl_socket_free(qdisc_sock);
     nl_object_free((struct nl_object *) fq_qdisc);
 }
@@ -154,6 +186,7 @@ void usage(char *prog_name){
     printf("usage: %s [args]\n", prog_name);
     printf("-n <netdev> - the interface attached to the main network\n");
     printf("-c <ctrldev>- the interface attached to the control network\n");
+    printf("-r <rate> - the initial rate of the controlling qdisc in bits\n");
     exit(1);
 }
 
@@ -162,9 +195,10 @@ int main(int argc, char **argv) {
     char c;
     char *netdev = NULL;
     char *ctrldev = NULL;
+    long rate = 10e6;
     char *prog_name = argv[0];
     opterr = 0;
-    while ((c = getopt(argc, argv, "n:c:")) != -1) {
+    while ((c = getopt(argc, argv, "n:c:r:")) != -1) {
         switch(c)
         {
             case 'n':
@@ -172,6 +206,9 @@ int main(int argc, char **argv) {
                 break;
             case 'c':
                 ctrldev = optarg;
+                break;
+            case 'r':
+                rate = atoll(optarg);
                 break;
             case '?':
                 printf("unknown option: %c\n", optopt);
@@ -186,7 +223,7 @@ int main(int argc, char **argv) {
     // Set up the managing qdisc on the main interface
     qdisc_sock = nl_socket_alloc();
     nl_connect(qdisc_sock, NETLINK_ROUTE);
-    fq_qdisc = setup_qdisc(qdisc_sock, netdev);
+    fq_qdisc = setup_qdisc(qdisc_sock, netdev, rate);
 
     // Set up the rx and tx rings
     struct ring *ring_rx = init_raw_backend(ctrldev, CTRL_PORT, PACKET_RX_RING);
