@@ -61,6 +61,7 @@ class DCEnv(openAIGym):
         self.active = False
         # initialize the topology
         self.topo = self._create_topo(self.conf)
+        self.state_man = StateManager(self.conf, self.topo)
 
         # set the dimensions of the state matrix
         self._set_gym_spaces(self.conf)
@@ -79,7 +80,6 @@ class DCEnv(openAIGym):
         self.topo.start_network()
         # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
-        self.state_man = StateManager(self.conf)
         self.state_man.start(self.topo)
         self.bw_ctrl = BandwidthController(self.topo.host_ctrl_map)
 

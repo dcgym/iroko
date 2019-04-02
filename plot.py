@@ -1,6 +1,7 @@
 from __future__ import division  # For Python 2
 import os
 import json
+import csv
 import argparse
 import numpy as np
 import pandas as pd
@@ -16,7 +17,7 @@ STATS_DICT = {"backlog": 0, "olimit": 1,
               "drops": 2, "bw_rx": 3, "bw_tx": 4}
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
-ROOT = "results"
+ROOT = "candidates"
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--input', '-i', dest='input_dir')
@@ -140,7 +141,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
             plt_legend = False
         ax[index] = sns.lineplot(data=metric_df.sample(sample),
                                  ax=ax[index], legend=plt_legend,
-                                 markers=True, markevery=marker_range)
+                                 markers=True, markevery=marker_range, style="event")
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
             ax[index].set_xlabel("Steps")
@@ -160,7 +161,8 @@ def process_ping_files(results_folder):
     host_pings = []
     for pf in ping_files:
         print("Import csv file: %s" % pf)
-        ping = np.genfromtxt(pf, delimiter=',', usecols=(1))
+        ping = np.genfromtxt(
+            pf, delimiter=',', usecols=(1), invalid_raise=False)
         sample_start = int(len(ping) - len(ping) / 10)
         host_pings.append(np.nanmean(ping[sample_start:]))
     return np.nanmean(host_pings)
@@ -191,6 +193,68 @@ def plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport):
     plt.gcf().clear()
 
 
+def run_tcptrace(algo_dir):
+    cmd = "tcptrace -lr --csv %s/*.pcap " % algo_dir
+    cmd += "| sed '/^#/ d' "
+    cmd += "| sed -r '/^\\s*$/d' "
+    cmd += "> %s/rtt.csv " % algo_dir
+    os.system(cmd)
+
+
+def process_rtt_files(data_dir, runs, algo):
+    total_rtt = {"max": 0, "avg": 0, "stdev": 0, }
+    index_rtt = {metric: [] for metric in total_rtt.keys()}
+    for index in range(runs):
+        row_rtt = {metric: [] for metric in total_rtt.keys()}
+        run_dir = "%s/tcp_run%d" % (data_dir, index)
+        results_folder = '%s/%s' % (run_dir, algo.lower())
+        # run_tcptrace(results_folder)
+        rtt_name = "%s/rtt.csv" % results_folder
+        print("Import csv file: %s" % rtt_name)
+        with open(rtt_name) as rtt_file:
+            rtt_csv = csv.DictReader(rtt_file)
+            for row in rtt_csv:
+                for key, value in row.items():
+                    for metric in total_rtt.keys():
+                        if "last" not in key:
+                            if key.startswith("RTT_%s" % metric):
+                                row_rtt[metric].append(float(value))
+        index_rtt[metric].append(np.nanmean(row_rtt[metric]))
+    for metric in total_rtt.keys():
+        total_rtt[metric] = np.nanmean(row_rtt[metric])
+    return total_rtt
+
+
+def analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir):
+    algos = rl_algos + tcp_algos
+    host_rtt = {}
+    for algo in algos:
+        host_rtt[algo] = process_rtt_files(data_dir, runs, algo)
+    ping_df = pd.DataFrame.from_dict(host_rtt, orient='index')
+    ping_df = pd.melt(ping_df.reset_index(), id_vars='index',
+                      var_name="Metric",
+                      value_name="Average RTT (ms)")
+    ping_df = ping_df.rename(columns={'index': 'Algorithm'})
+    # Convert to milliseconds
+    # ping_df = ping_df.div(1e6)
+    fig = sns.catplot(x='Metric', y='Average RTT (ms)',
+                      hue="Algorithm", data=ping_df, kind='bar')
+    from itertools import cycle
+    hatches = cycle(["/", "-", "+", "x", '-', '+', 'x', 'O', '.'])
+
+    num_locations = len(ping_df.Metric.unique())
+    for i, patch in enumerate(fig.ax.patches):
+        # Blue bars first, then green bars
+        if i % num_locations == 0:
+            hatch = next(hatches)
+        patch.set_hatch(hatch)
+    plt_name += "_rtt"
+    print("Saving plot %s" % plt_name)
+    plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
+    plt.gcf().clear()
+
+
 def preprocess_data(algo, metrics, runs, transport_dir):
     run_list = {metric: [] for metric in metrics}
     for index in range(runs):
@@ -200,7 +264,10 @@ def preprocess_data(algo, metrics, runs, transport_dir):
         print("Loading %s..." % stats_file)
         with FileLock(stats_file + ".lock"):
             try:
-                statistics = np.load(stats_file).item()
+                with open(stats_file, 'rb') as stats_handle:
+                    statistics = np.load(stats_handle).item()
+                    if not next(iter(statistics.values())):
+                        statistics = np.load(stats_handle).item()
             except Exception as e:
                 print("Error loading file %s" % stats_file, e)
                 exit(1)
@@ -277,9 +344,10 @@ def plot(data_dir, plot_dir, name):
                 pruned_list = [ls[:min_len] for ls in run_list[stat]]
                 plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
         plot_lineplot(algos, plt_stats, min_samples, plt_name)
+        if transport == "tcp":
+            analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
         # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
         # plot_barchart(algos, plt_stats, plt_name)
-
 
 if __name__ == '__main__':
 

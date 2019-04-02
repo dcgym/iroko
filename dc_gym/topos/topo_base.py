@@ -125,18 +125,17 @@ class BaseTopo:
             limit = int(self.max_queue)
             max_q = int(limit)
             min_q = int(marking_threshold)
-            burst = (min_q + min_q + max_q) / (3 * avg_pkt_size)
-            # Ballpark burst hard limit...
-            if (burst > 100):
-                burst = 100
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
             cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
             cmd += "avpkt %d " % avg_pkt_size
-            cmd += "burst %d " % burst
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
+            # Ballpark burst hard limit...
+            burst = (min_q + min_q + max_q) / (3 * avg_pkt_size)
+            if (burst > 50):
+                cmd += "burst %d " % 50
             # cmd += "probability 0.1"
             cmd += " ecn "
             debug(tc_cmd + cmd)
