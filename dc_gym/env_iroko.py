@@ -156,9 +156,9 @@ class DCEnv(openAIGym):
 
         self.bw_ctrl.broadcast_bw(squashed_action, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
-        # max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
-        # time.sleep(max_sleep)
-        # self.start_time = time.time()
+        max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
+        time.sleep(max_sleep)
+        self.start_time = time.time()
         return obs.flatten(), self.reward, done, {}
 
     def render(self, mode='human'):

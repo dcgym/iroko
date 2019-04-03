@@ -106,12 +106,7 @@ class StateManager:
                 proc.terminate()
 
     def _compute_deltas(self, num_ports, stats_prev, stats_now):
-        for iface_index in range(num_ports):
-            for delta_index, stat in enumerate(self.STATS_DICT.keys()):
-                stat_index = self.STATS_DICT[stat]
-                prev = stats_prev[stat_index][iface_index]
-                now = stats_now[stat_index][iface_index]
-                self.deltas[delta_index][iface_index] = now - prev
+        self.deltas = stats_now - stats_prev
 
     def observe(self, curr_action, do_sample):
         obs = []

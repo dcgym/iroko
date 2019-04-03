@@ -38,11 +38,12 @@ class BaseTopo:
         self._set_congestion_control(self.conf)
 
     def _calculate_max_queue(self, conf):
+        queue = 4e6
         if conf["max_capacity"] < 1e9:
-            threshold = 4e6 / (1e9 / conf["max_capacity"])
-            if (threshold > 2e6):
-                return threshold
-        return 2e6
+            queue = 4e6 / (1e9 / conf["max_capacity"])
+            if queue > 4e4:
+                queue = 4e4
+        return 4e6
 
     def _generate_switch_id(self, conf):
         ''' Mininet needs unique ids if we want to launch
@@ -86,6 +87,19 @@ class BaseTopo:
     def _config_topo(self, ovs_v, is_ecmp):
         raise NotImplementedError("Method _config_topo not implemented!")
 
+    def _calc_ecn(self, max_throughput, avg_pkt_size):
+        # Calculate the marking threshold as part of the BDP
+        marking_threshold = max_throughput * 0.0001
+        # if the marking_threshold is smaller than the packet size
+        # set the threshold to around 4 packets
+        if (marking_threshold < avg_pkt_size):
+            marking_threshold = avg_pkt_size * 4
+        # also limit the marking threshold to 50KB
+        elif marking_threshold > 50e3:
+            marking_threshold = 50e3
+        # Apply aggressive RED to mark excess packets in the queue
+        return marking_threshold
+
     def _apply_qdisc(self, port):
         """ Here be dragons... """
         # tc_cmd = "tc qdisc add dev %s " % (port)
@@ -110,19 +124,12 @@ class BaseTopo:
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
+        limit = int(self.max_queue)
+        avg_pkt_size = 1500  # MTU packet size
         if self.conf["tcp_policy"] == "dctcp":
-            # Calculate the marking threshold as part of the BDP
-            marking_threshold = self.conf["max_capacity"] * 0.0001
-            avg_pkt_size = 1500  # MTU packet size
-            # if the marking_threshold is smaller than the packet size
-            # set the threshold to around 4 packets
-            if (marking_threshold < avg_pkt_size):
-                marking_threshold = avg_pkt_size * 4
-            # also limit the marking threshold to 50KB
-            elif marking_threshold > 50e3:
-                marking_threshold = 50e3
+            marking_threshold = self._calc_ecn(
+                self.conf["max_capacity"], avg_pkt_size)
             # Apply aggressive RED to mark excess packets in the queue
-            limit = int(self.max_queue)
             max_q = int(limit)
             min_q = int(marking_threshold)
             tc_cmd = "tc qdisc add dev %s " % (port)
@@ -141,7 +148,6 @@ class BaseTopo:
             debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)
         else:
-            limit = int(self.max_queue)
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
             cmd += " limit %d" % (limit)
