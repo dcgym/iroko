@@ -28,7 +28,7 @@ class StateManager:
         self.prev_stats = None
         self._set_data_checkpoints(config["output_dir"])
         self.num_ports = topo_conf.get_num_sw_ports()
-        self._init_stats_matrices(self.num_ports, topo_conf.get_num_hosts)
+        self._init_stats_matrices(self.num_ports, topo_conf.get_num_hosts())
 
     def start(self, topo_conf):
         sw_ports = topo_conf.get_sw_ports()

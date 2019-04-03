@@ -15,14 +15,14 @@ INPUT_DIR = file_dir + '/inputs'
 OUTPUT_DIR = exec_dir + '/results'
 PLOT_DIR = exec_dir + '/plots'
 
-# RL Algorithms: PPO, APPO, DDPG, PG, A2C, RND
+# RL Algorithms: PPO, APPO, DDPG, TD3, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["PPO", "DDPG", "A2C", "RND"]
+RL_ALGOS = ["PPO", "DDPG", "PG"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp
 TRANSPORT = ["udp", "tcp"]
-TF_PATTERNS = [0, 1, 2]
+TF_PATTERNS = [0]
 RUNS = 3
 STEPS = 400000
 TOPO = "dumbbell"

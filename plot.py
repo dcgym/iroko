@@ -95,6 +95,13 @@ def normalize_df_min_max_range(pd_df, df_min, df_max):
     return normalized_df
 
 
+def normalize_df_tanh(pd_df, df_min, df_max):
+    df_mean = np.mean(pd_df.values)
+    df_std = np.std(pd_df.values)
+    normalized_df = np.tanh(0.01(pd_df - df_mean) / df_std + 1)
+    return normalized_df
+
+
 def normalize_df_z_score(pd_df):
     df_mean = np.nanmean(pd_df.values)
     df_std = np.nanstd(pd_df.values)
@@ -130,11 +137,11 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
 
     for index, metric in enumerate(plt_metrics):
         metric_df = metrics[metric]
-        print("Computing rolling %s." % metric)
-        metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
-        print("Normalizing %s." % metric)
-        metric_df = normalize_df_min_max(metric_df)
-        print ("Plotting %s..." % metric)
+        # print("Computing rolling %s." % metric)
+        # metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
+        # print("Normalizing %s." % metric)
+        # metric_df = normalize_df_min_max(metric_df)
+        # print ("Plotting %s..." % metric)
         if index == 0:
             plt_legend = "brief"
         else:
@@ -348,6 +355,7 @@ def plot(data_dir, plot_dir, name):
             analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
         # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
         # plot_barchart(algos, plt_stats, plt_name)
+
 
 if __name__ == '__main__':
 

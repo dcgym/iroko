@@ -55,6 +55,7 @@ PARSER.add_argument('--tune', action="store_true", default=False,
                     help='Specify whether to perform hyperparameter tuning')
 ARGS = PARSER.parse_args()
 
+
 class MaxAgent(Agent):
     """Agent that always takes the maximum available action."""
     _agent_name = "MaxAgent"
@@ -203,11 +204,10 @@ def get_agent(agent_name):
 def get_tune_experiment(config, agent):
     SCHEDULE = False
     scheduler = None
-    name = "%s_tune" % agent
     agent_class = get_agent(agent)
 
     experiment = {
-        name: {
+        agent: {
             'run': agent_class,
             'local_dir': ARGS.output_dir,
             "stop": {"timesteps_total": ARGS.timesteps},
@@ -219,12 +219,13 @@ def get_tune_experiment(config, agent):
     }
 
     if SCHEDULE:
-        experiment[name]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-        experiment[name]["num_samples"] = 2
+        experiment[agent]["stop"] = {"time_total_s": ARGS.timesteps / 2}
+        experiment[agent]["num_samples"] = 2
+        config["env_config"]["topo_conf"]["parallel_envs"] = True
         # custom changes to experiment
         print("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
-    experiment[name]["config"] = config
+    experiment[agent]["config"] = config
     return experiment, scheduler
 
 
@@ -238,7 +239,7 @@ def configure_ray(agent):
         print("Agent configuration does not exist, starting with default.")
         config = {}
     # Add the dynamic environment configuration
-    config["clip_actions"] = True
+    config["clip_actions"] = False
     config["num_workers"] = 1
     config["num_gpus"] = 0
     config["batch_mode"] = "truncate_episodes"
@@ -256,7 +257,7 @@ def configure_ray(agent):
 
     }
     if ARGS.timesteps > 50000:
-        config["env_config"]["sample_delta"] = ARGS.timesteps / 50000
+        config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
     if config["num_workers"] > 1:
         config["env_config"]["topo_conf"]["parallel_envs"] = True
     if agent.lower() == "td3":
@@ -275,7 +276,6 @@ def run(config):
 
 def tune_run(config):
     agent = config['env_config']['agent']
-    config["env_config"]["topo_conf"]["parallel_envs"] = True
     experiment, scheduler = get_tune_experiment(config, agent)
     tune.run_experiments(experiment, scheduler=scheduler)
 
@@ -285,7 +285,7 @@ def init():
     print("Registering the DC environment...")
     register_env("dc_env", get_gym)
     print("Starting Ray...")
-    ray.init(num_cpus=2, logging_level=logging.INFO)
+    ray.init(num_cpus=4, logging_level=logging.ERROR)
     config = configure_ray(ARGS.agent)
     print("Starting experiment.")
     # Basic ray train currently does not work, always use tune for now

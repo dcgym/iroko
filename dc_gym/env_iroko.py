@@ -42,15 +42,13 @@ DEFAULT_CONF = {
     "collect_flows": False,
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
-    # "action", "bw", "backlog","std_dev"
+    # "action", "bw", "backlog","std_dev", "joint_backlog"
     "reward_model": ["joint_backlog"],
 }
 
 
 class DCEnv(openAIGym):
-    WAIT = 0.05      # amount of seconds the agent waits per iteration
-    ACTION_MIN = 0.001
-    ACTION_MAX = 1.0
+    WAIT = 0.0      # amount of seconds the agent waits per iteration
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",
                  "input_file", "output_dir", "start_time"]
@@ -61,7 +59,6 @@ class DCEnv(openAIGym):
         self.active = False
         # initialize the topology
         self.topo = self._create_topo(self.conf)
-        self.state_man = StateManager(self.conf, self.topo)
 
         # set the dimensions of the state matrix
         self._set_gym_spaces(self.conf)
@@ -69,6 +66,7 @@ class DCEnv(openAIGym):
         self.input_file = None
         self.output_dir = None
         self.set_traffic_matrix(self.conf["tf_index"])
+        self.state_man = StateManager(self.conf, self.topo)
 
         # handle unexpected exits scenarios gracefully
         print("Registering signal handler.")
@@ -103,7 +101,6 @@ class DCEnv(openAIGym):
 
     def _create_topo(self, conf):
         conf["topo_conf"]["tcp_policy"] = conf["agent"].lower()
-        # conf["topo_conf"]["parallel_envs"] = conf["parallel_envs"]
         return TopoFactory.create(conf["topo"], conf["topo_conf"])
 
     def _set_gym_spaces(self, conf):
@@ -114,8 +111,8 @@ class DCEnv(openAIGym):
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
         self.action_space = spaces.Box(
-            low=self.ACTION_MIN, high=self.ACTION_MAX,
-            dtype=np.float32, shape=(num_actions,))
+            low=0, high=self.topo.conf["max_capacity"],
+            dtype=np.int64, shape=(num_actions,))
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.int64,
             shape=(num_ports * num_features,))
@@ -126,28 +123,42 @@ class DCEnv(openAIGym):
             self.conf["input_dir"], self.conf["topo"], traffic_file)
         self.output_dir = '%s' % (self.conf["output_dir"])
 
-    def step(self, action):
-        self.steps = self.steps + 1
-        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
-        # self.progress_bar.update(1)
+    def _squash_action(self, action):
+        action_diff = (self.action_space.high - self.action_space.low)
+        return (np.tanh(action) + 1) / 2 * action_diff + self.action_space.low
 
+    def _scale_range(self, x, x_min, x_max, y_min, y_max):
+        """ Scales the entries in x which have a range between x_min and x_max
+        to the range defined between y_min and y_max. """
+        # y = a*x + b
+        # a = deltaY/deltaX
+        # b = y_min - a*x_min (or b = y_max - a*x_max)
+        y = (y_max - y_min) / (x_max - x_min) * x + \
+            (y_min * x_max - y_max * x_min) / (x_max - x_min)
+        return y
+
+    def step(self, action):
+        squashed_action = self._squash_action(action)
+        do_sample = (self.steps % self.conf["sample_delta"]) == 0
+        obs, self.reward = self.state_man.observe(squashed_action, do_sample)
+        self.steps = self.steps + 1
+
+        # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()
+        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
         done = False
 
-        pred_bw = action * self.topo.conf["max_capacity"]
         # print("Iteration %d Actions: " % self.steps, end='')
         # for index, h_iface in enumerate(self.topo.host_ctrl_map):
-        #     rate = action[index] * 10
+        #     rate = squashed_action[index]
         #     print(" %s:%.3f " % (h_iface, rate), end='')
         # print('')
-        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
 
+        self.bw_ctrl.broadcast_bw(squashed_action, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
-        max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
-        time.sleep(max_sleep)
-        self.start_time = time.time()
-        do_sample = (self.steps % self.conf["sample_delta"]) == 0
-        obs, self.reward = self.state_man.observe(pred_bw, do_sample)
+        # max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
+        # time.sleep(max_sleep)
+        # self.start_time = time.time()
         return obs.flatten(), self.reward, done, {}
 
     def render(self, mode='human'):

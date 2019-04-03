@@ -159,7 +159,7 @@ class QueueCollector(Collector):
     def _collect(self):
         self._get_qdisc_stats(self.iface_list)
         # We are too fast, let it rest for a bit...
-        time.sleep(0.05)
+        time.sleep(0.001)
 
 
 class FlowCollector(Collector):
