@@ -41,9 +41,10 @@ class BaseTopo:
         queue = 4e6
         if conf["max_capacity"] < 1e9:
             queue = 4e6 / (1e9 / conf["max_capacity"])
-            if queue > 4e4:
+            # keep a sensible minimum size
+            if queue < 4e4:
                 queue = 4e4
-        return 4e6
+        return queue
 
     def _generate_switch_id(self, conf):
         ''' Mininet needs unique ids if we want to launch
@@ -89,15 +90,15 @@ class BaseTopo:
 
     def _calc_ecn(self, max_throughput, avg_pkt_size):
         # Calculate the marking threshold as part of the BDP
-        marking_threshold = max_throughput * 0.0001
-        # if the marking_threshold is smaller than the packet size
-        # set the threshold to around 4 packets
+        bdp = max_throughput * 100 * 1e-6
+        marking_threshold = bdp * 0.17
+        # if the marking_threshold is smaller than the packet size set the
+        # threshold to around two packets
         if (marking_threshold < avg_pkt_size):
-            marking_threshold = avg_pkt_size * 4
+            marking_threshold = avg_pkt_size * 2
         # also limit the marking threshold to 50KB
         elif marking_threshold > 50e3:
             marking_threshold = 50e3
-        # Apply aggressive RED to mark excess packets in the queue
         return marking_threshold
 
     def _apply_qdisc(self, port):
@@ -130,7 +131,7 @@ class BaseTopo:
             marking_threshold = self._calc_ecn(
                 self.conf["max_capacity"], avg_pkt_size)
             # Apply aggressive RED to mark excess packets in the queue
-            max_q = int(limit)
+            max_q = limit / 4
             min_q = int(marking_threshold)
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
@@ -139,11 +140,10 @@ class BaseTopo:
             cmd += "avpkt %d " % avg_pkt_size
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
-            # Ballpark burst hard limit...
+            # # Ballpark burst hard limit...
             burst = (min_q + min_q + max_q) / (3 * avg_pkt_size)
-            if (burst > 50):
-                cmd += "burst %d " % 50
-            # cmd += "probability 0.1"
+            cmd += "burst %d " % burst
+            cmd += "probability 0.1"
             cmd += " ecn "
             debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)

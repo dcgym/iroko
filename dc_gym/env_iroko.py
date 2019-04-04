@@ -49,6 +49,8 @@ DEFAULT_CONF = {
 
 class DCEnv(openAIGym):
     WAIT = 0.0      # amount of seconds the agent waits per iteration
+    ACTION_MIN = 0.01
+    ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",
                  "input_file", "output_dir", "start_time"]
@@ -111,8 +113,8 @@ class DCEnv(openAIGym):
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
         self.action_space = spaces.Box(
-            low=0, high=self.topo.conf["max_capacity"],
-            dtype=np.int64, shape=(num_actions,))
+            low=self.ACTION_MIN, high=self.ACTION_MAX,
+            dtype=np.float64, shape=(num_actions,))
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.int64,
             shape=(num_ports * num_features,))
@@ -139,8 +141,9 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         squashed_action = self._squash_action(action)
+        pred_bw = squashed_action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
-        obs, self.reward = self.state_man.observe(squashed_action, do_sample)
+        obs, self.reward = self.state_man.observe(pred_bw, do_sample)
         self.steps = self.steps + 1
 
         # self.progress_bar.update(1)
@@ -154,7 +157,7 @@ class DCEnv(openAIGym):
         #     print(" %s:%.3f " % (h_iface, rate), end='')
         # print('')
 
-        self.bw_ctrl.broadcast_bw(squashed_action, self.topo.host_ctrl_map)
+        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)

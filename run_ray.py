@@ -242,7 +242,7 @@ def configure_ray(agent):
     config["clip_actions"] = False
     config["num_workers"] = 1
     config["num_gpus"] = 0
-    config["batch_mode"] = "truncate_episodes"
+    # config["batch_mode"] = "truncate_episodes"
     config["log_level"] = "ERROR"
     config["env_config"] = {
         "input_dir": INPUT_DIR,
