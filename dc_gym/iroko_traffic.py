@@ -116,8 +116,8 @@ class TrafficGen():
         t_proc = start_process(traffic_cmd, host, out_file)
         self.procs.append(t_proc)
 
-    def _start_pkt_capture(self, out_dir):
-        # start a tcpdump capture process
+    def _start_pkt_capture_tshark(self, out_dir):
+        # start a tshark capture process
         dmp_file = "%s/pkt_snapshot.pcap" % (out_dir)
         dmp_cmd = "tshark "
         for host_iface in self.topo_conf.host_ctrl_map:
@@ -132,6 +132,20 @@ class TrafficGen():
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
         dmp_proc = start_process(dmp_cmd, host=None, out_file=dmp_file)
+        self.procs.append(dmp_proc)
+
+    def _start_pkt_capture_tcpdump(self, host, out_dir):
+        # start a tcpdump capture process
+        iface_net = host.intfList()[0]
+        dmp_file = "%s/%s.pcap" % (out_dir, host.name)
+        dmp_cmd = "tcpdump "
+        dmp_cmd += "-i %s " % iface_net
+        dmp_cmd += "-w %s " % dmp_file
+        # dmp_cmd += "-W 2 "    # rotate two files
+        dmp_cmd += "-C 100 "  # roll over every 100 MB
+        dmp_cmd += "%s " % self.transport  # filter for transport protocol
+        dmp_cmd += "-Z root "
+        dmp_proc = start_process(dmp_cmd, host, dmp_file)
         self.procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):
@@ -159,6 +173,7 @@ class TrafficGen():
                     if host_ip == config_row["src"]:
                         dst_hosts.append(config_row["dst"])
                 self._start_client(traffic_gen, src_host, out_dir, dst_hosts)
+                self._start_pkt_capture_tcpdump(src_host, out_dir)
 
     def start_traffic(self, input_file, out_dir):
         ''' Run the traffic generator and monitor all of the interfaces '''

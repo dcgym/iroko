@@ -137,11 +137,11 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
 
     for index, metric in enumerate(plt_metrics):
         metric_df = metrics[metric]
-        # print("Computing rolling %s." % metric)
-        # metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
-        # print("Normalizing %s." % metric)
-        # metric_df = normalize_df_min_max(metric_df)
-        # print ("Plotting %s..." % metric)
+        print("Computing rolling %s." % metric)
+        metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
+        print("Normalizing %s." % metric)
+        metric_df = normalize_df_min_max(metric_df)
+        print ("Plotting %s..." % metric)
         if index == 0:
             plt_legend = "brief"
         else:
@@ -351,8 +351,8 @@ def plot(data_dir, plot_dir, name):
                 pruned_list = [ls[:min_len] for ls in run_list[stat]]
                 plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
         plot_lineplot(algos, plt_stats, min_samples, plt_name)
-        if transport == "tcp":
-            analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
+        # if transport == "tcp":
+        #     analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
         # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
         # plot_barchart(algos, plt_stats, plt_name)
 
