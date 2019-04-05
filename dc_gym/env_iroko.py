@@ -44,6 +44,8 @@ DEFAULT_CONF = {
     # Eligible variables:
     # "action", "bw", "backlog","std_dev", "joint_backlog"
     "reward_model": ["joint_backlog"],
+    # Are algorithms using their own squashing function or do we have to do it?
+    "ext_squashing": False,
 }
 
 
@@ -155,8 +157,9 @@ class DCEnv(openAIGym):
         return action
 
     def step(self, action):
-        squashed_action = self._squash_action(action)
-        pred_bw = squashed_action * self.topo.conf["max_capacity"]
+        if not self.conf["ext_squashing"]:
+            action = self._squash_action(action)
+        pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         obs, self.reward = self.state_man.observe(pred_bw, do_sample)
 

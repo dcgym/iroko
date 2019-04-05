@@ -270,16 +270,23 @@ def configure_ray(agent):
         "topo_conf": {},
 
     }
+
+    # customized configurations
     if agent.lower() == "td3":
         config["twin_q"] = True
         config['env_config']['agent'] = "ddpg"
     if agent.lower() == "apex_ddpg":
         if config["num_workers"] < 2:
             config["num_workers"] = 2
-    if ARGS.timesteps > 50000:
-        config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
+
+    # DDPG uses the default squashing function
+    if "ddpg" in config['env_config']['agent'].lower():
+        config["clip_actions"] = True
+        config["env_config"]["ext_squashing"] = True
     if config["num_workers"] > 1:
         config["env_config"]["topo_conf"]["parallel_envs"] = True
+    if ARGS.timesteps > 50000:
+        config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
     return config
 
 
