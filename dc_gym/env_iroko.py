@@ -49,7 +49,7 @@ DEFAULT_CONF = {
 
 class DCEnv(openAIGym):
     WAIT = 0.0      # amount of seconds the agent waits per iteration
-    ACTION_MIN = 0.01
+    ACTION_MIN = 0.001
     ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",
@@ -116,7 +116,7 @@ class DCEnv(openAIGym):
             low=self.ACTION_MIN, high=self.ACTION_MAX,
             dtype=np.float64, shape=(num_actions,))
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, dtype=np.int64,
+            low=-np.inf, high=np.inf, dtype=np.float64,
             shape=(num_ports * num_features,))
 
     def set_traffic_matrix(self, index):
@@ -139,12 +139,26 @@ class DCEnv(openAIGym):
             (y_min * x_max - y_max * x_min) / (x_max - x_min)
         return y
 
+    def _clipping_squash(self, action, action_min, action_max):
+        """ Truncates the entries in x to the range defined between
+        action_min and action_max. """
+        return np.clip(action, action_min, action_max)
+
+    def _sigmoid(self, x, derivative=False):
+        sigm = 1. / (1. + np.exp(-x))
+        if derivative:
+            return sigm * (1. - sigm)
+        return sigm
+
+    def _relu(self, action, action_min):
+        action[action < action_min] = action_min
+        return action
+
     def step(self, action):
         squashed_action = self._squash_action(action)
         pred_bw = squashed_action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         obs, self.reward = self.state_man.observe(pred_bw, do_sample)
-        self.steps = self.steps + 1
 
         # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()
@@ -162,6 +176,7 @@ class DCEnv(openAIGym):
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)
         self.start_time = time.time()
+        self.steps = self.steps + 1
         return obs.flatten(), self.reward, done, {}
 
     def render(self, mode='human'):

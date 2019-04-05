@@ -109,11 +109,25 @@ class RandomAgent(Agent):
         }
 
 
+def change_owner(directory):
+    import pwd
+    import grp
+    user = os.getlogin()
+    uid = pwd.getpwnam(user).pw_uid
+    gid = grp.getgrnam(user).gr_gid
+    for root, folders, files in os.walk(directory):
+        for folder in folders:
+            os.chown(os.path.join(root, folder), uid, gid)
+        for file in files:
+            os.chown(os.path.join(root, file), uid, gid)
+
+
 def check_dir(directory):
     # create the folder if it does not exit
     if not directory == '' and not os.path.exists(directory):
         print("Folder %s does not exist! Creating..." % directory)
         os.makedirs(directory)
+        # preserve the original owner
 
 
 def get_env(env_config):
@@ -256,13 +270,16 @@ def configure_ray(agent):
         "topo_conf": {},
 
     }
+    if agent.lower() == "td3":
+        config["twin_q"] = True
+        config['env_config']['agent'] = "ddpg"
+    if agent.lower() == "apex_ddpg":
+        if config["num_workers"] < 2:
+            config["num_workers"] = 2
     if ARGS.timesteps > 50000:
         config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
     if config["num_workers"] > 1:
         config["env_config"]["topo_conf"]["parallel_envs"] = True
-    if agent.lower() == "td3":
-        config["twin_q"] = True
-        config['env_config']['agent'] = "ddpg"
     return config
 
 
@@ -281,7 +298,8 @@ def tune_run(config):
 
 
 def init():
-    check_dir(ARGS.output_dir + "/" + ARGS.agent)
+    results_dir = ARGS.output_dir + "/" + ARGS.agent
+    check_dir(results_dir)
     print("Registering the DC environment...")
     register_env("dc_env", get_gym)
     print("Starting Ray...")
@@ -293,6 +311,7 @@ def init():
         tune_run(config)
     else:
         run(config)
+    change_owner(results_dir)
     # Wait until the topology is torn down completely
     time.sleep(10)
     print("Experiment has completed.")

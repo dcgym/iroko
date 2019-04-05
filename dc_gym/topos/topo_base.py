@@ -42,8 +42,8 @@ class BaseTopo:
         if conf["max_capacity"] < 1e9:
             queue = 4e6 / (1e9 / conf["max_capacity"])
             # keep a sensible minimum size
-            if queue < 4e4:
-                queue = 4e4
+            if queue < 2e5:
+                queue = 2e5
         return queue
 
     def _generate_switch_id(self, conf):
