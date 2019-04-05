@@ -173,8 +173,8 @@ class DCEnv(openAIGym):
         #     rate = squashed_action[index]
         #     print(" %s:%.3f " % (h_iface, rate), end='')
         # print('')
-
-        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        if self.steps & (64 - 1):
+            self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)
