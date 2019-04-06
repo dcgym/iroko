@@ -158,7 +158,7 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         if not self.conf["ext_squashing"]:
-            action = self._clipping_squash(
+            action = self._squash_action(
                 action, self.ACTION_MIN, self.ACTION_MAX)
         pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0

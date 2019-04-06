@@ -30,7 +30,7 @@ void ctrl_set_bw(void *data) {
     // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
     // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);
     rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, 15000, 0);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, 10, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
         fprintf(stderr,"qdisc_add: %s\n", nl_geterror(err));
@@ -179,7 +179,7 @@ struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev, l
         exit (1);
     }
     rtnl_qdisc_tbf_set_limit(fq_qdisc, rate/8);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, rate/8, 15000, 0);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, rate/8, 10, 0);
     if ((err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE))) {
         perror("Can not set TBF qdisc");
         exit (1);
