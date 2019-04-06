@@ -11,6 +11,8 @@
 #include "raw_udp_socket.h"
 
 #define CTRL_PORT 20130
+#define MTU 1500
+
 typedef struct ctrl_pckt {
     uint64_t tx_rate;
 } ctrl_pckt;
@@ -18,6 +20,8 @@ typedef struct ctrl_pckt {
 static sig_atomic_t sigint = 0;
 static struct rtnl_qdisc *fq_qdisc;
 static struct nl_sock *qdisc_sock;
+uint64_t factor = 1;
+
 
 void ctrl_set_bw(void *data) {
     int err = 0;
@@ -30,7 +34,7 @@ void ctrl_set_bw(void *data) {
     // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
     // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);
     rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, 10, 0);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, factor, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
         fprintf(stderr,"qdisc_add: %s\n", nl_geterror(err));
@@ -70,7 +74,6 @@ static void walk_ring(struct ring *ring_rx, struct ring *ring_tx) {
     while (likely(!sigint)) {
         struct tpacket2_hdr *hdr = ring_rx->rd[ring_rx->p_offset].iov_base;
         if (((hdr->tp_status & TP_STATUS_USER) == TP_STATUS_USER) == 0) {
-            printf("waiting for packet\n");
             poll(&ring_rx->pfd, 1, -1);
             if (ring_rx->pfd.revents & POLLERR) {
                 perror("Error while polling");
@@ -179,7 +182,7 @@ struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev, l
         exit (1);
     }
     rtnl_qdisc_tbf_set_limit(fq_qdisc, rate/8);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, rate/8, 10, 0);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, rate/8, factor, 0);
     if ((err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE))) {
         perror("Can not set TBF qdisc");
         exit (1);
@@ -229,7 +232,8 @@ int main(int argc, char **argv) {
         usage(prog_name);
     signal(SIGINT, sighandler);
 
-
+    // Calculate burst factor
+    factor = rate / (100*(10e6/rate) * 8);
     // Set up the managing qdisc on the main interface
     qdisc_sock = nl_socket_alloc();
     nl_connect(qdisc_sock, NETLINK_ROUTE);
