@@ -127,9 +127,9 @@ class DCEnv(openAIGym):
             self.conf["input_dir"], self.conf["topo"], traffic_file)
         self.output_dir = '%s' % (self.conf["output_dir"])
 
-    def _squash_action(self, action):
-        action_diff = (self.action_space.high - self.action_space.low)
-        return (np.tanh(action) + 1) / 2 * action_diff + self.action_space.low
+    def _squash_action(self, action, action_min, action_max):
+        action_diff = (action_max - action_min)
+        return (np.tanh(action) + 1) / 2 * action_diff + action_min
 
     def _scale_range(self, x, x_min, x_max, y_min, y_max):
         """ Scales the entries in x which have a range between x_min and x_max
@@ -158,7 +158,8 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         if not self.conf["ext_squashing"]:
-            action = self._squash_action(action)
+            action = self._clipping_squash(
+                action, self.ACTION_MIN, self.ACTION_MAX)
         pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         obs, self.reward = self.state_man.observe(pred_bw, do_sample)
@@ -170,11 +171,14 @@ class DCEnv(openAIGym):
 
         # print("Iteration %d Actions: " % self.steps, end='')
         # for index, h_iface in enumerate(self.topo.host_ctrl_map):
-        #     rate = squashed_action[index]
+        #     rate = action[index]
         #     print(" %s:%.3f " % (h_iface, rate), end='')
         # print('')
-        if self.steps & (64 - 1):
-            self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        # print("State:", obs)
+        # print("Reward:", self.reward)
+        # if self.steps & (32 - 1):
+        # print (pred_bw)
+        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)

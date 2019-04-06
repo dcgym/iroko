@@ -96,14 +96,17 @@ class RewardFunction:
     def _joint_queue_reward(self, actions, stats):
         queue_reward = 0.0
         weight = float(self.num_sw_ports) / float(len(self.host_ports))
-        add_action_reward = True
+        flip_action_reward = False
         for index, _ in enumerate(self.sw_ports):
             queue = stats[self.stats_dict["backlog"]][index]
             queue_percent = (float(queue) / float(self.max_queue))
             queue_reward -= queue_percent
-            if queue_percent > 0.10:
-                add_action_reward = False
-        joint_reward = queue_reward * weight
-        if add_action_reward:
-            joint_reward += self._action_reward(actions)
-        return joint_reward
+            if queue_percent > 0.90:
+                flip_action_reward = True
+        queue_reward = queue_reward * weight
+        if flip_action_reward:
+            queue_reward += 1 - self._action_reward(actions)
+        else:
+            queue_reward += self._action_reward(actions)
+            # queue_reward += self._fairness_reward(actions)
+        return queue_reward

@@ -3,7 +3,7 @@ from mininet.topo import Topo
 from topos.topo_base import BaseTopo
 
 DEFAULT_CONF = {
-    "num_hosts": 16,            # number of hosts in the topology
+    "num_hosts": 512,            # number of hosts in the topology
     "traffic_files": ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
                       'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
                       'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
@@ -14,7 +14,6 @@ DEFAULT_CONF = {
                       'random_3_flows_data', 'random_4_flows_data',
                       'hotspot_one_to_one_data'],
     "fanout": 4,
-    "density": 2,
     "ecmp": True,
 }
 
@@ -22,15 +21,15 @@ DEFAULT_CONF = {
 class Fattree(Topo):
     """ Class of Fattree Topology. """
 
-    def __init__(self, fanout, density, switch_id):
+    def __init__(self, fanout, num_hosts, switch_id):
         # Init Topo
         Topo.__init__(self)
         self.pod = fanout
-        self.density = density
+        self.density = num_hosts / (fanout * fanout / 2)
         self.core_switch_num = (fanout / 2)**2
         self.agg_switch_num = fanout * fanout / 2
         self.edge_switch_num = fanout * fanout / 2
-        self.iHost = self.edge_switch_num * density
+        self.num_hosts = num_hosts
         self.switch_id = switch_id
         self.core_switches = []
         self.agg_switches = []
@@ -41,7 +40,7 @@ class Fattree(Topo):
         self._add_switches(self.core_switch_num, 1, self.core_switches)
         self._add_switches(self.agg_switch_num, 2, self.agg_switches)
         self._add_switches(self.edge_switch_num, 3, self.edge_switches)
-        self.create_hosts(self.iHost)
+        self.create_hosts(self.num_hosts)
 
     def _add_switches(self, number, level, switch_list):
         """ Create switches. """
@@ -88,7 +87,7 @@ class TopoConfig(BaseTopo):
         BaseTopo.__init__(self, self.conf)
         self.name = "fattree"
         self.topo = Fattree(
-            fanout=self.conf["fanout"], density=self.conf["density"],
+            fanout=self.conf["fanout"], num_hosts=self.conf["num_hosts"],
             switch_id=self.switch_id)
         self._create_network()
         self.host_ips = {}

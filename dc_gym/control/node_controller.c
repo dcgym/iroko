@@ -70,7 +70,12 @@ static void walk_ring(struct ring *ring_rx, struct ring *ring_tx) {
     while (likely(!sigint)) {
         struct tpacket2_hdr *hdr = ring_rx->rd[ring_rx->p_offset].iov_base;
         if (((hdr->tp_status & TP_STATUS_USER) == TP_STATUS_USER) == 0) {
+            printf("waiting for packet\n");
             poll(&ring_rx->pfd, 1, -1);
+            if (ring_rx->pfd.revents & POLLERR) {
+                perror("Error while polling");
+                exit(1);
+            }
             continue;
         }
         ctrl_handle(hdr, ring_tx);
@@ -107,7 +112,12 @@ static void walk_ring(struct ring *ring_rx, struct ring *ring_tx) {
         pbd = (struct block_desc *) ring_rx->rd[ring_rx->p_offset].iov_base;
 
         if ((pbd->h1.block_status & TP_STATUS_USER) == 0) {
+            printf("waiting for packet\n");
             poll(&ring_rx->pfd, 1, -1);
+            if (ring_rx->pfd.revents & POLLERR) {
+                perror("poll");
+                exit(1);
+            }
             continue;
         }
         walk_block(pbd, ring_rx->p_offset, ring_tx);

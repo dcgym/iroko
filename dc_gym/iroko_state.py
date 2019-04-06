@@ -64,7 +64,7 @@ class StateManager:
         # Set up the shared stats matrix
         stats_arr_len = num_ports * len(self.STATS_DICT)
         mp_stats = Array(c_ulong, stats_arr_len)
-        np_stats = shmem_to_nparray(mp_stats, np.int64)
+        np_stats = shmem_to_nparray(mp_stats, np.float64)
         self.stats = np_stats.reshape((len(self.STATS_DICT), num_ports))
         # Set up the shared flow matrix
         if (self.collect_flows):
@@ -118,13 +118,11 @@ class StateManager:
             state = []
             for key in self.stats_keys:
                 if (key.startswith("d_")):
-                    state.append(
-                        int(self.deltas[self.STATS_DICT[key[2:]]][index]))
+                    state.append(self.deltas[self.STATS_DICT[key[2:]]][index])
                 else:
-                    state.append(int(self.stats[self.STATS_DICT[key]][index]))
+                    state.append(self.stats[self.STATS_DICT[key]][index])
             if self.collect_flows:
                 state.extend(self.flow_stats[index])
-            # print("State %d: %s " % (index, state))
             obs.append(np.array(state))
         # Compute the reward
         reward = self.dopamin.get_reward(
