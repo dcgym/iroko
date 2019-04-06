@@ -33,7 +33,7 @@ void ctrl_set_bw(void *data) {
     // used for debugging purposes
     // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
     // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);
-    rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate/8);
     rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, factor, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
