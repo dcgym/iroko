@@ -29,12 +29,12 @@ void ctrl_set_bw(void *data) {
     ctrl_pckt *pkt;
 
     pkt = (ctrl_pckt *) data;
-    tx_rate = pkt->tx_rate;
+    tx_rate = pkt->tx_rate / 8;
     // used for debugging purposes
     // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
     // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate / 10e5, old_rate / 10e5);
-    rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate/8);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate/8, factor, 0);
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, tx_rate);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate, factor, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
         fprintf(stderr,"qdisc_add: %s\n", nl_geterror(err));
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, sighandler);
 
     // Calculate burst factor
-    factor = rate / (100*(10e6/rate) * 8);
+    factor = 10e6 / (100 * 8);
     // Set up the managing qdisc on the main interface
     qdisc_sock = nl_socket_alloc();
     nl_connect(qdisc_sock, NETLINK_ROUTE);

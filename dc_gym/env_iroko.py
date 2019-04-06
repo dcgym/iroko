@@ -162,7 +162,7 @@ class DCEnv(openAIGym):
                 action, self.ACTION_MIN, self.ACTION_MAX)
         pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
-        obs, self.reward = self.state_man.observe(pred_bw, do_sample)
+        obs, self.reward = self.state_man.observe(action, do_sample)
 
         # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()
@@ -178,7 +178,8 @@ class DCEnv(openAIGym):
         # print("Reward:", self.reward)
         # if self.steps & (32 - 1):
         # print (pred_bw)
-        self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        if not self.steps & (64 - 1):
+            self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)

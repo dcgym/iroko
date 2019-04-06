@@ -59,7 +59,7 @@ class RewardFunction:
         return reward
 
     def _std_dev_reward(self, actions):
-        return -(np.std(actions) / float(self.max_bw))
+        return -np.std(actions)
 
     def _fairness_reward(self, actions):
         '''Compute Jain's fairness index for a list of values.
@@ -72,10 +72,7 @@ class RewardFunction:
         return num / float(denom)
 
     def _action_reward(self, actions):
-        action_reward = []
-        for bw in actions:
-            action_reward.append(bw / float(self.max_bw))
-        return np.average(action_reward)
+        return np.average(actions)
 
     def _bw_reward(self, stats):
         bw_reward = []
@@ -101,7 +98,7 @@ class RewardFunction:
             queue = stats[self.stats_dict["backlog"]][index]
             queue_percent = (float(queue) / float(self.max_queue))
             queue_reward -= queue_percent
-            if queue_percent > 0.90:
+            if queue_percent > 0.20:
                 flip_action_reward = True
         queue_reward = queue_reward * weight
         if flip_action_reward:
