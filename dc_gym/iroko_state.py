@@ -31,15 +31,9 @@ class StateManager:
         self._init_stats_matrices(self.num_ports, topo_conf.get_num_hosts())
 
     def start(self, topo_conf):
-        sw_ports = topo_conf.get_sw_ports()
-        host_ports = topo_conf.get_host_ports()
-        self._spawn_collectors(sw_ports, host_ports,
-                               topo_conf.host_ips.values())
-        max_queue = topo_conf.max_queue
-        max_capacity = topo_conf.conf["max_capacity"]
-        self.dopamin = RewardFunction(host_ports, sw_ports,
-                                      self.reward_model,
-                                      max_queue, max_capacity, self.STATS_DICT)
+        self._spawn_collectors(topo_conf)
+        self.dopamin = RewardFunction(
+            topo_conf, self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
         print("Writing collected data to disk")
@@ -76,9 +70,13 @@ class StateManager:
         self.prev_stats = self.stats.copy()
         self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
 
-    def _spawn_collectors(self, sw_ports, host_ports, host_ips):
+    def _spawn_collectors(self, topo_conf):
+        sw_ports = topo_conf.get_sw_ports()
+        host_ports = topo_conf.get_host_ports()
+        host_ips = topo_conf.host_ips.values()
         # Launch an asynchronous queue collector
-        proc = QueueCollector(sw_ports, self.stats, self.STATS_DICT)
+        proc = QueueCollector(sw_ports, self.stats,
+                              self.STATS_DICT, topo_conf.max_queue)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector

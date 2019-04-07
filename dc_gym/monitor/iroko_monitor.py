@@ -86,11 +86,12 @@ class Qdisc(ctypes.Structure):
 
 class QueueCollector(Collector):
 
-    def __init__(self, iface_list, shared_stats, stats_dict):
+    def __init__(self, iface_list, shared_stats, stats_dict, max_queue):
         Collector.__init__(self, iface_list)
         self.name = 'QueueCollector'
         self.stats = shared_stats
         self.stats_dict = stats_dict
+        self.max_queue = max_queue
         self.stats_offset = len(stats_dict)
         self.q_lib = self._init_stats()
 
@@ -116,12 +117,14 @@ class QueueCollector(Collector):
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
             qdisc = self.q_lib.init_qdisc_monitor(iface.encode('ascii'))
-            queue_backlog = self.q_lib.get_qdisc_backlog(qdisc)
+            queue_backlog = self.q_lib.get_qdisc_backlog(
+                qdisc)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)
             queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
             # queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
             # queue_rate_pps = self.q_lib.get_qdisc_rate_pps(qdisc)
-            self.stats[self.stats_dict["backlog"]][index] = queue_backlog
+            self.stats[self.stats_dict["backlog"]][index] = float(
+                queue_backlog) / self.max_queue
             self.stats[self.stats_dict["olimit"]][index] = queue_overlimits
             self.stats[self.stats_dict["drops"]][index] = queue_drops
             # # tx rate

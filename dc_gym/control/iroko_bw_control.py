@@ -1,6 +1,8 @@
 import os
 import ctypes
 import gevent
+import multiprocessing
+import time
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -9,17 +11,37 @@ class Ring(ctypes.Structure):
     pass
 
 
-class BandwidthController():
+class BandwidthController(multiprocessing.Process):
     SRC_PORT = 20135
     DST_PORT = 20130
     PACKET_RX_RING = 5
     PACKET_TX_RING = 13
 
-    def __init__(self, host_ctrl_map):
+    def __init__(self, host_ctrl_map, txrate):
+        multiprocessing.Process.__init__(self)
         self.host_ctrl_map = host_ctrl_map
+        self.name = 'PolicyEnforcer'
+        self.txrate = txrate
         # self.sock_map = self.bind_sockets(host_ctrl_map)
         self.bw_lib = self.init_backend()
         self.ring_list = self.init_transmissions_rings(host_ctrl_map)
+        self.kill = multiprocessing.Event()
+
+    def run(self):
+        while not self.kill.is_set():
+            try:
+                self.broadcast_bw()
+            except KeyboardInterrupt:
+                print("%s: Caught Interrupt! Exiting..." % self.name)
+                self.kill.set()
+        self._clean()
+
+    def terminate(self):
+        print("%s: Received termination signal! Exiting.." % self.name)
+        self.kill.set()
+
+    def _clean(self):
+        pass
 
     def init_backend(self):
         bw_lib = ctypes.CDLL(FILE_DIR + '/libbw_control.so')
@@ -61,11 +83,12 @@ class BandwidthController():
         # we only care about packets that pass the bpf filter
         self.bw_lib.wait_for_reply(rx_ring)
 
-    def broadcast_bw(self, txrates, host_ctrl_map):
-        for index, ctrl_iface in enumerate(host_ctrl_map):
-            self.send_cntrl_pckt(ctrl_iface, txrates[index])
-        for ctrl_iface in host_ctrl_map.keys():
+    def broadcast_bw(self):
+        for index, ctrl_iface in enumerate(self.host_ctrl_map):
+            self.send_cntrl_pckt(ctrl_iface, self.txrate[index])
+        for ctrl_iface in self.host_ctrl_map.keys():
             self.await_response(ctrl_iface)
+        time.sleep(0.001)
 
 
 # small script to test the functionality of the bw control operations

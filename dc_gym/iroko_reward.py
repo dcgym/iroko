@@ -3,14 +3,13 @@ import numpy as np
 
 
 class RewardFunction:
-    def __init__(self, host_ports, sw_ports, reward_model,
-                 max_queue, max_bw, stats_dict):
-        self.sw_ports = sw_ports
-        self.num_sw_ports = len(sw_ports)
-        self.host_ports = host_ports
+    def __init__(self, topo_conf, reward_model, stats_dict):
+        self.sw_ports = topo_conf.get_sw_ports()
+        self.host_ports = topo_conf.get_host_ports()
+        self.max_queue = topo_conf.max_queue
+        self.max_capacity = topo_conf.conf["max_capacity"]
+        self.num_sw_ports = len(self.sw_ports)
         self.reward_model = reward_model
-        self.max_queue = max_queue
-        self.max_bw = max_bw
         self.stats_dict = stats_dict
 
     def get_reward(self, stats, deltas, actions):
@@ -86,8 +85,7 @@ class RewardFunction:
         queue_reward = 0.0
         weight = float(self.num_sw_ports) / float(len(self.host_ports))
         for index, _ in enumerate(self.sw_ports):
-            queue = stats[self.stats_dict["backlog"]][index]
-            queue_reward -= (float(queue) / float(self.max_queue))**2
+            queue_reward -= stats[self.stats_dict["backlog"]][index]**2
         return queue_reward * weight
 
     def _joint_queue_reward(self, actions, stats):
@@ -96,13 +94,12 @@ class RewardFunction:
         flip_action_reward = False
         for index, _ in enumerate(self.sw_ports):
             queue = stats[self.stats_dict["backlog"]][index]
-            queue_percent = (float(queue) / float(self.max_queue))
-            queue_reward -= queue_percent
-            if queue_percent > 0.20:
+            queue_reward -= queue
+            if queue > 0.20:
                 flip_action_reward = True
         queue_reward = queue_reward * weight
         if flip_action_reward:
-            queue_reward += 1 - self._action_reward(actions)
+            queue_reward += 0.5 * (1 - self._action_reward(actions))
         else:
             queue_reward += self._action_reward(actions)
             # queue_reward += self._fairness_reward(actions)

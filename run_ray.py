@@ -292,9 +292,12 @@ def configure_ray(agent):
 
 def run(config):
     agent_class = get_agent(config["env_config"]["agent"])
-    config["horizon"] = ARGS.timesteps
     agent = agent_class(config=config, env="dc_env")
-    agent.train()
+    steps = 0
+    while steps < ARGS.timesteps:
+        output = agent.train()
+        steps += output["timesteps_this_iter"]
+        print("Current timesteps %d" % steps)
     print('Generator Finished. Simulation over. Clearing dc_env...')
 
 

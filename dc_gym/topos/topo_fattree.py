@@ -3,7 +3,7 @@ from mininet.topo import Topo
 from topos.topo_base import BaseTopo
 
 DEFAULT_CONF = {
-    "num_hosts": 512,            # number of hosts in the topology
+    "num_hosts": 16,            # number of hosts in the topology
     "traffic_files": ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
                       'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
                       'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',

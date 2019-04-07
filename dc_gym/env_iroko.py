@@ -6,6 +6,8 @@ import numpy as np
 from gym import Env as openAIGym, spaces
 from dc_gym.control.iroko_bw_control import BandwidthController
 # from tqdm import tqdm
+from multiprocessing import Array
+from ctypes import c_ulong
 
 from iroko_traffic import TrafficGen
 from iroko_state import StateManager
@@ -49,6 +51,10 @@ DEFAULT_CONF = {
 }
 
 
+def shmem_to_nparray(shmem_array, dtype):
+    return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
+
+
 class DCEnv(openAIGym):
     WAIT = 0.0      # amount of seconds the agent waits per iteration
     ACTION_MIN = 0.001
@@ -71,20 +77,19 @@ class DCEnv(openAIGym):
         self.output_dir = None
         self.set_traffic_matrix(self.conf["tf_index"])
         self.state_man = StateManager(self.conf, self.topo)
-
         # handle unexpected exits scenarios gracefully
         print("Registering signal handler.")
         # signal.signal(signal.SIGINT, self._handle_interrupt)
         # signal.signal(signal.SIGTERM, self._handle_interrupt)
-        atexit.register(self.kill_env)
+        atexit.register(self.close)
 
     def _start_env(self):
         self.topo.start_network()
         # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
         self.state_man.start(self.topo)
-        self.bw_ctrl = BandwidthController(self.topo.host_ctrl_map)
-
+        self.bw_ctrl = BandwidthController(
+            self.topo.host_ctrl_map, self.tx_rate)
         # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
@@ -94,11 +99,12 @@ class DCEnv(openAIGym):
         # Finally, initialize traffic
         self.start_traffic()
         self.start_time = time.time()
+        self.bw_ctrl.start()
         self.active = True
 
     def reset(self):
         print("Stopping environment...")
-        self.kill_env()
+        self.close()
         print("Starting environment...")
         self._start_env()
         return np.zeros(self.observation_space.shape)
@@ -120,6 +126,8 @@ class DCEnv(openAIGym):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float64,
             shape=(num_ports * num_features,))
+        tx_rate = Array(c_ulong, num_actions)
+        self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
 
     def set_traffic_matrix(self, index):
         traffic_file = self.topo.get_traffic_pattern(index)
@@ -160,7 +168,9 @@ class DCEnv(openAIGym):
         if not self.conf["ext_squashing"]:
             action = self._squash_action(
                 action, self.ACTION_MIN, self.ACTION_MAX)
-        pred_bw = action * self.topo.conf["max_capacity"]
+        for index, a in enumerate(action):
+            self.tx_rate[index] = a * self.topo.conf["max_capacity"]
+        # pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         obs, self.reward = self.state_man.observe(action, do_sample)
 
@@ -178,8 +188,8 @@ class DCEnv(openAIGym):
         # print("Reward:", self.reward)
         # if self.steps & (32 - 1):
         # print (pred_bw)
-        if not self.steps & (64 - 1):
-            self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        # if not self.steps & (64 - 1):
+        #     self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         # observe for WAIT seconds minus time needed for computation
         max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
         time.sleep(max_sleep)
@@ -192,10 +202,10 @@ class DCEnv(openAIGym):
 
     def _handle_interrupt(self, signum, frame):
         print("\nEnvironment: Caught interrupt")
-        self.kill_env()
+        self.close()
         sys.exit(1)
 
-    def kill_env(self):
+    def close(self):
         # if not self.active:
         #     print("Chill, I am already cleaning up...")
         #     return
@@ -205,6 +215,9 @@ class DCEnv(openAIGym):
         if hasattr(self, 'state_man'):
             print("Cleaning all state")
             self.state_man.terminate()
+        if hasattr(self, 'bw_ctrl'):
+            print("Stopping bandwidth control.")
+            self.bw_ctrl.terminate()
         if hasattr(self, 'traffic_gen'):
             print("Stopping traffic")
             self.traffic_gen.stop_traffic()

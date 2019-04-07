@@ -42,8 +42,8 @@ class BaseTopo:
         if conf["max_capacity"] < 1e9:
             queue = 4e6 / (1e9 / conf["max_capacity"])
             # keep a sensible minimum size
-            if queue < 2e5:
-                queue = 2e5
+            if queue < 4e5:
+                queue = 4e5
         return queue
 
     def _generate_switch_id(self, conf):
@@ -113,10 +113,13 @@ class BaseTopo:
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
+        limit = int(self.max_queue)
+        avg_pkt_size = 1500  # MTU packet size
+
         tc_cmd = "tc qdisc add dev %s " % (port)
         cmd = "root handle 1: htb default 10 "
         # cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
-        cmd += " direct_qlen 0 "
+        cmd += " direct_qlen %d " % (limit / avg_pkt_size)
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
@@ -125,8 +128,6 @@ class BaseTopo:
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
-        limit = int(self.max_queue)
-        avg_pkt_size = 1500  # MTU packet size
         if self.conf["tcp_policy"] == "dctcp":
             marking_threshold = self._calc_ecn(
                 self.conf["max_capacity"], avg_pkt_size)
@@ -150,12 +151,12 @@ class BaseTopo:
         else:
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
-            cmd += " limit %d" % (limit)
+            cmd += " limit 50000"
             os.system(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
-        # cmd = "parent 1:10 handle 20:1 netem limit %d rate 10mbit" % (
-        #     self.conf.max_queue)
+        # cmd = "root handle 1 netem limit %d rate 10mbit" % (
+        #     limit / avg_pkt_size)
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
@@ -205,7 +206,9 @@ class BaseTopo:
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
-        # os.system("ip link set %s txqueuelen 1" % (port))
+        os.system("ip link set %s txqueuelen %d" %
+                  (port, limit / avg_pkt_size))
+        os.system("ip link set %s mtu 1500" % port)
 
     def _config_links(self):
         for switch in self.net.switches:
@@ -217,19 +220,12 @@ class BaseTopo:
         for host in self.net.hosts:
             # Increase the maximum total buffer-space allocatable
             # This is measured in units of pages (4096 bytes)
-            host.cmd("sysctl -w net.core.wmem_max=12582912")
-            host.cmd("sysctl -w net.core.rmem_max=12582912")
-            host.cmd("sysctl -w net.ipv4.tcp_mem='786432 1048576 26777216'")
-            host.cmd("sysctl -w net.ipv4.udp_mem='65536 131072 262144'")
-            host.cmd("sysctl -w net.ipv4.tcp_rmem='10240 87380 12582912'")
-            host.cmd("sysctl -w net.ipv4.udp_rmem='10240 87380 12582912'")
-            host.cmd("sysctl -w net.ipv4.tcp_wmem='10240 87380 12582912'")
-            host.cmd("sysctl -w net.ipv4.udp_wmem='10240 87380 12582912'")
             host.cmd("sysctl -w net.ipv4.tcp_window_scaling=1")
             host.cmd("sysctl -w net.ipv4.tcp_timestamps=1")
             host.cmd("sysctl -w net.ipv4.tcp_sack=1")
             host.cmd("sysctl -w net.ipv4.tcp_syn_retries=10")
             host.cmd("sysctl -w net.core.default_qdisc=pfifo_fast")
+            # host.cmd("sysctl -w net.ipv4.tcp_recovery=0")
             if self.conf["tcp_policy"] == "dctcp":
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=dctcp")
                 host.cmd("sysctl -w net.ipv4.tcp_ecn=1")
@@ -238,14 +234,16 @@ class BaseTopo:
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=nv")
             elif self.conf["tcp_policy"] == "pcc":
                 host.cmd("sysctl -w net.ipv4.tcp_congestion_control=pcc")
+        import time
+        time.sleep(10)
 
     def _configure_network(self):
         c0 = RemoteController(self.switch_id + "c0")
         self.net.addController(c0)
         self._config_links()
         self._config_topo()
-        self._connect_controller(c0)
         self._configure_hosts()
+        self._connect_controller(c0)
         output("Testing reachability after configuration...\n")
         # self.net.ping()
         # output("Testing bandwidth after configuration...\n")
