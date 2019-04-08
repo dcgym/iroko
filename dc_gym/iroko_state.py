@@ -133,7 +133,7 @@ class StateManager:
             # Save collected data
             self.data["stats"].append(self.stats.copy())
             self.data["reward"].append(reward)
-            self.data["actions"].append(curr_action)
+            self.data["actions"].append(curr_action.copy())
         return np.array(obs), reward
 
     def flush(self):
