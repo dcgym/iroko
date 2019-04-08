@@ -193,19 +193,22 @@ def plot_scalability_graph(increments, data_dirs, plot_dir, name):
         agg_bw = np.add(bw_list["rx"], bw_list["tx"])
         t_df = pd.DataFrame({data_dirs[data_dir]: agg_bw})
         agg_df = pd.concat((agg_df, t_df), axis=1)
-
     agg_df.set_index('Number of Hosts', inplace=True)
     fig = sns.lineplot(data=agg_df, markers=True, markersize=8)
-    fig.set_xscale('log', basex=2)
-    fig.set_yscale('log', basey=2)
+    fig.set_xscale('symlog', basex=2, linthreshx=4)
+    fig.set_yscale('symlog', basey=2, linthreshy=4 * 10e6)
     fig.set(xlabel='Hosts', ylabel='Mbps (Avg)')
-    bw_label = np.round(np.array(agg_bw) / 10e6)
-    fig.set_yticklabels(bw_label)
-    fig.set_xticklabels(increments)
+    y_increments = np.array(increments) * 10e6
+    fig.set_yticks(y_increments)
+    fig.set_yticklabels(increments)
     fig.set_xticks(increments)
-    fig.set_ylim(ymin=0)
+    fig.set_xticklabels(increments)
+    fig.set_ylim(ymin=0, ymax=y_increments[len(y_increments) - 1] + 100)
     fig.set_xlim(xmin=0, xmax=increments[len(increments) - 1] + 100)
-    fig.legend(loc='upper left')
+
+    print("Test Summary:")
+    print(agg_df)
+
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
     print("Saving plot %s" % plt_name)
@@ -246,7 +249,7 @@ def init():
             time.sleep(10)
             print("Experiment has completed.")
         time.sleep(10)
-    plot_scalability_graph(increments, [OUTPUT_DIR],
+    plot_scalability_graph(increments, data_dirs,
                            PLOT_DIR, os.path.basename(TESTNAME.strip("/")))
 
 

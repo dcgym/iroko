@@ -75,12 +75,13 @@ class StateManager:
         host_ports = topo_conf.get_host_ports()
         host_ips = topo_conf.host_ips.values()
         # Launch an asynchronous queue collector
-        proc = QueueCollector(sw_ports, self.stats,
-                              self.STATS_DICT, topo_conf.max_queue)
+        proc = QueueCollector(
+            sw_ports, self.stats, self.STATS_DICT, topo_conf.max_queue)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector
-        proc = BandwidthCollector(host_ports, self.stats, self.STATS_DICT)
+        proc = BandwidthCollector(
+            host_ports, self.stats, self.STATS_DICT, topo_conf.max_bps)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector
@@ -105,6 +106,8 @@ class StateManager:
 
     def _compute_deltas(self, num_ports, stats_prev, stats_now):
         self.deltas = stats_now - stats_prev
+        self.deltas[self.deltas < 0] = -1
+        self.deltas[self.deltas > 0] = 1
 
     def observe(self, curr_action, do_sample):
         obs = []

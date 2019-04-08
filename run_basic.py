@@ -55,7 +55,7 @@ def test_run(input_dir, output_dir, env, topo):
         action = dc_env.action_space.sample()
         dc_env.step(action)
     print('Generator Finished. Simulation over. Clearing dc_env...')
-    dc_env.kill_env()
+    dc_env.close()
 
 
 def clean():
@@ -63,7 +63,6 @@ def clean():
     os.system('sudo mn -c')
     os.system("sudo killall -9 goben")
     os.system("sudo killall -9 node_control")
-
 
 
 def init():

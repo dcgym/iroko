@@ -32,15 +32,16 @@ class BaseTopo:
         self.host_ctrl_map = {}
         self.net = None
         self.max_queue = 0
+        self.max_bps = self.conf["max_capacity"]
         self.switch_id = self._generate_switch_id(self.conf)
-        self.max_queue = self._calculate_max_queue(self.conf)
+        self.max_queue = self._calculate_max_queue(self.max_bps)
         self.prev_cc = self._get_active_congestion_control()
         self._set_congestion_control(self.conf)
 
-    def _calculate_max_queue(self, conf):
+    def _calculate_max_queue(self, max_bps):
         queue = 4e6
-        if conf["max_capacity"] < 1e9:
-            queue = 4e6 / (1e9 / conf["max_capacity"])
+        if max_bps < 1e9:
+            queue = 4e6 / (1e9 / max_bps)
             # keep a sensible minimum size
             if queue < 4e5:
                 queue = 4e5
@@ -109,7 +110,7 @@ class BaseTopo:
         # os.system(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
-        #     self.conf["max_capacity"], self.conf["max_capacity"])
+        #     self.max_bps, self.max_bps)
         # print (tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
@@ -124,20 +125,20 @@ class BaseTopo:
         os.system(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
         cmd = "parent 1: classid 1:10 htb rate %dbit burst %d" % (
-            self.conf["max_capacity"], self.conf["max_capacity"])
+            self.max_bps, self.max_bps)
         debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
         if self.conf["tcp_policy"] == "dctcp":
             marking_threshold = self._calc_ecn(
-                self.conf["max_capacity"], avg_pkt_size)
+                self.max_bps, avg_pkt_size)
             # Apply aggressive RED to mark excess packets in the queue
             max_q = limit / 4
             min_q = int(marking_threshold)
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
-            cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
+            cmd += "bandwidth  %dbit " % self.max_bps
             cmd += "avpkt %d " % avg_pkt_size
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
@@ -151,7 +152,7 @@ class BaseTopo:
         else:
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
-            cmd += " limit 50000"
+            cmd += " limit %d" % limit
             os.system(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
@@ -188,7 +189,7 @@ class BaseTopo:
         # min_q = 400
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 10:1 choke limit %d " % limit
-        # cmd += "bandwidth  %dbit " % self.conf["max_capacity"]
+        # cmd += "bandwidth  %dbit " % self.max_bps
         # cmd += "min %d " % (min_q)
         # cmd += "max %d " % (max_q)
         # cmd += "probability 0.001"

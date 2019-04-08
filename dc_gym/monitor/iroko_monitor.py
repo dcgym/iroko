@@ -48,10 +48,11 @@ class Collector(multiprocessing.Process):
 
 class BandwidthCollector(Collector):
 
-    def __init__(self, iface_list, shared_stats, stats_dict):
+    def __init__(self, iface_list, shared_stats, stats_dict, max_bps):
         Collector.__init__(self, iface_list)
         self.name = 'StatsCollector'
         self.stats = shared_stats
+        self.max_bps = max_bps
         self.stats_dict = stats_dict
         self.stats_offset = len(stats_dict)
 
@@ -71,8 +72,8 @@ class BandwidthCollector(Collector):
             output = output.decode()
             bw = output.split(',')
             if bw[0] != 'n/a' and bw[1] != ' n/a\n':
-                bps_rx = int(float(bw[0]) * 1000)
-                bps_tx = int(float(bw[1]) * 1000)
+                bps_rx = float(bw[0]) * 1000.0 / float(self.max_bps)
+                bps_tx = float(bw[1]) * 1000.0 / float(self.max_bps)
                 self.stats[self.stats_dict["bw_rx"]][index] = bps_rx
                 self.stats[self.stats_dict["bw_tx"]][index] = bps_tx
 
@@ -106,7 +107,6 @@ class QueueCollector(Collector):
     #     self.qdisc_map = {}
     #     for iface in iface_list:
     #         qdisc = q_lib.init_qdisc_monitor(iface)
-    #         print (qdisc)
     #         self.qdisc_map[iface] = qdisc
 
     # def _clean(self):
@@ -117,14 +117,13 @@ class QueueCollector(Collector):
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
             qdisc = self.q_lib.init_qdisc_monitor(iface.encode('ascii'))
-            queue_backlog = self.q_lib.get_qdisc_backlog(
-                qdisc)
+            queue_backlog = float(self.q_lib.get_qdisc_backlog(qdisc))
+            queue_backlog /= float(self.max_queue)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)
             queue_overlimits = self.q_lib.get_qdisc_overlimits(qdisc)
             # queue_rate_bps = self.q_lib.get_qdisc_rate_bps(qdisc)
             # queue_rate_pps = self.q_lib.get_qdisc_rate_pps(qdisc)
-            self.stats[self.stats_dict["backlog"]][index] = float(
-                queue_backlog) / self.max_queue
+            self.stats[self.stats_dict["backlog"]][index] = queue_backlog
             self.stats[self.stats_dict["olimit"]][index] = queue_overlimits
             self.stats[self.stats_dict["drops"]][index] = queue_drops
             # # tx rate
@@ -132,32 +131,6 @@ class QueueCollector(Collector):
             # # packet rate
             # self.stats[index][self.stats_dict["rate_pps"]] = queue_rate_pps
             self.q_lib.delete_qdisc_monitor(qdisc)
-
-    def _get_qdisc_stats_old(self, iface_list):
-        re_dropped = re.compile(r'(?<=dropped )[ 0-9]*')
-        re_overlimit = re.compile(r'(?<=overlimits )[ 0-9]*')
-        re_queued = re.compile(r'backlog\s[^\s]+\s([\d]+)p')
-        for iface in iface_list:
-            tmp_queues = self.stats[iface]
-            cmd = "tc -s qdisc show dev %s" % (iface)
-            drop_return = {}
-            over_return = {}
-            queue_return = {}
-            try:
-                output = subprocess.check_output(cmd.split()).decode()
-                drop_return = re_dropped.findall(output)
-                over_return = re_overlimit.findall(output)
-                queue_return = re_queued.findall(output)
-            except Exception:
-                # print("Error Collecting Queues: %s" % e)
-                drop_return[0] = 0
-                over_return[0] = 0
-                queue_return[0] = 0
-                self.kill.set()
-            tmp_queues["drops"] = int(drop_return[0])
-            tmp_queues["overlimits"] = int(over_return[0])
-            tmp_queues["queues"] = int(queue_return[0])
-            self.stats[iface] = tmp_queues
 
     def _collect(self):
         self._get_qdisc_stats(self.iface_list)

@@ -1,5 +1,4 @@
 from __future__ import print_function
-import time
 import sys
 import atexit
 import numpy as np
@@ -55,13 +54,46 @@ def shmem_to_nparray(shmem_array, dtype):
     return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
 
 
+def squash_action(action, action_min, action_max):
+    action_diff = (action_max - action_min)
+    return (np.tanh(action) + 1.0) / 2.0 * action_diff + action_min
+
+
+def scale_range(x, x_min, x_max, y_min, y_max):
+    """ Scales the entries in x which have a range between x_min and x_max
+    to the range defined between y_min and y_max. """
+    # y = a*x + b
+    # a = deltaY/deltaX
+    # b = y_min - a*x_min (or b = y_max - a*x_max)
+    y = (y_max - y_min) / (x_max - x_min) * x + \
+        (y_min * x_max - y_max * x_min) / (x_max - x_min)
+    return y
+
+
+def clipping_squash(action, action_min, action_max):
+    """ Truncates the entries in x to the range defined between
+    action_min and action_max. """
+    return np.clip(action, action_min, action_max)
+
+
+def sigmoid(x, derivative=False):
+    sigm = 1. / (1. + np.exp(-x))
+    if derivative:
+        return sigm * (1. - sigm)
+    return sigm
+
+
+def relu(action, action_min):
+    action[action < action_min] = action_min
+    return action
+
+
 class DCEnv(openAIGym):
-    WAIT = 0.0      # amount of seconds the agent waits per iteration
     ACTION_MIN = 0.001
     ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",
-                 "input_file", "output_dir", "start_time"]
+                 "input_file", "output_dir"]
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
@@ -98,7 +130,6 @@ class DCEnv(openAIGym):
 
         # Finally, initialize traffic
         self.start_traffic()
-        self.start_time = time.time()
         self.bw_ctrl.start()
         self.active = True
 
@@ -128,6 +159,7 @@ class DCEnv(openAIGym):
             shape=(num_ports * num_features,))
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
+        self.tx_rate.fill(self.ACTION_MAX * self.topo.max_bps)
 
     def set_traffic_matrix(self, index):
         traffic_file = self.topo.get_traffic_pattern(index)
@@ -135,44 +167,13 @@ class DCEnv(openAIGym):
             self.conf["input_dir"], self.conf["topo"], traffic_file)
         self.output_dir = '%s' % (self.conf["output_dir"])
 
-    def _squash_action(self, action, action_min, action_max):
-        action_diff = (action_max - action_min)
-        return (np.tanh(action) + 1) / 2 * action_diff + action_min
-
-    def _scale_range(self, x, x_min, x_max, y_min, y_max):
-        """ Scales the entries in x which have a range between x_min and x_max
-        to the range defined between y_min and y_max. """
-        # y = a*x + b
-        # a = deltaY/deltaX
-        # b = y_min - a*x_min (or b = y_max - a*x_max)
-        y = (y_max - y_min) / (x_max - x_min) * x + \
-            (y_min * x_max - y_max * x_min) / (x_max - x_min)
-        return y
-
-    def _clipping_squash(self, action, action_min, action_max):
-        """ Truncates the entries in x to the range defined between
-        action_min and action_max. """
-        return np.clip(action, action_min, action_max)
-
-    def _sigmoid(self, x, derivative=False):
-        sigm = 1. / (1. + np.exp(-x))
-        if derivative:
-            return sigm * (1. - sigm)
-        return sigm
-
-    def _relu(self, action, action_min):
-        action[action < action_min] = action_min
-        return action
-
     def step(self, action):
-        if not self.conf["ext_squashing"]:
-            action = self._squash_action(
-                action, self.ACTION_MIN, self.ACTION_MAX)
-        for index, a in enumerate(action):
-            self.tx_rate[index] = a * self.topo.conf["max_capacity"]
-        # pred_bw = action * self.topo.conf["max_capacity"]
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         obs, self.reward = self.state_man.observe(action, do_sample)
+        if not self.conf["ext_squashing"]:
+            action = squash_action(action, self.ACTION_MIN, self.ACTION_MAX)
+
+        self.tx_rate = action * self.topo.max_bps
 
         # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()
@@ -190,10 +191,6 @@ class DCEnv(openAIGym):
         # print (pred_bw)
         # if not self.steps & (64 - 1):
         #     self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
-        # observe for WAIT seconds minus time needed for computation
-        max_sleep = max(self.WAIT - (time.time() - self.start_time), 0)
-        time.sleep(max_sleep)
-        self.start_time = time.time()
         self.steps = self.steps + 1
         return obs.flatten(), self.reward, done, {}
 

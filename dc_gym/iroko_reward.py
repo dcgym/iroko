@@ -7,8 +7,8 @@ class RewardFunction:
         self.sw_ports = topo_conf.get_sw_ports()
         self.host_ports = topo_conf.get_host_ports()
         self.max_queue = topo_conf.max_queue
-        self.max_capacity = topo_conf.conf["max_capacity"]
-        self.num_sw_ports = len(self.sw_ports)
+        self.max_bps = topo_conf.max_bps
+        self.num_sw_ports = topo_conf.get_num_sw_ports()
         self.reward_model = reward_model
         self.stats_dict = stats_dict
 
@@ -77,8 +77,7 @@ class RewardFunction:
         bw_reward = []
         for index, iface in enumerate(self.sw_ports):
             if iface in self.host_ports:
-                bw = stats[self.stats_dict["bw_rx"]][index]
-                bw_reward.append(bw / float(self.max_bw))
+                bw_reward.append(stats[self.stats_dict["bw_rx"]][index])
         return np.average(bw_reward)
 
     def _queue_reward(self, stats):
@@ -90,16 +89,15 @@ class RewardFunction:
 
     def _joint_queue_reward(self, actions, stats):
         queue_reward = 0.0
-        weight = float(self.num_sw_ports) / float(len(self.host_ports))
+        # weight = float(self.num_sw_ports) / float(len(self.host_ports))
         flip_action_reward = False
         for index, _ in enumerate(self.sw_ports):
             queue = stats[self.stats_dict["backlog"]][index]
             queue_reward -= queue
             if queue > 0.20:
                 flip_action_reward = True
-        queue_reward = queue_reward * weight
         if flip_action_reward:
-            queue_reward += 0.5 * (1 - self._action_reward(actions))
+            queue_reward += (1 - self._action_reward(actions))
         else:
             queue_reward += self._action_reward(actions)
             # queue_reward += self._fairness_reward(actions)

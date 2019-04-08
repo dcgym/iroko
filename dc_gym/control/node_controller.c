@@ -37,7 +37,7 @@ void ctrl_set_bw(void *data) {
     rtnl_qdisc_tbf_set_rate(fq_qdisc, tx_rate, factor, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
-        fprintf(stderr,"qdisc_add: %s\n", nl_geterror(err));
+        fprintf(stderr,"Rate %lu qdisc_add: %s\n", tx_rate, nl_geterror(err));
 }
 
 void ctrl_handle(void *ppd_head, struct ring *ring_tx) {

@@ -9,7 +9,7 @@ import json
 # Ray imports
 import ray
 from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.agents.agent import Agent, with_common_config
+from ray.rllib.agents.trainer import Trainer, with_common_config
 from ray.tune.registry import register_env
 import ray.tune as tune
 from ray.tune.schedulers import PopulationBasedTraining
@@ -56,7 +56,7 @@ PARSER.add_argument('--tune', action="store_true", default=False,
 ARGS = PARSER.parse_args()
 
 
-class MaxAgent(Agent):
+class MaxAgent(Trainer):
     """Agent that always takes the maximum available action."""
     _agent_name = "MaxAgent"
     _default_config = with_common_config({})
@@ -65,6 +65,9 @@ class MaxAgent(Agent):
         self.config = config
         self.env = env_creator(config["env_config"])
         self.env.reset()
+
+    def _name(self):
+        return self._agent_name
 
     def _train(self):
         steps = 0
@@ -83,7 +86,7 @@ class MaxAgent(Agent):
         }
 
 
-class RandomAgent(Agent):
+class RandomAgent(Trainer):
     """Agent that always takes the maximum available action."""
     _agent_name = "RandomAgent"
     _default_config = with_common_config({})
@@ -91,6 +94,9 @@ class RandomAgent(Agent):
     def _init(self, config, env_creator):
         self.env = env_creator(config["env_config"])
         self.env.reset()
+
+    def _name(self):
+        return self._agent_name
 
     def _train(self):
         steps = 0

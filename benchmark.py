@@ -17,14 +17,14 @@ PLOT_DIR = exec_dir + '/plots'
 
 # RL Algorithms: PPO, APPO, DDPG, TD3, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["APPO", "APEX_DDPG", "PG"]
+RL_ALGOS = ["APPO", "TD3", "PG"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp
 TRANSPORT = ["udp", "tcp"]
 TF_PATTERNS = [0]
 RUNS = 3
-STEPS = 400000
+STEPS = 500000
 TOPO = "dumbbell"
 TUNE = True
 RESTORE = False
