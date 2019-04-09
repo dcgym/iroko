@@ -138,7 +138,8 @@ class StateManager:
 
     def flush(self):
         print("Saving statistics...")
-        np.save(self.stats_file, np.array(self.data))
-        self.stats_file.flush()
-        for key in self.data.keys():
-            del self.data[key][:]
+        if self.data["reward"]:
+            np.save(self.stats_file, np.array(self.data))
+            self.stats_file.flush()
+            for key in self.data.keys():
+                del self.data[key][:]

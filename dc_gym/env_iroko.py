@@ -120,6 +120,7 @@ class DCEnv(openAIGym):
         # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
         self.state_man.start(self.topo)
+        self.tx_rate.fill(self.ACTION_MAX * self.topo.max_bps)
         self.bw_ctrl = BandwidthController(
             self.topo.host_ctrl_map, self.tx_rate)
         # set up variables for the progress bar
@@ -159,7 +160,6 @@ class DCEnv(openAIGym):
             shape=(num_ports * num_features,))
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
-        self.tx_rate.fill(self.ACTION_MAX * self.topo.max_bps)
 
     def set_traffic_matrix(self, index):
         traffic_file = self.topo.get_traffic_pattern(index)
@@ -169,11 +169,12 @@ class DCEnv(openAIGym):
 
     def step(self, action):
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
-        obs, self.reward = self.state_man.observe(action, do_sample)
         if not self.conf["ext_squashing"]:
             action = squash_action(action, self.ACTION_MIN, self.ACTION_MAX)
+        obs, self.reward = self.state_man.observe(action, do_sample)
 
-        self.tx_rate = action * self.topo.max_bps
+        for index, a in enumerate(action):
+            self.tx_rate[index] = a * self.topo.max_bps
 
         # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()

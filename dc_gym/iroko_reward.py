@@ -1,5 +1,6 @@
 from __future__ import print_function
 import numpy as np
+import math
 
 
 class RewardFunction:
@@ -88,17 +89,7 @@ class RewardFunction:
         return queue_reward * weight
 
     def _joint_queue_reward(self, actions, stats):
-        queue_reward = 0.0
-        # weight = float(self.num_sw_ports) / float(len(self.host_ports))
-        flip_action_reward = False
-        for index, _ in enumerate(self.sw_ports):
-            queue = stats[self.stats_dict["backlog"]][index]
-            queue_reward -= queue
-            if queue > 0.20:
-                flip_action_reward = True
-        if flip_action_reward:
-            queue_reward += (1 - self._action_reward(actions))
-        else:
-            queue_reward += self._action_reward(actions)
-            # queue_reward += self._fairness_reward(actions)
-        return queue_reward
+        queue = np.max(stats[self.stats_dict["backlog"]])
+        action = self._action_reward(actions)
+        reward = action - 2 * (action * queue)
+        return reward
