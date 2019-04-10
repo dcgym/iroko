@@ -1,4 +1,6 @@
 # Iroko: The Data Center RL Gym
+DISCLAIMER: This project is still very early stage research. It is not stable, well tested, and changes quickly. If you want to use this project, be warned.
+
 Iroko is an open source project that is focused on providing openAI compliant gyms. The aim is to develop machine learning algorithms that address data center problems and to fairly evaluate solutions again traditional techniques.
 
 A more concrete description is available in our [short paper](https://arxiv.org/abs/1812.09975).

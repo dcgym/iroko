@@ -3,6 +3,52 @@ import numpy as np
 import math
 
 
+def std_dev_reward(actions):
+    return -np.std(actions)
+
+
+def fairness_reward(actions):
+    '''Compute Jain's fairness index for a list of values.
+    See http://en.wikipedia.org/wiki/Fairness_measure for fairness equations.
+    @param values: list of values
+    @return fairness: JFI
+    '''
+    num = sum(actions) ** 2
+    denom = len(actions) * sum([i ** 2 for i in actions])
+    return num / float(denom)
+
+
+def bw_reward(bws, host_ports, sw_ports):
+    bw_reward = []
+    for index, iface in enumerate(sw_ports):
+        if iface in host_ports:
+            bw_reward.append(bws[index])
+    return np.mean(bw_reward)
+
+
+def action_reward(actions):
+    return np.mean(actions)
+
+
+def joint_queue_reward(actions, queues):
+    queue = np.max(queues)
+    action = np.mean(actions)
+    reward = action - 2 * (action * queue)
+    return reward
+
+
+def queue_reward(queues):
+    queue_reward = -np.sum(queues)**2
+    return queue_reward
+
+
+def selu(x):
+    alpha = 1.6732632423543772848170429916717
+    scale = 1.0507009873554804934193349852946
+    reward = scale * (max(0, x) + min(0, alpha * (math.exp(x) - 1)))
+    return reward
+
+
 class RewardFunction:
     def __init__(self, topo_conf, reward_model, stats_dict):
         self.sw_ports = topo_conf.get_sw_ports()
@@ -16,80 +62,49 @@ class RewardFunction:
     def get_reward(self, stats, deltas, actions):
         reward = 0
         if "action" in self.reward_model:
-            action_reward = self._action_reward(actions)
+            actions = action_reward(actions)
             # print("action: %f " % action_reward, end='')
-            reward += action_reward
+            reward += actions
         if "bw" in self.reward_model:
-            bw_reward = self._bw_reward(stats)
+            bws = stats[self.stats_dict["bw_rx"]]
+            tmp_reward = bw_reward(bws, self.host_ports, self.sw_ports)
             # print("bw: %f " % bw_reward, end='')
-            bw_reward = self._adjust_reward(bw_reward, deltas)
-            reward += bw_reward
+            reward += tmp_reward
         if "backlog" in self.reward_model:
-            queue_reward = self._queue_reward(stats)
-            reward += queue_reward
+            queues = stats[self.stats_dict["backlog"]]
+            tmp_reward = queue_reward(queues)
+            reward += tmp_reward
             # print("queue: %f " % queue_reward, end='')
         if "joint_backlog" in self.reward_model:
-            joint_queue_reward = self._joint_queue_reward(actions, stats)
-            reward += joint_queue_reward
+            queues = stats[self.stats_dict["backlog"]]
+            tmp_reward = joint_queue_reward(actions, queues)
+            reward += tmp_reward
             # print("joint queue: %f " % joint_queue_reward, end='')
         if "std_dev" in self.reward_model:
-            std_dev_reward = self._std_dev_reward(actions)
-            reward += std_dev_reward
+            tmp_reward = std_dev_reward(actions)
+            reward += tmp_reward
             # print("std_dev: %f " % std_dev_reward, end='')
         if "fairness" in self.reward_model:
-            fairness_reward = self.fairness(actions)
-            reward += fairness_reward
+            tmp_reward = fairness_reward(actions)
+            reward += tmp_reward
             # print("fairness: %f " % fairness_reward, end='')
         # print("Total: %f" % reward)
         return reward
 
-    def _adjust_reward(self, reward, queue_deltas):
-        if "olimit" in self.reward_model:
-            tmp_list = []
-            for port_stats in queue_deltas:
-                tmp_list.append(port_stats[self.stats_dict["olimit"]])
-            if any(tmp_list):
-                reward /= 4
-        if "drops" in self.reward_model:
-            tmp_list = []
-            for port_stats in queue_deltas:
-                tmp_list.append(port_stats[self.stats_dict["drops"]])
-            if any(tmp_list):
-                reward /= 4
-        return reward
 
-    def _std_dev_reward(self, actions):
-        return -np.std(actions)
-
-    def _fairness_reward(self, actions):
-        '''Compute Jain's fairness index for a list of values.
-        See http://en.wikipedia.org/wiki/Fairness_measure for fairness equations.
-        @param values: list of values
-        @return fairness: JFI
-        '''
-        num = sum(actions) ** 2
-        denom = len(actions) * sum([i ** 2 for i in actions])
-        return num / float(denom)
-
-    def _action_reward(self, actions):
-        return np.average(actions)
-
-    def _bw_reward(self, stats):
-        bw_reward = []
-        for index, iface in enumerate(self.sw_ports):
-            if iface in self.host_ports:
-                bw_reward.append(stats[self.stats_dict["bw_rx"]][index])
-        return np.average(bw_reward)
-
-    def _queue_reward(self, stats):
-        queue_reward = 0.0
-        weight = float(self.num_sw_ports) / float(len(self.host_ports))
-        for index, _ in enumerate(self.sw_ports):
-            queue_reward -= stats[self.stats_dict["backlog"]][index]**2
-        return queue_reward * weight
-
-    def _joint_queue_reward(self, actions, stats):
-        queue = np.max(stats[self.stats_dict["backlog"]])
-        action = self._action_reward(actions)
-        reward = action - 2 * (action * queue)
-        return reward
+# small script to visualize the reward output
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    queues = [i * 0.1 for i in range(0, 11)]
+    actions = [i * .001 for i in range(0, 1000)]
+    for queue in queues:
+        rewards = []
+        queue_input = np.array([queue])
+        for action in actions:
+            action_input = np.array([action])
+            rewards.append((joint_queue_reward(action_input, queue_input)))
+        plt.plot(actions, rewards, label="Queue Size %f" % queue)
+    plt.xlabel('Action Input')
+    plt.ylabel('Reward')
+    plt.legend()
+    plt.show()

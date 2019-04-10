@@ -140,9 +140,9 @@ class TrafficGen():
         dmp_file = "%s/%s.pcap" % (out_dir, host.name)
         dmp_cmd = "tcpdump "
         dmp_cmd += "-i %s " % iface_net
+        dmp_cmd += "-C 50 "  # roll over every 100 MB
         dmp_cmd += "-w %s " % dmp_file
-        dmp_cmd += "-W 1 "    # rotate two files
-        dmp_cmd += "-C 100 "  # roll over every 100 MB
+        dmp_cmd += "-W 2 "    # rotate two files
         dmp_cmd += "%s " % self.transport  # filter for transport protocol
         dmp_cmd += "-Z root "
         dmp_cmd += "-s96 "      # Capture only headers

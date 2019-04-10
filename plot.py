@@ -215,7 +215,7 @@ def process_rtt_files(data_dir, runs, algo):
         row_rtt = {metric: [] for metric in total_rtt.keys()}
         run_dir = "%s/tcp_run%d" % (data_dir, index)
         results_folder = '%s/%s' % (run_dir, algo.lower())
-        # run_tcptrace(results_folder)
+        run_tcptrace(results_folder)
         rtt_name = "%s/rtt.csv" % results_folder
         print("Import csv file: %s" % rtt_name)
         with open(rtt_name) as rtt_file:
@@ -351,8 +351,8 @@ def plot(data_dir, plot_dir, name):
                 pruned_list = [ls[:min_len] for ls in run_list[stat]]
                 plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
         plot_lineplot(algos, plt_stats, min_samples, plt_name)
-        # if transport == "tcp":
-        #     analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
+        if transport == "tcp":
+            analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
         # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
         # plot_barchart(algos, plt_stats, plt_name)
 
