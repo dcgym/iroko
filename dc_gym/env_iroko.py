@@ -8,9 +8,9 @@ from dc_gym.control.iroko_bw_control import BandwidthController
 from multiprocessing import Array
 from ctypes import c_ulong
 
-from iroko_traffic import TrafficGen
-from iroko_state import StateManager
-from factories import TopoFactory
+from dc_gym.iroko_traffic import TrafficGen
+from dc_gym.iroko_state import StateManager
+from dc_gym.factories import TopoFactory
 
 DEFAULT_CONF = {
     # Input folder of the traffic matrix.
@@ -89,8 +89,6 @@ def relu(action, action_min):
 
 
 class DCEnv(openAIGym):
-    ACTION_MIN = 0.001
-    ACTION_MAX = 1.0
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "reward", "progress_bar", "killed",
                  "input_file", "output_dir"]
@@ -120,7 +118,7 @@ class DCEnv(openAIGym):
         # initialize the traffic generator and state manager
         self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
         self.state_man.start(self.topo)
-        self.tx_rate.fill(self.ACTION_MAX * self.topo.max_bps)
+        self.tx_rate.fill(self.topo.max_bps)
         self.bw_ctrl = BandwidthController(
             self.topo.host_ctrl_map, self.tx_rate)
         # set up variables for the progress bar
@@ -150,10 +148,12 @@ class DCEnv(openAIGym):
         num_ports = self.topo.get_num_sw_ports()
         num_actions = self.topo.get_num_hosts()
         num_features = len(self.conf["state_model"])
+        10e6 / self.topo.conf["max_capacity"]
+        action_min = 10000 / self.topo.conf["max_capacity"]
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
         self.action_space = spaces.Box(
-            low=self.ACTION_MIN, high=self.ACTION_MAX,
+            low=action_min, high=1.0,
             dtype=np.float64, shape=(num_actions,))
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float64,
@@ -170,7 +170,8 @@ class DCEnv(openAIGym):
     def step(self, action):
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         if not self.conf["ext_squashing"]:
-            action = squash_action(action, self.ACTION_MIN, self.ACTION_MAX)
+            action = squash_action(
+                action, self.action_space.low, self.action_space.high)
         obs, self.reward = self.state_man.observe(action, do_sample)
 
         for index, a in enumerate(action):

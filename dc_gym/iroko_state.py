@@ -6,7 +6,7 @@ import numpy as np
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
-from iroko_reward import RewardFunction
+from dc_gym.iroko_reward import RewardFunction
 
 
 def shmem_to_nparray(shmem_array, dtype):
@@ -16,9 +16,9 @@ def shmem_to_nparray(shmem_array, dtype):
 class StateManager:
     STATS_DICT = {"backlog": 0, "olimit": 1,
                   "drops": 2, "bw_rx": 3, "bw_tx": 4}
-    __slots__ = ["num_ports", "deltas", "prev_stats",
-                 "stats_file", "data", "dopamin",
-                 "stats", "flow_stats", "procs"]
+    __slots__ = ["num_ports", "deltas", "prev_stats", "stats_file",
+                 "stats_keys", "data", "dopamin", "stats",
+                 "flow_stats", "procs", "collect_flows", "reward_model"]
 
     def __init__(self, config, topo_conf):
         self.stats_keys = config["state_model"]
