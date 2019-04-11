@@ -46,7 +46,7 @@ DEFAULT_CONF = {
     # "action", "bw", "backlog","std_dev", "joint_backlog"
     "reward_model": ["joint_backlog"],
     # Are algorithms using their own squashing function or do we have to do it?
-    "ext_squashing": False,
+    "ext_squashing": True,
 }
 
 
@@ -70,7 +70,7 @@ def scale_range(x, x_min, x_max, y_min, y_max):
     return y
 
 
-def clipping_squash(action, action_min, action_max):
+def clip_action(action, action_min, action_max):
     """ Truncates the entries in x to the range defined between
     action_min and action_max. """
     return np.clip(action, action_min, action_max)
@@ -149,7 +149,7 @@ class DCEnv(openAIGym):
         num_actions = self.topo.get_num_hosts()
         num_features = len(self.conf["state_model"])
         10e6 / self.topo.conf["max_capacity"]
-        action_min = 10000 / self.topo.conf["max_capacity"]
+        action_min = 10000.0 / float(self.topo.conf["max_capacity"])
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
         self.action_space = spaces.Box(

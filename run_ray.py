@@ -259,7 +259,7 @@ def configure_ray(agent):
         print("Agent configuration does not exist, starting with default.")
         config = {}
     # Add the dynamic environment configuration
-    config["clip_actions"] = False
+    config["clip_actions"] = True
     config["num_workers"] = 1
     config["num_gpus"] = 0
     # config["batch_mode"] = "truncate_episodes"
@@ -286,9 +286,8 @@ def configure_ray(agent):
             config["num_workers"] = 2
 
     # DDPG uses the default squashing function
-    if "ddpg" in config['env_config']['agent'].lower():
-        config["clip_actions"] = True
-        config["env_config"]["ext_squashing"] = True
+    if "ppo" in config['env_config']['agent'].lower():
+        config["env_config"]["ext_squashing"] = False
     if config["num_workers"] > 1:
         config["env_config"]["topo_conf"]["parallel_envs"] = True
     if ARGS.timesteps > 50000:

@@ -49,6 +49,15 @@ def selu(x):
     return reward
 
 
+def step_reward(actions, queues):
+    queue = np.max(queues)
+    action = np.mean(actions)
+    if queue > 0.50:
+        return (1 - action)
+    else:
+        return action + (1 - queue)
+
+
 class RewardFunction:
     def __init__(self, topo_conf, reward_model, stats_dict):
         self.sw_ports = topo_conf.get_sw_ports()
@@ -63,31 +72,31 @@ class RewardFunction:
         reward = 0
         if "action" in self.reward_model:
             actions = action_reward(actions)
-            # print("action: %f " % action_reward, end='')
+            # print("action: %f " % tmp_reward, end='')
             reward += actions
         if "bw" in self.reward_model:
             bws = stats[self.stats_dict["bw_rx"]]
             tmp_reward = bw_reward(bws, self.host_ports, self.sw_ports)
-            # print("bw: %f " % bw_reward, end='')
+            # print("bw: %f " % tmp_reward, end='')
             reward += tmp_reward
         if "backlog" in self.reward_model:
             queues = stats[self.stats_dict["backlog"]]
             tmp_reward = queue_reward(queues)
             reward += tmp_reward
-            # print("queue: %f " % queue_reward, end='')
+            # print("queue: %f " % tmp_reward, end='')
         if "joint_backlog" in self.reward_model:
             queues = stats[self.stats_dict["backlog"]]
-            tmp_reward = joint_queue_reward(actions, queues)
+            tmp_reward = step_reward(actions, queues)
             reward += tmp_reward
-            # print("joint queue: %f " % joint_queue_reward, end='')
+            # print("joint queue: %f " % tmp_reward, end='')
         if "std_dev" in self.reward_model:
             tmp_reward = std_dev_reward(actions)
             reward += tmp_reward
-            # print("std_dev: %f " % std_dev_reward, end='')
+            # print("std_dev: %f " % tmp_reward, end='')
         if "fairness" in self.reward_model:
             tmp_reward = fairness_reward(actions)
             reward += tmp_reward
-            # print("fairness: %f " % fairness_reward, end='')
+            # print("fairness: %f " % tmp_reward, end='')
         # print("Total: %f" % reward)
         return reward
 
