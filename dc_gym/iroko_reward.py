@@ -86,7 +86,7 @@ class RewardFunction:
             # print("queue: %f " % tmp_reward, end='')
         if "joint_backlog" in self.reward_model:
             queues = stats[self.stats_dict["backlog"]]
-            tmp_reward = step_reward(actions, queues)
+            tmp_reward = joint_queue_reward(actions, queues)
             reward += tmp_reward
             # print("joint queue: %f " % tmp_reward, end='')
         if "std_dev" in self.reward_model:

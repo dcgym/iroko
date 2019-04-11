@@ -150,14 +150,16 @@ class DCEnv(openAIGym):
         num_features = len(self.conf["state_model"])
         10e6 / self.topo.conf["max_capacity"]
         action_min = 10000.0 / float(self.topo.conf["max_capacity"])
+        action_max = 1.0
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
         self.action_space = spaces.Box(
-            low=action_min, high=1.0,
+            low=action_min, high=action_max,
             dtype=np.float64, shape=(num_actions,))
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float64,
             shape=(num_ports * num_features,))
+        print("Setting action space from %f to %f" % (action_min, action_max))
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
 
@@ -170,7 +172,7 @@ class DCEnv(openAIGym):
     def step(self, action):
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
         if not self.conf["ext_squashing"]:
-            action = squash_action(
+            action = clip_action(
                 action, self.action_space.low, self.action_space.high)
         obs, self.reward = self.state_man.observe(action, do_sample)
 
@@ -185,7 +187,7 @@ class DCEnv(openAIGym):
         # print("Iteration %d Actions: " % self.steps, end='')
         # for index, h_iface in enumerate(self.topo.host_ctrl_map):
         #     rate = action[index]
-        #     print(" %s:%.3f " % (h_iface, rate), end='')
+        #     print(" %s:%f " % (h_iface, rate), end='')
         # print('')
         # print("State:", obs)
         # print("Reward:", self.reward)

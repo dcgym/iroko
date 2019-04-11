@@ -7,7 +7,6 @@
 #include <libnl3/netlink/route/qdisc/netem.h>
 #include <libnl3/netlink/route/qdisc/tbf.h>
 #include <libnl3/netlink/route/qdisc/htb.h>
-#include <math.h>
 
 #include "raw_udp_socket.h"
 
@@ -21,31 +20,37 @@ typedef struct ctrl_pckt {
 static sig_atomic_t sigint = 0;
 static struct rtnl_qdisc *fq_qdisc;
 static struct nl_sock *qdisc_sock;
-uint64_t factor = 1;
 double max_rate = 1e9;
-
 
 void ctrl_set_bw(void *data) {
     int err = 0;
     double tx_rate;
     ctrl_pckt *pkt;
+    uint64_t burst;
+    uint64_t limit;
 
     pkt = (ctrl_pckt *) data;
     tx_rate = pkt->tx_rate / 8.0;
-    // used for debugging purposes
-    // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
-    // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate* 8 / 1e6,
-    //         old_rate*8 / 1e6);
-    uint64_t limit = (uint64_t) (2500000.0 * (((double)pkt->tx_rate) / max_rate));
-    uint64_t burst = (uint64_t) (2500000.0 * (((double)pkt->tx_rate) / max_rate));
+    if (max_rate <= 10e6) {
+        limit = 43500.0 * (((double)pkt->tx_rate) / max_rate);
+        burst = 10000 * (((double)pkt->tx_rate) / max_rate);
+    } else {
+        limit = 1000000.0 * (((double)pkt->tx_rate) / max_rate);
+        burst = 25000.0 * (((double)pkt->tx_rate) / max_rate);
+    }
+
     if (limit < 1550)
         limit = 1550;
     if (burst < 1550)
         burst = 1550;
+    // used for debugging purposes
+    // int old_rate = rtnl_qdisc_tbf_get_rate (fq_qdisc);
+    // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate* 8 / 1e6,
+    //         old_rate*8 / 1e6);
     // fprintf(stderr, "Burst %lu Limit %lu\n", burst, limit);
-    rtnl_qdisc_tbf_set_limit(fq_qdisc, limit);
     rtnl_qdisc_tbf_set_rate(fq_qdisc, (uint64_t) tx_rate, burst , 0);
-    // rtnl_qdisc_tbf_set_peakrate(fq_qdisc, (uint64_t) tx_rate, burst, 0);
+    rtnl_qdisc_tbf_set_peakrate(fq_qdisc, (uint64_t) tx_rate, burst, 0);
+    rtnl_qdisc_tbf_set_limit(fq_qdisc, limit);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_REPLACE);
     if(err)
         fprintf(stderr,"Rate %lu qdisc_add: %s\n", pkt->tx_rate, nl_geterror(err));
@@ -188,17 +193,19 @@ struct rtnl_qdisc *setup_qdisc(struct nl_sock *qdisc_sock, const char *netdev, l
     rtnl_tc_set_ifindex(TC_CAST(fq_qdisc), if_index);
     rtnl_tc_set_parent(TC_CAST(fq_qdisc), TC_H_ROOT);
     rtnl_tc_set_handle(TC_CAST(fq_qdisc), TC_HANDLE(1,0));
+    rtnl_tc_set_mpu(TC_CAST(fq_qdisc), 1500);
+    rtnl_tc_set_mtu(TC_CAST(fq_qdisc), 1500);
     err = rtnl_tc_set_kind(TC_CAST(fq_qdisc), "tbf");
 
     if (err) {
         fprintf(stderr,"Can not allocate TBF: %s\n", nl_geterror(err));
         exit (1);
     }
-    uint64_t limit = (uint64_t) ((80000.0 * (double)rate) / max_rate);
-    uint64_t burst = (uint64_t) ((80000.0 * (double)rate) / max_rate);
-    if (limit <1520)
+    uint64_t limit = (uint64_t) (1250000.0 * (((double)rate) / max_rate));
+    uint64_t burst = (uint64_t) (1250000.0 * (((double)rate) / max_rate)* (10e6/max_rate));
+    if (limit < 1520)
         limit = 1520;
-    if (burst <1520)
+    if (burst < 1520)
         burst = 1520;
     // fprintf(stderr, "Calculated limit: %lu \n", limit);
     rtnl_qdisc_tbf_set_rate(fq_qdisc, (uint64_t) rate, burst , 0);
@@ -229,10 +236,9 @@ void usage(char *prog_name){
 int main(int argc, char **argv) {
     // process args
     char c;
-    char *netdev = NULL;
     char *ctrldev = NULL;
+    char *netdev = NULL;
     char *prog_name = argv[0];
-    uint64_t rate = 10e6;
     opterr = 0;
     while ((c = getopt(argc, argv, "n:c:r:")) != -1) {
         switch(c)
@@ -244,7 +250,7 @@ int main(int argc, char **argv) {
                 ctrldev = optarg;
                 break;
             case 'r':
-                rate = atoll(optarg);
+                max_rate = atoll(optarg);
                 break;
             case '?':
                 printf("unknown option: %c\n", optopt);
@@ -254,9 +260,7 @@ int main(int argc, char **argv) {
     if (!(netdev && ctrldev))
         usage(prog_name);
     signal(SIGINT, sighandler);
-
-    // Calculate burst factor
-    factor = 10e6 / (100 * 8);
+    fprintf(stderr, "Kernel Clock Rate: %d\n", nl_get_user_hz());
     // Set up the managing qdisc on the main interface
     qdisc_sock = nl_socket_alloc();
     nl_connect(qdisc_sock, NETLINK_ROUTE);
