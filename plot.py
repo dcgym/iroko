@@ -78,8 +78,22 @@ def plot_barchart(algos, plt_stats, plt_name):
     plt.gcf().clear()
 
 
+def strided_app(a, L, S):  # Window len = L, Stride len/stepsize = S
+    nrows = ((a.size - L) // S) + 1
+    n = a.strides[0]
+    return np.lib.stride_tricks.as_strided(a, shape=(nrows, L),
+                                           strides=(S * n, n))
+
+
 def compute_rolling_df_mean(pd_df, roll):
     rolling_df = pd_df.rolling(roll).mean().dropna()
+    return rolling_df.reset_index(drop=True)
+
+
+def compute_rolling_df_99p(pd_df, roll):
+    print(roll)
+    rolling_df = pd_df.rolling(roll, center=True).quantile(.01).dropna()
+    print(rolling_df)
     return rolling_df.reset_index(drop=True)
 
 
@@ -117,7 +131,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
                                'lines.markeredgewidth': 0.1, })
     # sns.set_context("paper")
     metrics = {}
-    plt_metrics = ["reward", "queues", "bw", "drops"]
+    plt_metrics = ["reward", "queues", "bw"]
     print("Converting numpy arrays into pandas dataframes.")
     metrics["reward"] = np_dict_to_pd(plt_stats, "rewards")
     metrics["actions"] = np_dict_to_pd(plt_stats, "actions")
@@ -129,7 +143,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     metrics["drops"] = np_dict_to_pd(plt_stats, "drops").diff()
 
     fig, ax = plt.subplots(len(plt_metrics), 1, sharex=True, squeeze=True)
-    mean_smoothing = int(timesteps / 100)
+    mean_smoothing = int(timesteps / 1000)
     sample = int(timesteps / 10)
     num_subplots = len(ax)
     marker_range = list(np.arange(
@@ -201,7 +215,7 @@ def plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport):
 
 
 def run_tcptrace(algo_dir):
-    cmd = "tcptrace -lr --csv %s/*.pcap " % algo_dir
+    cmd = "tcptrace -lr --csv %s/*.pcap*" % algo_dir
     cmd += "| sed '/^#/ d' "
     cmd += "| sed -r '/^\\s*$/d' "
     cmd += "> %s/rtt.csv " % algo_dir
@@ -210,7 +224,6 @@ def run_tcptrace(algo_dir):
 
 def process_rtt_files(data_dir, runs, algo):
     total_rtt = {"max": 0, "avg": 0, "stdev": 0, }
-    index_rtt = {metric: [] for metric in total_rtt.keys()}
     for index in range(runs):
         row_rtt = {metric: [] for metric in total_rtt.keys()}
         run_dir = "%s/tcp_run%d" % (data_dir, index)
@@ -226,7 +239,6 @@ def process_rtt_files(data_dir, runs, algo):
                         if "last" not in key:
                             if key.startswith("RTT_%s" % metric):
                                 row_rtt[metric].append(float(value))
-        index_rtt[metric].append(np.nanmean(row_rtt[metric]))
     for metric in total_rtt.keys():
         total_rtt[metric] = np.nanmean(row_rtt[metric])
     return total_rtt

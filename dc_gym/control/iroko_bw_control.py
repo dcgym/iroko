@@ -3,6 +3,8 @@ import ctypes
 import gevent
 import multiprocessing
 import time
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,12 +34,12 @@ class BandwidthController(multiprocessing.Process):
             try:
                 self.broadcast_bw()
             except KeyboardInterrupt:
-                print("%s: Caught Interrupt! Exiting..." % self.name)
+                log.error("%s: Caught Interrupt! Exiting..." % self.name)
                 self.kill.set()
         self._clean()
 
     def terminate(self):
-        print("%s: Received termination signal! Exiting.." % self.name)
+        log.info("%s: Received termination signal! Exiting.." % self.name)
         self.kill.set()
 
     def _clean(self):

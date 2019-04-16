@@ -7,6 +7,8 @@ from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
 from dc_gym.iroko_reward import RewardFunction
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 
 def shmem_to_nparray(shmem_array, dtype):
@@ -36,12 +38,12 @@ class StateManager:
             topo_conf, self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
-        print("Writing collected data to disk")
+        log.info("Writing collected data to disk")
         with FileLock(self.stats_file.name + ".lock"):
             try:
                 self.flush()
             except Exception as e:
-                print("Error flushing file %s" % self.stats_file.name, e)
+                log.info("Error flushing file %s" % self.stats_file.name, e)
         # self.stats_file.close()
 
     def terminate(self):
@@ -137,7 +139,7 @@ class StateManager:
         return np.array(obs), reward
 
     def flush(self):
-        print("Saving statistics...")
+        log.info("Saving statistics...")
         if self.data["reward"]:
             np.save(self.stats_file, np.array(self.data))
             self.stats_file.flush()

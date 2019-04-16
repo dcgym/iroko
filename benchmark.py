@@ -6,7 +6,8 @@ import time
 import json
 import socket
 from plot import plot
-
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 # set up paths
 exec_dir = os.getcwd()
@@ -34,7 +35,7 @@ RESTORE_PATH = file_dir + "./"
 def check_dir(directory):
     # create the folder if it does not exit
     if not directory == '' and not os.path.exists(directory):
-        print("Folder %s does not exist! Creating..." % directory)
+        log.info("Folder %s does not exist! Creating..." % directory)
         os.makedirs(directory)
 
 
@@ -85,9 +86,9 @@ def run_tests():
     for pattern in TF_PATTERNS:
         testname = generate_testname(OUTPUT_DIR)
         results_dir = "%s/%s" % (OUTPUT_DIR, testname)
-        print("Saving results to %s" % results_dir)
+        log.info("Saving results to %s" % results_dir)
         check_dir(results_dir)
-        print("Dumping configuration in %s" % results_dir)
+        log.info("Dumping configuration in %s" % results_dir)
         dump_config(results_dir, pattern)
         for index in range(RUNS):
             for transport in TRANSPORT:

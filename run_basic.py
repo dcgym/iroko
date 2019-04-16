@@ -5,6 +5,8 @@ import os
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 # set up paths
 cwd = os.getcwd()

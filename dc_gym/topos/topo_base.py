@@ -3,12 +3,14 @@ import sys
 import random
 import string
 
-from mininet.log import info, output, warn, error, debug
 from mininet.node import RemoteController
 from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import CPULimitedHost
 from mininet.util import custom
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
+
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
@@ -106,12 +108,12 @@ class BaseTopo:
         """ Here be dragons... """
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1: hfsc default 10"
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
         #     self.max_bps, self.max_bps)
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
         limit = int(self.max_queue)
@@ -121,12 +123,12 @@ class BaseTopo:
         cmd = "root handle 1: htb default 10 "
         # cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
         cmd += " direct_qlen %d " % (limit / avg_pkt_size)
-        debug(tc_cmd + cmd)
+        log.debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
         cmd = "parent 1: classid 1:10 htb rate %dbit burst %d" % (
             self.max_bps, self.max_bps)
-        debug(tc_cmd + cmd)
+        log.debug(tc_cmd + cmd)
         os.system(tc_cmd + cmd)
 
         if self.conf["tcp_policy"] == "dctcp":
@@ -147,7 +149,7 @@ class BaseTopo:
             cmd += "burst %d " % burst
             cmd += "probability 0.1"
             cmd += " ecn "
-            debug(tc_cmd + cmd)
+            log.debug(tc_cmd + cmd)
             os.system(tc_cmd + cmd)
         else:
             tc_cmd = "tc qdisc add dev %s " % (port)
@@ -158,7 +160,7 @@ class BaseTopo:
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1 netem limit %d rate 10mbit" % (
         #     limit / avg_pkt_size)
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
         # limit = int(self.conf.max_queue)
@@ -180,7 +182,7 @@ class BaseTopo:
         #     # cmd += "min %d " % (min_q)
         #     # cmd += "max %d " % (max_q)
         #     # cmd += "probability 1"
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
         # Apply tc choke to mark excess packets in the queue with ecn
@@ -195,7 +197,7 @@ class BaseTopo:
         # cmd += "probability 0.001"
         # # if self.dctcp:
         # cmd += " ecn "
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
@@ -204,7 +206,7 @@ class BaseTopo:
         # if ("dctcp" in self.conf) and self.conf["dctcp"]:
         #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
-        # print (tc_cmd + cmd)
+        # log.info(tc_cmd + cmd)
         # os.system(tc_cmd + cmd)
 
         os.system("ip link set %s txqueuelen %d" %
@@ -245,9 +247,9 @@ class BaseTopo:
         self._config_topo()
         self._configure_hosts()
         self._connect_controller(c0)
-        output("Testing reachability after configuration...\n")
+        log.info("Testing reachability after configuration...\n")
         # self.net.ping()
-        # output("Testing bandwidth after configuration...\n")
+        # log.info("Testing bandwidth after configuration...\n")
         # self.net.iperf()
 
     def get_net(self):
@@ -288,8 +290,22 @@ class BaseTopo:
                 num_hosts += 1
         return num_hosts
 
+    def _get_log_level(self, log_level):
+        if 50:
+            return "critical"
+        if 40:
+            return "error"
+        if 30:
+            return "warning"
+        if 20:
+            return "info"
+        if 10:
+            return "debug"
+        if 0:
+            return "output"
+
     def _create_network(self, cpu=-1):
-        setLogLevel('warning')
+        setLogLevel(self._get_log_level(log.level))
         self.topo.create_nodes()
         self.topo.create_links()
 
@@ -304,7 +320,7 @@ class BaseTopo:
 
     def stop_network(self):
         if self.started:
-            output("Cleaning up topology and restoring all network variables.")
+            log.info("Cleaning up topology and restoring all network variables.")
             if self.conf["tcp_policy"] == "dctcp":
                 os.system("sysctl -w net.ipv4.tcp_ecn=0")
             # reset the active host congestion control to the previous value

@@ -3,7 +3,8 @@ import sys
 import csv
 from subprocess import Popen as popen
 from time import sleep
-
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 # The binaries are located in the control subfolder
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +12,7 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def parse_traffic_file(traffic_file):
     if not os.path.isfile(traffic_file):
-        print("The input traffic pattern does not exist.")
+        log.info("The input traffic pattern does not exist.")
         return None
     traffic_pattern = []
     with open(traffic_file, 'r') as tf:
@@ -53,10 +54,11 @@ class TrafficGen():
         if transport.lower() in self.SUPPORTED_TRANSPORT:
             self.transport = transport.lower()
         else:
-            print("Fatal: Unknown transport protocol %s!" % transport.lower())
-            print("Supported protocols are: ")
+            log.info("Fatal: Unknown transport protocol %s!" %
+                     transport.lower())
+            log.info("Supported protocols are: ")
             for transport in self.SUPPORTED_TRANSPORT:
-                print(transport)
+                log.info(transport)
             exit(1)
 
     def traffic_is_active(self):
@@ -68,7 +70,7 @@ class TrafficGen():
         return True
 
     def _start_servers(self, hosts, traffic_gen, out_dir):
-        print('*** Starting servers')
+        log.info('*** Starting servers')
         for host in hosts:
             out_file = "%s/%s_server" % (out_dir, host.name)
             server_cmd = traffic_gen
@@ -79,11 +81,11 @@ class TrafficGen():
         # The binary of the host rate limiter
         traffic_ctrl = FILE_DIR + '/control/node_control'
         if not os.path.isfile(traffic_ctrl):
-            print("The traffic controller does not exist.\n"
-                  "Run the install.sh script to compile it.")
+            log.info("The traffic controller does not exist.\n"
+                     "Run the install.sh script to compile it.")
             kill_processes(self.procs)
             exit(1)
-        print('*** Starting controllers')
+        log.info('*** Starting controllers')
         for host in hosts:
             iface_net = host.intfList()[0]
             ifaces_ctrl = host.intfList()[1]
@@ -128,7 +130,7 @@ class TrafficGen():
         dmp_cmd += "-b filesize:%d " % 10e5     # reset capture file after 1GB
         dmp_cmd += "-b files:1 "                # only write one capture file
         dmp_cmd += "-B 500 "                    # mb size of the packet buffer
-        dmp_cmd += "-q "                        # do not print to stdout
+        dmp_cmd += "-q "                        # do not log.info to stdout
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
         dmp_proc = start_process(dmp_cmd, host=None, out_file=dmp_file)
@@ -150,13 +152,13 @@ class TrafficGen():
         self.procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):
-        print('*** Loading file:\n%s' % input_file)
+        log.info('*** Loading file: %s' % input_file)
         if not os.path.basename(input_file) == "all":
             traffic_pattern = parse_traffic_file(input_file)
             if traffic_pattern is None:
                 kill_processes(self.procs)
                 exit(1)
-        print('*** Starting load-generators')
+        log.info('*** Starting load-generators')
         if os.path.basename(input_file) == "all":
             # generate an all-to-all pattern
             for src_host in hosts:
@@ -180,18 +182,18 @@ class TrafficGen():
         ''' Run the traffic generator and monitor all of the interfaces '''
         if not input_file:
             return
-        print('*** Starting traffic')
+        log.info('*** Starting traffic')
         if not os.path.exists(out_dir):
-            print("Result folder %s does not exist, creating..." % out_dir)
+            log.info("Result folder %s does not exist, creating..." % out_dir)
             os.makedirs(out_dir)
 
         hosts = self.topo_conf.get_net().hosts
         # The binary of the traffic generator
         traffic_gen = FILE_DIR + '/goben'
         if not os.path.isfile(traffic_gen):
-            print("The traffic generator does not exist.\n"
-                  "Run the install.sh script with the --goben"
-                  " option to compile it.\n")
+            log.info("The traffic generator does not exist.\n"
+                     "Run the install.sh script with the --goben"
+                     " option to compile it.\n")
             exit(1)
         # Suppress ouput of the traffic generators
         traffic_gen += " -silent "
@@ -203,9 +205,9 @@ class TrafficGen():
         sleep(0.5)
 
     def stop_traffic(self):
-        print('')
+        log.info('')
         if self.traffic_is_active:
-            print('*** Stopping traffic processes')
+            log.info('*** Stopping traffic processes')
             kill_processes(self.procs)
             del self.procs[:]
         sys.stdout.flush()

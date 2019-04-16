@@ -1,6 +1,8 @@
 from __future__ import print_function
 import numpy as np
 import math
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 
 def std_dev_reward(actions):
@@ -72,32 +74,32 @@ class RewardFunction:
         reward = 0
         if "action" in self.reward_model:
             actions = action_reward(actions)
-            # print("action: %f " % tmp_reward, end='')
+            # log.info("action: %f " % tmp_reward, end='')
             reward += actions
         if "bw" in self.reward_model:
             bws = stats[self.stats_dict["bw_rx"]]
             tmp_reward = bw_reward(bws, self.host_ports, self.sw_ports)
-            # print("bw: %f " % tmp_reward, end='')
+            # log.info("bw: %f " % tmp_reward, end='')
             reward += tmp_reward
         if "backlog" in self.reward_model:
             queues = stats[self.stats_dict["backlog"]]
             tmp_reward = queue_reward(queues)
             reward += tmp_reward
-            # print("queue: %f " % tmp_reward, end='')
+            # log.info("queue: %f " % tmp_reward, end='')
         if "joint_backlog" in self.reward_model:
             queues = stats[self.stats_dict["backlog"]]
             tmp_reward = joint_queue_reward(actions, queues)
             reward += tmp_reward
-            # print("joint queue: %f " % tmp_reward, end='')
+            # log.info("joint queue: %f " % tmp_reward, end='')
         if "std_dev" in self.reward_model:
             tmp_reward = std_dev_reward(actions)
             reward += tmp_reward
-            # print("std_dev: %f " % tmp_reward, end='')
+            # log.info("std_dev: %f " % tmp_reward, end='')
         if "fairness" in self.reward_model:
             tmp_reward = fairness_reward(actions)
             reward += tmp_reward
-            # print("fairness: %f " % tmp_reward, end='')
-        # print("Total: %f" % reward)
+            # log.info("fairness: %f " % tmp_reward, end='')
+        # log.info("Total: %f" % reward)
         return reward
 
 

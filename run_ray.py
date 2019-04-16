@@ -12,10 +12,14 @@ from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.trainer import Trainer, with_common_config
 from ray.tune.registry import register_env
 import ray.tune as tune
+from ray.tune.experiment import Experiment
 from ray.tune.schedulers import PopulationBasedTraining
 # Iroko imports
 import dc_gym
 from dc_gym.factories import EnvFactory
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
+
 
 # set up paths
 cwd = os.getcwd()
@@ -131,7 +135,7 @@ def change_owner(directory):
 def check_dir(directory):
     # create the folder if it does not exit
     if not directory == '' and not os.path.exists(directory):
-        print("Folder %s does not exist! Creating..." % directory)
+        log.info("Folder %s does not exist! Creating..." % directory)
         os.makedirs(directory)
         # preserve the original owner
 
@@ -199,7 +203,7 @@ def set_tuning_parameters(agent, config):
 
 def clean():
     ''' A big fat hammer to get rid of all the debris left over by ray '''
-    print("Removing all previous traces of Mininet and ray")
+    log.info("Removing all previous traces of Mininet and ray")
     ray_kill = "sudo kill -9 $(ps aux | grep 'ray' | awk '{print $2}')"
     os.system(ray_kill)
     os.system('sudo mn -c')
@@ -215,7 +219,7 @@ def get_agent(agent_name):
     try:
         agent_class = get_agent_class(agent_name.upper())
     except Exception as e:
-        print("%s Loading basic algorithm" % e)
+        log.info("%s Loading basic algorithm" % e)
         # We use PG as the base class for experiments
         agent_class = type(agent_name.upper(), (MaxAgent,), {})
     return agent_class
@@ -225,27 +229,23 @@ def get_tune_experiment(config, agent):
     SCHEDULE = False
     scheduler = None
     agent_class = get_agent(agent)
-
-    experiment = {
-        agent: {
-            'run': agent_class,
-            'local_dir': ARGS.output_dir,
-            "stop": {"timesteps_total": ARGS.timesteps},
-            "env": "dc_env",
-            "checkpoint_freq": ARGS.checkpoint_freq,
-            "checkpoint_at_end": True,
-            "restore": ARGS.restore,
-        }
-    }
-
+    ex_conf = {}
+    ex_conf["name"] = agent
+    ex_conf["run"] = agent_class
+    ex_conf["local_dir"] = ARGS.output_dir
+    ex_conf["stop"] = {"timesteps_total": ARGS.timesteps}
+    ex_conf["checkpoint_freq"] = ARGS.checkpoint_freq
+    ex_conf["checkpoint_at_end"] = True
+    ex_conf["restore"] = ARGS.restore
     if SCHEDULE:
-        experiment[agent]["stop"] = {"time_total_s": ARGS.timesteps / 2}
-        experiment[agent]["num_samples"] = 2
+        ex_conf["stop"] = {"time_total_s": ARGS.timesteps / 2}
+        ex_conf["num_samples"] = 2
         config["env_config"]["topo_conf"]["parallel_envs"] = True
         # custom changes to experiment
-        print("Performing tune experiment")
+        log.info("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
-    experiment[agent]["config"] = config
+    ex_conf["config"] = config
+    experiment = Experiment(**ex_conf)
     return experiment, scheduler
 
 
@@ -256,14 +256,16 @@ def configure_ray(agent):
             config = json.load(fp)
     except IOError:
         # File does not exist, just initialize an empty configuration.
-        print("Agent configuration does not exist, starting with default.")
+        log.info("Agent configuration does not exist, starting with default.")
         config = {}
     # Add the dynamic environment configuration
+    config["env"] = "dc_env"
     config["clip_actions"] = True
     config["num_workers"] = 1
     config["num_gpus"] = 0
     # config["batch_mode"] = "truncate_episodes"
     config["log_level"] = "ERROR"
+
     config["env_config"] = {
         "input_dir": INPUT_DIR,
         "output_dir": ARGS.output_dir + "/" + ARGS.agent,
@@ -302,25 +304,25 @@ def run(config):
     while steps < ARGS.timesteps:
         output = agent.train()
         steps += output["timesteps_this_iter"]
-        print("Current timesteps %d" % steps)
-    print('Generator Finished. Simulation over. Clearing dc_env...')
+        log.info("Current timesteps %d" % steps)
+    log.info('Generator Finished. Simulation over. Clearing dc_env...')
 
 
 def tune_run(config):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(config, agent)
-    tune.run_experiments(experiment, scheduler=scheduler)
+    tune.run(experiment, config=config, scheduler=scheduler, loggers=[log])
 
 
 def init():
     results_dir = ARGS.output_dir + "/" + ARGS.agent
     check_dir(results_dir)
-    print("Registering the DC environment...")
+    log.info("Registering the DC environment...")
     register_env("dc_env", get_gym)
-    print("Starting Ray...")
-    ray.init(num_cpus=4, logging_level=logging.ERROR)
+    log.info("Starting Ray...")
+    ray.init(num_cpus=2, logging_level=logging.ERROR)
     config = configure_ray(ARGS.agent)
-    print("Starting experiment.")
+    log.info("Starting experiment.")
     # Basic ray train currently does not work, always use tune for now
     if ARGS.tune:
         tune_run(config)
@@ -329,7 +331,7 @@ def init():
     change_owner(results_dir)
     # Wait until the topology is torn down completely
     time.sleep(10)
-    print("Experiment has completed.")
+    log.info("Experiment has completed.")
 
 
 if __name__ == '__main__':

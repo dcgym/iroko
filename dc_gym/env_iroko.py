@@ -4,13 +4,13 @@ import atexit
 import numpy as np
 from gym import Env as openAIGym, spaces
 from dc_gym.control.iroko_bw_control import BandwidthController
-# from tqdm import tqdm
 from multiprocessing import Array
 from ctypes import c_ulong
-
 from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
 from dc_gym.factories import TopoFactory
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
 DEFAULT_CONF = {
     # Input folder of the traffic matrix.
@@ -90,7 +90,7 @@ def relu(action, action_min):
 
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
-                 "reward", "progress_bar", "killed",
+                 "reward", "pbar", "killed",
                  "input_file", "output_dir"]
 
     def __init__(self, conf={}):
@@ -108,7 +108,7 @@ class DCEnv(openAIGym):
         self.set_traffic_matrix(self.conf["tf_index"])
         self.state_man = StateManager(self.conf, self.topo)
         # handle unexpected exits scenarios gracefully
-        print("Registering signal handler.")
+        log.info("Registering signal handler.")
         # signal.signal(signal.SIGINT, self._handle_interrupt)
         # signal.signal(signal.SIGTERM, self._handle_interrupt)
         atexit.register(self.close)
@@ -121,11 +121,8 @@ class DCEnv(openAIGym):
         self.tx_rate.fill(self.topo.max_bps)
         self.bw_ctrl = BandwidthController(
             self.topo.host_ctrl_map, self.tx_rate)
-        # set up variables for the progress bar
         self.steps = 0
         self.reward = 0
-        # self.progress_bar = tqdm(total=self.conf["iterations"], leave=False)
-        # self.progress_bar.clear()
 
         # Finally, initialize traffic
         self.start_traffic()
@@ -133,9 +130,9 @@ class DCEnv(openAIGym):
         self.active = True
 
     def reset(self):
-        print("Stopping environment...")
+        log.info("Stopping environment...")
         self.close()
-        print("Starting environment...")
+        log.info("Starting environment...")
         self._start_env()
         return np.zeros(self.observation_space.shape)
 
@@ -159,7 +156,7 @@ class DCEnv(openAIGym):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float64,
             shape=(num_ports * num_features,))
-        print("Setting action space from %f to %f" % (action_min, action_max))
+        log.info("Setting action space from %f to %f" % (action_min, action_max))
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
 
@@ -179,20 +176,18 @@ class DCEnv(openAIGym):
         for index, a in enumerate(action):
             self.tx_rate[index] = a * self.topo.max_bps
 
-        # self.progress_bar.update(1)
         # done = not self.is_traffic_proc_alive()
-        # self.progress_bar.set_postfix_str(s="%.3f reward" % self.reward)
         done = False
 
-        # print("Iteration %d Actions: " % self.steps, end='')
+        # log.info("Iteration %d Actions: " % self.steps, end='')
         # for index, h_iface in enumerate(self.topo.host_ctrl_map):
         #     rate = action[index]
-        #     print(" %s:%f " % (h_iface, rate), end='')
-        # print('')
-        # print("State:", obs)
-        # print("Reward:", self.reward)
+        #     log.info(" %s:%f " % (h_iface, rate), end='')
+        # log.info('')
+        # log.info("State:", obs)
+        # log.info("Reward:", self.reward)
         # if self.steps & (32 - 1):
-        # print (pred_bw)
+        # log.info(pred_bw)
         # if not self.steps & (64 - 1):
         #     self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
         self.steps = self.steps + 1
@@ -202,33 +197,31 @@ class DCEnv(openAIGym):
         raise NotImplementedError("Method render not implemented!")
 
     def _handle_interrupt(self, signum, frame):
-        print("\nEnvironment: Caught interrupt")
+        log.info("\nEnvironment: Caught interrupt")
         self.close()
         sys.exit(1)
 
     def close(self):
         # if not self.active:
-        #     print("Chill, I am already cleaning up...")
+        #     log.info("Chill, I am already cleaning up...")
         #     return
         # self.active = False
-        # if hasattr(self, 'progress_bar'):
-        #     self.progress_bar.close()
         if hasattr(self, 'state_man'):
-            print("Cleaning all state")
+            log.info("Cleaning all state")
             self.state_man.terminate()
         if hasattr(self, 'bw_ctrl'):
-            print("Stopping bandwidth control.")
+            log.info("Stopping bandwidth control.")
             self.bw_ctrl.terminate()
         if hasattr(self, 'traffic_gen'):
-            print("Stopping traffic")
+            log.info("Stopping traffic")
             self.traffic_gen.stop_traffic()
         if hasattr(self, 'topo'):
-            print("Stopping network.")
+            log.info("Stopping network.")
             self.topo.stop_network()
         if hasattr(self, 'state_man'):
-            print("Removing the state manager.")
+            log.info("Removing the state manager.")
             self.state_man.flush_and_close()
-        print("Done with destroying myself.")
+        log.info("Done with destroying myself.")
 
     def is_traffic_proc_alive(self):
         return self.traffic_gen.traffic_is_active()

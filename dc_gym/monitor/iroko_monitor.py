@@ -1,11 +1,11 @@
 import subprocess
-import re
 import multiprocessing
 import ctypes
 import os
 import time
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
 
-MAX_CAPACITY = 10e6   # Max capacity of link
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -31,7 +31,7 @@ class Collector(multiprocessing.Process):
             try:
                 self._collect()
             except KeyboardInterrupt:
-                print("%s: Caught Interrupt! Exiting..." % self.name)
+                log.error("%s: Caught Interrupt! Exiting..." % self.name)
                 self.kill.set()
         self._clean()
 
@@ -39,7 +39,7 @@ class Collector(multiprocessing.Process):
         raise NotImplementedError("Method _collect not implemented!")
 
     def terminate(self):
-        print("%s: Received termination signal! Exiting.." % self.name)
+        log.info("%s: Received termination signal! Exiting.." % self.name)
         self.kill.set()
 
     def _clean(self):

@@ -1,5 +1,8 @@
 import sys
 import os
+from dc_gym.log import IrokoLogger
+log = IrokoLogger("iroko")
+
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
@@ -20,11 +23,11 @@ class EnvFactory(object):
         env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
 
-        print("Loading environment %s " % env_name)
+        log.info("Loading environment %s " % env_name)
         try:
             BaseEnv = import_from(env_name, env_class)
         except ImportError as e:
-            print("Could not import requested environment: ", e)
+            log.info("Could not import requested environment: ", e)
             exit(1)
         return BaseEnv(config)
 
@@ -37,10 +40,10 @@ class TopoFactory(object):
         env_name = "dc_gym.topos.topo_" + topo_name
         env_class = "TopoConfig"
 
-        print("Loading topology %s " % env_name)
+        log.info("Loading topology %s " % env_name)
         try:
             TopoConfig = import_from(env_name, env_class)
         except ImportError as e:
-            print("Could not import requested topology: ", e)
+            log.info("Could not import requested topology: ", e)
             exit(1)
         return TopoConfig(options)
