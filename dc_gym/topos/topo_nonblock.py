@@ -1,6 +1,8 @@
 import os
 from mininet.topo import Topo
 from topos.topo_base import BaseTopo
+from dc_gym.utils import *
+log = IrokoLogger("iroko")
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology
@@ -99,11 +101,11 @@ class TopoConfig(BaseTopo):
                 cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                     'table=0,idle_timeout=0,hard_timeout=0,priority=40,arp, \
                     nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, i, j, k)
-                os.system(cmd)
+                start_process(cmd)
                 cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
                     'table=0,idle_timeout=0,hard_timeout=0,priority=40,ip, \
                     nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, i, j, k)
-                os.system(cmd)
+                start_process(cmd)
                 j += 1
                 if j == 3:
                     j = 1

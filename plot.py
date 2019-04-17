@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from filelock import FileLock
 import glob
+from dc_gym.utils import check_dir
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -22,13 +23,6 @@ ROOT = "candidates"
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('--input', '-i', dest='input_dir')
 ARGS = PARSER.parse_args()
-
-
-def check_plt_dir(plt_name):
-    plt_dir = os.path.dirname(plt_name)
-    if not plt_dir == '' and not os.path.exists(plt_dir):
-        print("Folder %s does not exist! Creating..." % plt_name)
-        os.makedirs(plt_dir)
 
 
 def parse_config(results_dir):
@@ -171,7 +165,7 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     ax[0].legend(bbox_to_anchor=(0.5, 1.45), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))
     print("Saving plot %s" % plt_name)
-    check_plt_dir(plt_name)
+    check_dir(plt_name)
     plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
     plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
     plt.gcf().clear()

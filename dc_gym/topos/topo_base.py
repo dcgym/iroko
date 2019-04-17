@@ -8,7 +8,7 @@ from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import CPULimitedHost
 from mininet.util import custom
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import *
 log = IrokoLogger("iroko")
 
 cwd = os.getcwd()
@@ -66,13 +66,13 @@ class BaseTopo:
 
     def _set_congestion_control(self, conf):
         if conf["tcp_policy"] == "dctcp":
-            os.system("modprobe tcp_dctcp")
-            os.system("sysctl -w net.ipv4.tcp_ecn=1")
+            start_process("modprobe tcp_dctcp")
+            start_process("sysctl -w net.ipv4.tcp_ecn=1")
         elif conf["tcp_policy"] == "tcp_nv":
-            os.system("modprobe tcp_nv")
+            start_process("modprobe tcp_nv")
         elif conf["tcp_policy"] == "pcc":
             if (os.popen("lsmod | grep pcc").read() == ""):
-                os.system("insmod %s/tcp_pcc.ko" % FILE_DIR)
+                start_process("insmod %s/tcp_pcc.ko" % FILE_DIR)
 
     def _set_host_ip(self, net, topo):
         raise NotImplementedError("Method _set_host_ip not implemented!")
@@ -109,12 +109,12 @@ class BaseTopo:
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1: hfsc default 10"
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
         #     self.max_bps, self.max_bps)
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
         limit = int(self.max_queue)
         avg_pkt_size = 1500  # MTU packet size
@@ -124,12 +124,12 @@ class BaseTopo:
         # cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
         cmd += " direct_qlen %d " % (limit / avg_pkt_size)
         log.debug(tc_cmd + cmd)
-        os.system(tc_cmd + cmd)
+        start_process(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
         cmd = "parent 1: classid 1:10 htb rate %dbit burst %d" % (
             self.max_bps, self.max_bps)
         log.debug(tc_cmd + cmd)
-        os.system(tc_cmd + cmd)
+        start_process(tc_cmd + cmd)
 
         if self.conf["tcp_policy"] == "dctcp":
             marking_threshold = self._calc_ecn(
@@ -150,24 +150,24 @@ class BaseTopo:
             cmd += "probability 0.1"
             cmd += " ecn "
             log.debug(tc_cmd + cmd)
-            os.system(tc_cmd + cmd)
+            start_process(tc_cmd + cmd)
         else:
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
             cmd += " limit %d" % limit
-            os.system(tc_cmd + cmd)
+            start_process(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1 netem limit %d rate 10mbit" % (
         #     limit / avg_pkt_size)
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
         # limit = int(self.conf.max_queue)
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20: codel "
         # cmd += " limit %d" % (limit)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
         # limit = int(self.conf.max_queue)
         # max_q = self.conf.max_queue / 4
@@ -176,14 +176,14 @@ class BaseTopo:
         # cmd = "parent 1:10 handle 20:1 sfq limit %d" % (
         #     self.conf.max_queue)
         # if self.dctcp:
-        #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
+        #     start_process("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
         #     # cmd += "redflowlimit "
         #     # cmd += "min %d " % (min_q)
         #     # cmd += "max %d " % (max_q)
         #     # cmd += "probability 1"
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
         # Apply tc choke to mark excess packets in the queue with ecn
         # limit = int(self.conf.max_queue)
@@ -198,20 +198,20 @@ class BaseTopo:
         # # if self.dctcp:
         # cmd += " ecn "
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 30:1 fq_codel limit %d " % (
         #     self.conf.max_queue)
         # if ("dctcp" in self.conf) and self.conf["dctcp"]:
-        #     os.system("sysctl -w net.ipv4.tcp_ecn=1")
+        #     start_process("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
         # log.info(tc_cmd + cmd)
-        # os.system(tc_cmd + cmd)
+        # start_process(tc_cmd + cmd)
 
-        os.system("ip link set %s txqueuelen %d" %
-                  (port, limit / avg_pkt_size))
-        os.system("ip link set %s mtu 1500" % port)
+        start_process("ip link set %s txqueuelen %d" %
+                      (port, limit / avg_pkt_size))
+        start_process("ip link set %s mtu 1500" % port)
 
     def _config_links(self):
         for switch in self.net.switches:
@@ -322,10 +322,10 @@ class BaseTopo:
         if self.started:
             log.info("Cleaning up topology and restoring all network variables.")
             if self.conf["tcp_policy"] == "dctcp":
-                os.system("sysctl -w net.ipv4.tcp_ecn=0")
+                start_process("sysctl -w net.ipv4.tcp_ecn=0")
             # reset the active host congestion control to the previous value
             cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-            os.system(cmd)
+            start_process(cmd)
             # destroy the mininet
             self.net.stop()
             self.started = False

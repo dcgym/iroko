@@ -3,7 +3,7 @@ import sys
 import csv
 from subprocess import Popen as popen
 from time import sleep
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import *
 log = IrokoLogger("iroko")
 
 # The binaries are located in the control subfolder
@@ -22,23 +22,12 @@ def parse_traffic_file(traffic_file):
     return traffic_pattern
 
 
-def start_process(cmd, host=None, out_file="proc"):
-    out = out_file + ".out"
-    err = out_file + ".err"
-    with open(out, 'w+') as f_out, open(err, 'w+') as f_err:
-        if host is not None:
-            return host.popen(cmd.split(), stdout=f_out, stderr=f_err)
-        return popen(cmd.split(), stdout=f_out, stderr=f_err)
-
-
-def kill_processes(procs):
-    for proc in procs:
-        # kill process, 15 is SIGTERM, 9 is SIGKILL
-        try:
-            os.kill(proc.pid, 15)
-            # os.kill(proc.pid, 9)
-        except OSError:
-            pass
+def start_mn_process(cmd, host, out_file):
+    if host is not None:
+        host_pid = host.pid
+        mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
+        return start_process(mn_cmd, out_file)
+    return start_process(cmd, out_file)
 
 
 class TrafficGen():
@@ -74,7 +63,7 @@ class TrafficGen():
         for host in hosts:
             out_file = "%s/%s_server" % (out_dir, host.name)
             server_cmd = traffic_gen
-            s_proc = start_process(server_cmd, host, out_file)
+            s_proc = start_mn_process(server_cmd, host, out_file)
             self.procs.append(s_proc)
 
     def _start_controllers(self, hosts, out_dir):
@@ -94,7 +83,7 @@ class TrafficGen():
             ctrl_cmd += "-n %s " % iface_net
             ctrl_cmd += "-c %s " % ifaces_ctrl
             ctrl_cmd += "-r %d " % self.topo_conf.conf["max_capacity"]
-            c_proc = start_process(ctrl_cmd, host, out_file)
+            c_proc = start_mn_process(ctrl_cmd, host, out_file)
             self.procs.append(c_proc)
 
     def _start_client(self, traffic_gen, host, out_dir, dst_hosts):
@@ -115,7 +104,7 @@ class TrafficGen():
         traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
-        t_proc = start_process(traffic_cmd, host, out_file)
+        t_proc = start_mn_process(traffic_cmd, host, out_file)
         self.procs.append(t_proc)
 
     def _start_pkt_capture_tshark(self, out_dir):
@@ -133,7 +122,7 @@ class TrafficGen():
         dmp_cmd += "-q "                        # do not log.info to stdout
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
-        dmp_proc = start_process(dmp_cmd, host=None, out_file=dmp_file)
+        dmp_proc = start_process(dmp_cmd, out_file=dmp_file)
         self.procs.append(dmp_proc)
 
     def _start_pkt_capture_tcpdump(self, host, out_dir):
@@ -148,7 +137,7 @@ class TrafficGen():
         dmp_cmd += "%s " % self.transport  # filter for transport protocol
         dmp_cmd += "-Z root "
         dmp_cmd += "-s96 "      # Capture only headers
-        dmp_proc = start_process(dmp_cmd, host, dmp_file)
+        dmp_proc = start_mn_process(dmp_cmd, host, dmp_file)
         self.procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):

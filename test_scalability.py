@@ -15,7 +15,8 @@ from ray.tune.registry import register_env
 import ray.tune as tune
 # Iroko imports
 import dc_gym
-from dc_gym.factories import EnvFactory
+from dc_gym.utils import *
+log = IrokoLogger("iroko")
 # Fixed matplotlib import
 import matplotlib
 matplotlib.use('Agg')
@@ -82,13 +83,6 @@ class MaxAgent(Agent):
         }
 
 
-def check_dir(directory):
-    # create the folder if it does not exit
-    if not directory == '' and not os.path.exists(directory):
-        print("Folder %s does not exist! Creating..." % directory)
-        os.makedirs(directory)
-
-
 def get_env(env_config):
     return EnvFactory.create(env_config)
 
@@ -97,7 +91,7 @@ def get_agent(agent_name):
     try:
         agent_class = get_agent_class(agent_name.upper())
     except Exception as e:
-        print("%s Loading basic algorithm" % e)
+        log.info("%s Loading basic algorithm" % e)
         # We use PG as the base class for experiments
         agent_class = type(agent_name.upper(), (MaxAgent,), {})
     return agent_class
@@ -154,7 +148,7 @@ STATS_DICT = {"backlog": 0, "olimit": 1,
 def check_plt_dir(plt_name):
     plt_dir = os.path.dirname(plt_name)
     if not plt_dir == '' and not os.path.exists(plt_dir):
-        print("Folder %s does not exist! Creating..." % plt_name)
+        log.info("Folder %s does not exist! Creating..." % plt_name)
         os.makedirs(plt_dir)
 
 
@@ -172,12 +166,12 @@ def plot_scalability_graph(increments, data_dirs, plot_dir, name):
         for increment in files:
             stats_file = '%s/%s_hosts/runtime_statistics.npy' % (
                 data_dir, increment)
-            print("Loading %s..." % stats_file)
+            log.info("Loading %s..." % stats_file)
             try:
                 with FileLock(stats_file + ".lock"):
                     statistics = np.load(stats_file).item()
             except Exception:
-                print("Error loading file %s" % stats_file)
+                log.info("Error loading file %s" % stats_file)
                 continue
             port_stats = np.moveaxis(statistics["stats"], 0, -1)
             port_rx_bws = np.array(
@@ -185,7 +179,7 @@ def plot_scalability_graph(increments, data_dirs, plot_dir, name):
             port_tx_bws = np.array(
                 port_stats[STATS_DICT["bw_tx"]].mean(axis=1))
             # bandwidths
-            print("Computing mean of interface bandwidth per step.")
+            log.info("Computing mean of interface bandwidth per step.")
             bw_list["rx"].append(port_rx_bws.sum())
             bw_list["tx"].append(port_tx_bws.sum())
         bw_list["rx"] = [0] + bw_list["rx"]
@@ -206,12 +200,12 @@ def plot_scalability_graph(increments, data_dirs, plot_dir, name):
     fig.set_ylim(ymin=0, ymax=y_increments[len(y_increments) - 1] + 100)
     fig.set_xlim(xmin=0, xmax=increments[len(increments) - 1] + 100)
 
-    print("Test Summary:")
-    print(agg_df)
+    log.info("Test Summary:")
+    log.info(agg_df)
 
     plt_name = "%s/" % (plot_dir)
     plt_name += "%s" % name
-    print("Saving plot %s" % plt_name)
+    log.info("Saving plot %s" % plt_name)
     check_plt_dir(plt_name)
     plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
     plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
@@ -222,7 +216,7 @@ def run(config):
     agent_class = get_agent(config["env_config"]["agent"])
     agent = agent_class(config=config, env="dc_env")
     agent.train()
-    print('Generator Finished. Simulation over. Clearing dc_env...')
+    log.info('Generator Finished. Simulation over. Clearing dc_env...')
 
 
 data_dirs = {
@@ -236,18 +230,18 @@ def init():
     increments = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     if not ARGS.plot:
         check_dir(OUTPUT_DIR)
-        print("Registering the DC environment...")
+        log.info("Registering the DC environment...")
         register_env("dc_env", get_env)
 
-        print("Starting Ray...")
+        log.info("Starting Ray...")
         ray.init(num_cpus=1, logging_level=logging.WARN)
 
         for tf_index, num_hosts in enumerate(increments):
             config = configure_ray(num_hosts, tf_index)
-            print("Starting experiment.")
+            log.info("Starting experiment.")
             tune_run(config)
             time.sleep(10)
-            print("Experiment has completed.")
+            log.info("Experiment has completed.")
         time.sleep(10)
     plot_scalability_graph(increments, data_dirs,
                            PLOT_DIR, os.path.basename(TESTNAME.strip("/")))

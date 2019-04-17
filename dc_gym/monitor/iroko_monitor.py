@@ -3,7 +3,7 @@ import multiprocessing
 import ctypes
 import os
 import time
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import IrokoLogger
 log = IrokoLogger("iroko")
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))

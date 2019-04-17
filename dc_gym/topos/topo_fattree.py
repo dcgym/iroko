@@ -1,6 +1,7 @@
-import os
 from mininet.topo import Topo
 from topos.topo_base import BaseTopo
+from dc_gym.utils import *
+log = IrokoLogger("iroko")
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology
@@ -145,34 +146,29 @@ class TopoConfig(BaseTopo):
 
             # Downstream.
             for i in range(1, topo.density + 1):
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,arp, \
-                    nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, num, i,
-                                                             topo.pod / 2 + i)
-                os.system(cmd)
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,ip, \
-                    nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, num, i,
-                                                             topo.pod / 2 + i)
-                os.system(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=40,arp,nw_dst=10.%d.0.%d,actions=output:%d""" % (sw, num, i, topo.pod / 2 + i)
+                start_process(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=40,ip,nw_dst=10.%d.0.%d,actions=output:%d""" % (sw, num, i, topo.pod / 2 + i)
+                start_process(cmd)
 
             # Upstream.
             if topo.pod == 4:
-                cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                'group_id=1,type=select,bucket=output:1,bucket=output:2'" % sw
+                cmd = """ovs-ofctl add-group %s -O OpenFlow13
+                group_id=1,type=select,bucket=output:1,bucket=output:2""" % sw
             elif topo.pod == 8:
-                cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                'group_id=1,type=select,bucket=output:1,bucket=output:2,\
-                bucket=output:3,bucket=output:4'" % sw
+                cmd = """ovs-ofctl add-group %s -O OpenFlow13
+                group_id=1,type=select,bucket=output:1,bucket=output:2,bucket=output:3,bucket=output:4""" % sw
             else:
                 pass
-            os.system(cmd)
-            cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-            'table=0,priority=10,arp,actions=group:1'" % sw
-            os.system(cmd)
-            cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-            'table=0,priority=10,ip,actions=group:1'" % sw
-            os.system(cmd)
+            start_process(cmd)
+            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+            table=0,priority=10,arp,actions=group:1""" % sw
+            start_process(cmd)
+            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+            table=0,priority=10,ip,actions=group:1""" % sw
+            start_process(cmd)
 
         # Aggregate Switch
         for sw in topo.agg_switches:
@@ -182,49 +178,42 @@ class TopoConfig(BaseTopo):
             # Downstream.
             k = 1
             for i in subnetList:
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,arp, \
-                    nw_dst=10.%d.0.0/16, actions=output:%d'" % (sw, i,
-                                                                topo.pod / 2 + k)
-                os.system(cmd)
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,ip, \
-                    nw_dst=10.%d.0.0/16, actions=output:%d'" % (sw, i,
-                                                                topo.pod / 2 + k)
-                os.system(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=40,arp,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, topo.pod / 2 + k)
+                start_process(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=40,ip,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, topo.pod / 2 + k)
+                start_process(cmd)
                 k += 1
 
             # Upstream.
             if topo.pod == 4:
-                cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                'group_id=1,type=select,bucket=output:1,bucket=output:2'" % sw
+                cmd = """ovs-ofctl add-group %s -O OpenFlow13
+                group_id=1,type=select,bucket=output:1,bucket=output:2""" % sw
             elif topo.pod == 8:
-                cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                'group_id=1,type=select,bucket=output:1,bucket=output:2,\
-                bucket=output:3,bucket=output:4'" % sw
+                cmd = """ovs-ofctl add-group %s -O OpenFlow13
+                group_id=1,type=select,bucket=output:1,bucket=output:2,bucket=output:3,bucket=output:4""" % sw
             else:
                 pass
-            os.system(cmd)
-            cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-            'table=0,priority=10,arp,actions=group:1'" % sw
-            os.system(cmd)
-            cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-            'table=0,priority=10,ip,actions=group:1'" % sw
-            os.system(cmd)
+            start_process(cmd)
+            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+            table=0,priority=10,arp,actions=group:1""" % sw
+            start_process(cmd)
+            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+            table=0,priority=10,ip,actions=group:1""" % sw
+            start_process(cmd)
 
         # Core Switch
         for sw in topo.core_switches:
             j = 1
             k = 1
             for i in range(1, len(topo.edge_switches) + 1):
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=10,arp, \
-                    nw_dst=10.%d.0.0/16, actions=output:%d'" % (sw, i, j)
-                os.system(cmd)
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=10,ip, \
-                    nw_dst=10.%d.0.0/16, actions=output:%d'" % (sw, i, j)
-                os.system(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=10,arp,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, j)
+                start_process(cmd)
+                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
+                    table=0,idle_timeout=0,hard_timeout=0,priority=10,ip,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, j)
+                start_process(cmd)
                 k += 1
                 if k == topo.pod / 2 + 1:
                     j += 1

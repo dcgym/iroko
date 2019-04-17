@@ -6,7 +6,7 @@ import time
 import json
 import socket
 from plot import plot
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import *
 log = IrokoLogger("iroko")
 
 # set up paths
@@ -30,13 +30,6 @@ TOPO = "dumbbell"
 TUNE = True
 RESTORE = False
 RESTORE_PATH = file_dir + "./"
-
-
-def check_dir(directory):
-    # create the folder if it does not exit
-    if not directory == '' and not os.path.exists(directory):
-        log.info("Folder %s does not exist! Creating..." % directory)
-        os.makedirs(directory)
 
 
 def generate_testname(output_dir):

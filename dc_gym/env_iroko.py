@@ -8,8 +8,9 @@ from multiprocessing import Array
 from ctypes import c_ulong
 from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
-from dc_gym.factories import TopoFactory
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import TopoFactory
+from dc_gym.utils import IrokoLogger
+from dc_gym.utils import shmem_to_nparray
 log = IrokoLogger("iroko")
 
 DEFAULT_CONF = {
@@ -43,49 +44,11 @@ DEFAULT_CONF = {
     "collect_flows": False,
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
-    # "action", "bw", "backlog","std_dev", "joint_backlog"
-    "reward_model": ["joint_backlog"],
+    # "action", "queue","std_dev", "joint_queue", "fairness"
+    "reward_model": ["joint_queue"],
     # Are algorithms using their own squashing function or do we have to do it?
     "ext_squashing": True,
 }
-
-
-def shmem_to_nparray(shmem_array, dtype):
-    return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
-
-
-def squash_action(action, action_min, action_max):
-    action_diff = (action_max - action_min)
-    return (np.tanh(action) + 1.0) / 2.0 * action_diff + action_min
-
-
-def scale_range(x, x_min, x_max, y_min, y_max):
-    """ Scales the entries in x which have a range between x_min and x_max
-    to the range defined between y_min and y_max. """
-    # y = a*x + b
-    # a = deltaY/deltaX
-    # b = y_min - a*x_min (or b = y_max - a*x_max)
-    y = (y_max - y_min) / (x_max - x_min) * x + \
-        (y_min * x_max - y_max * x_min) / (x_max - x_min)
-    return y
-
-
-def clip_action(action, action_min, action_max):
-    """ Truncates the entries in x to the range defined between
-    action_min and action_max. """
-    return np.clip(action, action_min, action_max)
-
-
-def sigmoid(x, derivative=False):
-    sigm = 1. / (1. + np.exp(-x))
-    if derivative:
-        return sigm * (1. - sigm)
-    return sigm
-
-
-def relu(action, action_min):
-    action[action < action_min] = action_min
-    return action
 
 
 class DCEnv(openAIGym):
@@ -156,7 +119,8 @@ class DCEnv(openAIGym):
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, dtype=np.float64,
             shape=(num_ports * num_features,))
-        log.info("Setting action space from %f to %f" % (action_min, action_max))
+        log.info("Setting action space from %f to %f" %
+                 (action_min, action_max))
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
 
@@ -228,3 +192,21 @@ class DCEnv(openAIGym):
 
     def start_traffic(self):
         self.traffic_gen.start_traffic(self.input_file, self.output_dir)
+
+
+def squash_action(action, action_min, action_max):
+    action_diff = (action_max - action_min)
+    return (np.tanh(action) + 1.0) / 2.0 * action_diff + action_min
+
+
+def clip_action(action, action_min, action_max):
+    """ Truncates the entries in action to the range defined between
+    action_min and action_max. """
+    return np.clip(action, action_min, action_max)
+
+
+def sigmoid(action, derivative=False):
+    sigm = 1. / (1. + np.exp(-action))
+    if derivative:
+        return sigm * (1. - sigm)
+    return sigm

@@ -16,8 +16,7 @@ from ray.tune.experiment import Experiment
 from ray.tune.schedulers import PopulationBasedTraining
 # Iroko imports
 import dc_gym
-from dc_gym.factories import EnvFactory
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import *
 log = IrokoLogger("iroko")
 
 
@@ -117,27 +116,6 @@ class RandomAgent(Trainer):
             "episode_reward_mean": reward,
             "timesteps_this_iter": steps,
         }
-
-
-def change_owner(directory):
-    import pwd
-    import grp
-    user = os.getlogin()
-    uid = pwd.getpwnam(user).pw_uid
-    gid = grp.getgrnam(user).gr_gid
-    for root, folders, files in os.walk(directory):
-        for folder in folders:
-            os.chown(os.path.join(root, folder), uid, gid)
-        for file in files:
-            os.chown(os.path.join(root, file), uid, gid)
-
-
-def check_dir(directory):
-    # create the folder if it does not exit
-    if not directory == '' and not os.path.exists(directory):
-        log.info("Folder %s does not exist! Creating..." % directory)
-        os.makedirs(directory)
-        # preserve the original owner
 
 
 def get_env(env_config):

@@ -7,12 +7,9 @@ from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
 from dc_gym.iroko_reward import RewardFunction
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import IrokoLogger
+from dc_gym.utils import shmem_to_nparray
 log = IrokoLogger("iroko")
-
-
-def shmem_to_nparray(shmem_array, dtype):
-    return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
 
 
 class StateManager:
@@ -34,8 +31,7 @@ class StateManager:
 
     def start(self, topo_conf):
         self._spawn_collectors(topo_conf)
-        self.dopamin = RewardFunction(
-            topo_conf, self.reward_model, self.STATS_DICT)
+        self.dopamin = RewardFunction(self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
         log.info("Writing collected data to disk")
@@ -128,8 +124,7 @@ class StateManager:
                 state.extend(self.flow_stats[index])
             obs.append(np.array(state))
         # Compute the reward
-        reward = self.dopamin.get_reward(
-            self.stats, self.deltas, curr_action)
+        reward = self.dopamin.get_reward(self.stats, curr_action)
 
         if (do_sample):
             # Save collected data

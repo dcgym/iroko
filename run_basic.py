@@ -4,9 +4,9 @@ import os
 
 # Iroko imports
 import dc_gym
-from dc_gym.factories import EnvFactory
-from dc_gym.log import IrokoLogger
+from dc_gym.utils import *
 log = IrokoLogger("iroko")
+
 
 # set up paths
 cwd = os.getcwd()
@@ -30,13 +30,6 @@ PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
                     help='must be string of either: PPO, DDPG, PG,'
                          ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
 ARGS = PARSER.parse_args()
-
-
-def check_dir(directory):
-    # create the folder if it does not exit
-    if not directory == '' and not os.path.exists(directory):
-        print("Folder %s does not exist! Creating..." % directory)
-        os.makedirs(directory)
 
 
 def test_run(input_dir, output_dir, env, topo):
