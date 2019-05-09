@@ -33,9 +33,9 @@ def start_mn_process(cmd, host, out_file):
 class TrafficGen():
     SUPPORTED_TRANSPORT = ["tcp", "udp"]
 
-    def __init__(self, topo_conf, transport):
+    def __init__(self, topo, transport):
         self.name = 'TrafficGen'
-        self.topo_conf = topo_conf
+        self.topo = topo
         self.procs = []
         self._set_t_type(transport)
 
@@ -82,7 +82,7 @@ class TrafficGen():
             ctrl_cmd = "%s " % traffic_ctrl
             ctrl_cmd += "-n %s " % iface_net
             ctrl_cmd += "-c %s " % ifaces_ctrl
-            ctrl_cmd += "-r %d " % self.topo_conf.conf["max_capacity"]
+            ctrl_cmd += "-r %d " % self.topo.conf["max_capacity"]
             c_proc = start_mn_process(ctrl_cmd, host, out_file)
             self.procs.append(c_proc)
 
@@ -94,7 +94,7 @@ class TrafficGen():
             dst_string += "%s," % dst
         dst_string = dst_string[:len(dst_string) - 1]
         out_file = "%s/%s_client" % (out_dir, host.name)
-        max_rate = self.topo_conf.conf["max_capacity"] / 1e6
+        max_rate = self.topo.conf["max_capacity"] / 1e6
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
         traffic_cmd += "-totalDuration %s " % 2147483647  # infinite runtime
@@ -111,7 +111,7 @@ class TrafficGen():
         # start a tshark capture process
         dmp_file = "%s/pkt_snapshot.pcap" % (out_dir)
         dmp_cmd = "tshark "
-        for host_iface in self.topo_conf.host_ctrl_map:
+        for host_iface in self.topo.host_ctrl_map:
             dmp_cmd += "-i %s " % host_iface
         dmp_cmd += "-w %s " % dmp_file
         dmp_cmd += "-f %s " % self.transport    # filter transport protocol
@@ -176,7 +176,7 @@ class TrafficGen():
             log.info("Result folder %s does not exist, creating..." % out_dir)
             os.makedirs(out_dir)
 
-        hosts = self.topo_conf.get_net().hosts
+        hosts = self.topo.get_net().hosts
         # The binary of the traffic generator
         traffic_gen = FILE_DIR + '/goben'
         if not os.path.isfile(traffic_gen):

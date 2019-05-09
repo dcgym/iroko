@@ -1,4 +1,3 @@
-from mininet.topo import Topo
 from topos.topo_base import BaseTopo
 from dc_gym.utils import *
 log = IrokoLogger("iroko")
@@ -19,19 +18,27 @@ DEFAULT_CONF = {
 }
 
 
-class Fattree(Topo):
+class TopoConfig(BaseTopo):
     """ Class of Fattree Topology. """
 
-    def __init__(self, fanout, num_hosts, switch_id):
+    def __init__(self, conf={}):
+        self.conf = DEFAULT_CONF
+        self.conf.update(conf)
+        BaseTopo.__init__(self, self.conf)
+        self.name = "fattree"
+        fanout = self.conf["fanout"]
+        # check if fanout is valid
+        if fanout not in [4, 8]:
+            log.error("Invalid fanout!")
+            return -1
+        self.host_ips = {}
         # Init Topo
-        Topo.__init__(self)
         self.pod = fanout
-        self.density = num_hosts / (fanout * fanout / 2)
+        self.num_hosts = self.conf["num_hosts"]
+        self.density = self.conf["num_hosts"] / (fanout * fanout / 2)
         self.core_switch_num = (fanout / 2)**2
         self.agg_switch_num = fanout * fanout / 2
         self.edge_switch_num = fanout * fanout / 2
-        self.num_hosts = num_hosts
-        self.switch_id = switch_id
         self.core_switches = []
         self.agg_switches = []
         self.edge_switches = []
@@ -79,24 +86,10 @@ class Fattree(Topo):
                     self.edge_switches[switch],
                     self.hostlist[self.density * switch + i])
 
-
-class TopoConfig(BaseTopo):
-
-    def __init__(self, conf={}):
-        self.conf = DEFAULT_CONF
-        self.conf.update(conf)
-        BaseTopo.__init__(self, self.conf)
-        self.name = "fattree"
-        self.topo = Fattree(
-            fanout=self.conf["fanout"], num_hosts=self.conf["num_hosts"],
-            switch_id=self.switch_id)
-        self._create_network()
-        self.host_ips = {}
-
-    def _set_host_ip(self, net, topo):
+    def _set_host_ip(self, net):
         hostlist = []
-        for k in range(len(topo.hostlist)):
-            hostlist.append(net.get(topo.hostlist[k]))
+        for k in range(len(self.hostlist)):
+            hostlist.append(net.get(self.hostlist[k]))
         i = 1
         j = 1
         for host in hostlist:
@@ -104,24 +97,24 @@ class TopoConfig(BaseTopo):
             host.setIP(ip)
             self.host_ips[host] = ip
             j += 1
-            if j == topo.density + 1:
+            if j == self.density + 1:
                 j = 1
                 i += 1
 
-    def create_subnet_list(self, topo, num):
+    def create_subnet_list(self, num):
         """
             Create the subnet list of the certain Pod.
         """
         subnetlist = []
-        remainder = num % (topo.pod / 2)
-        if topo.pod == 4:
+        remainder = num % (self.pod / 2)
+        if self.pod == 4:
             if remainder == 0:
                 subnetlist = [num - 1, num]
             elif remainder == 1:
                 subnetlist = [num, num + 1]
             else:
                 pass
-        elif topo.pod == 8:
+        elif self.pod == 8:
             if remainder == 0:
                 subnetlist = [num - 3, num - 2, num - 1, num]
             elif remainder == 1:
@@ -136,92 +129,83 @@ class TopoConfig(BaseTopo):
             pass
         return subnetlist
 
-    def _install_proactive(self, net, topo):
+    def _install_proactive(self, net):
         """
             Install proactive flow entries for switches.
         """
-        # Edge Switch
-        for sw in topo.edge_switches:
+        protocols = ["ip", "arp"]
+        switches = self.edge_switches + self.agg_switches + self.core_switches
+        for sw in switches:
             num = int(sw[-1:])
+            ovs_flow_cmd = "ovs-ofctl add-flow %s -O OpenFlow13 " % sw
+            ovs_grp_cmd = "ovs-ofctl add-group %s -O OpenFlow13 " % sw
 
-            # Downstream.
-            for i in range(1, topo.density + 1):
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=40,arp,nw_dst=10.%d.0.%d,actions=output:%d""" % (sw, num, i, topo.pod / 2 + i)
-                start_process(cmd)
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=40,ip,nw_dst=10.%d.0.%d,actions=output:%d""" % (sw, num, i, topo.pod / 2 + i)
+            # Set upstream links of lower level switches
+            if sw in self.edge_switches or sw in self.agg_switches:
+
+                cmd = ovs_grp_cmd
+                cmd += "group_id=1,type=select,"
+                cmd += "bucket=output:1,bucket=output:2"
+                if self.pod == 8:
+                    cmd += ",bucket=output:3,bucket=output:4"
                 start_process(cmd)
 
-            # Upstream.
-            if topo.pod == 4:
-                cmd = """ovs-ofctl add-group %s -O OpenFlow13
-                group_id=1,type=select,bucket=output:1,bucket=output:2""" % sw
-            elif topo.pod == 8:
-                cmd = """ovs-ofctl add-group %s -O OpenFlow13
-                group_id=1,type=select,bucket=output:1,bucket=output:2,bucket=output:3,bucket=output:4""" % sw
-            else:
-                pass
-            start_process(cmd)
-            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-            table=0,priority=10,arp,actions=group:1""" % sw
-            start_process(cmd)
-            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-            table=0,priority=10,ip,actions=group:1""" % sw
-            start_process(cmd)
+                # Configure entries per protocol
+                for prot in protocols:
+                    cmd = ovs_flow_cmd
+                    cmd += "table=0,priority=10,%s,actions=group:1" % prot
+                    start_process(cmd)
 
-        # Aggregate Switch
-        for sw in topo.agg_switches:
-            num = int(sw[-1:])
-            subnetList = self.create_subnet_list(topo, num)
+            # Configure entries per protocol
+            for prot in protocols:
+                # Edge Switches
+                if sw in self.edge_switches:
+                    # Set downstream links
+                    for i in range(1, self.density + 1):
+                        cmd = ovs_flow_cmd
+                        cmd += "table=0,idle_timeout=0,"
+                        cmd += "hard_timeout=0,priority=40,"
+                        cmd += "%s," % prot
+                        cmd += "nw_dst=10.%d.0.%d," % (num, i)
+                        cmd += "actions=output:%d" % (self.pod / 2 + i)
+                        start_process(cmd)
 
-            # Downstream.
-            k = 1
-            for i in subnetList:
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=40,arp,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, topo.pod / 2 + k)
-                start_process(cmd)
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=40,ip,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, topo.pod / 2 + k)
-                start_process(cmd)
-                k += 1
-
-            # Upstream.
-            if topo.pod == 4:
-                cmd = """ovs-ofctl add-group %s -O OpenFlow13
-                group_id=1,type=select,bucket=output:1,bucket=output:2""" % sw
-            elif topo.pod == 8:
-                cmd = """ovs-ofctl add-group %s -O OpenFlow13
-                group_id=1,type=select,bucket=output:1,bucket=output:2,bucket=output:3,bucket=output:4""" % sw
-            else:
-                pass
-            start_process(cmd)
-            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-            table=0,priority=10,arp,actions=group:1""" % sw
-            start_process(cmd)
-            cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-            table=0,priority=10,ip,actions=group:1""" % sw
-            start_process(cmd)
-
-        # Core Switch
-        for sw in topo.core_switches:
-            j = 1
-            k = 1
-            for i in range(1, len(topo.edge_switches) + 1):
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=10,arp,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, j)
-                start_process(cmd)
-                cmd = """ovs-ofctl add-flow %s -O OpenFlow13
-                    table=0,idle_timeout=0,hard_timeout=0,priority=10,ip,nw_dst=10.%d.0.0/16, actions=output:%d""" % (sw, i, j)
-                start_process(cmd)
-                k += 1
-                if k == topo.pod / 2 + 1:
-                    j += 1
+                # Aggregation Switches
+                if sw in self.agg_switches:
+                    # Set downstream links
+                    subnetList = self.create_subnet_list(num)
                     k = 1
+                    for i in subnetList:
+                        cmd = ovs_flow_cmd
+                        cmd += "table=0,idle_timeout=0,"
+                        cmd += "hard_timeout=0,priority=40,"
+                        cmd += "%s," % prot
+                        cmd += "nw_dst=10.%d.0.0/16," % i
+                        cmd += "actions=output:%d" % (self.pod / 2 + k)
+                        start_process(cmd)
+                        k += 1
+
+                # Core Switches
+                if sw in self.core_switches:
+                    # Set downstream links
+                    j = 1
+                    k = 1
+                    for i in range(1, len(self.edge_switches) + 1):
+                        cmd = ovs_flow_cmd
+                        cmd += "table=0,idle_timeout=0,"
+                        cmd += "hard_timeout=0,priority=10,"
+                        cmd += "%s," % prot
+                        cmd += "nw_dst=10.%d.0.0/16," % i
+                        cmd += "actions=output:%d" % j
+                        start_process(cmd)
+                        k += 1
+                        if k == self.pod / 2 + 1:
+                            j += 1
+                            k = 1
 
     def _config_topo(self):
         # Set hosts IP addresses.
-        self._set_host_ip(self.net, self.topo)
+        self._set_host_ip(self.net)
         # Install proactive flow entries
         if self.conf["ecmp"]:
-            self._install_proactive(self.net, self.topo)
+            self._install_proactive(self.net)

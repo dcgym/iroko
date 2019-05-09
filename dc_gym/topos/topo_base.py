@@ -8,7 +8,10 @@ from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import CPULimitedHost
 from mininet.util import custom
+from mininet.topo import Topo
+
 from dc_gym.utils import *
+
 log = IrokoLogger("iroko")
 
 cwd = os.getcwd()
@@ -23,13 +26,13 @@ DEFAULT_CONF = {
 }
 
 
-class BaseTopo:
+class BaseTopo(Topo):
 
     def __init__(self, conf={}):
+        Topo.__init__(self)
         self.conf = DEFAULT_CONF
         self.conf.update(conf)
         self.name = "base"
-        self.topo = None
         self.started = False
         self.host_ctrl_map = {}
         self.net = None
@@ -78,13 +81,13 @@ class BaseTopo:
         raise NotImplementedError("Method _set_host_ip not implemented!")
 
     def _connect_controller(self, controller):
-        for i, host in enumerate(self.topo.hostlist):
+        for i, host in enumerate(self.hostlist):
             # Configure host
             self.net.addLink(controller, host)
             # Configure controller
             ctrl_iface = "%sc0-eth%d" % (self.switch_id, i)
 
-            for index, switch in self.topo.ports[host].items():
+            for index, switch in self.ports[host].items():
                 switch_iface = switch[0] + "-eth" + str(switch[1])
                 self.host_ctrl_map[switch_iface] = ctrl_iface
 
@@ -219,7 +222,7 @@ class BaseTopo:
                 if port.name != "lo":
                     self._apply_qdisc(port)
 
-    def _configure_hosts(self):
+    def _config_hosts(self):
         for host in self.net.hosts:
             # Increase the maximum total buffer-space allocatable
             # This is measured in units of pages (4096 bytes)
@@ -240,15 +243,15 @@ class BaseTopo:
         import time
         time.sleep(10)
 
-    def _configure_network(self):
+    def _config_network(self):
         c0 = RemoteController(self.switch_id + "c0")
         self.net.addController(c0)
         self._config_links()
         self._config_topo()
-        self._configure_hosts()
+        self._config_hosts()
         self._connect_controller(c0)
         log.info("Testing reachability after configuration...\n")
-        # self.net.ping()
+        self.net.ping()
         # log.info("Testing bandwidth after configuration...\n")
         # self.net.iperf()
 
@@ -256,7 +259,7 @@ class BaseTopo:
         return self.net
 
     def get_topo(self):
-        return self.topo
+        return self
 
     def get_traffic_pattern(self, index):
         # start an all-to-all pattern if the list index is -1
@@ -275,8 +278,8 @@ class BaseTopo:
 
     def get_num_sw_ports(self):
         sw_ports = 0
-        for node, links in self.topo.ports.items():
-            if self.topo.isSwitch(node):
+        for node, links in self.ports.items():
+            if self.isSwitch(node):
                 sw_ports += len(links)
         return sw_ports
 
@@ -285,8 +288,8 @@ class BaseTopo:
 
     def get_num_hosts(self):
         num_hosts = 0
-        for node, links in self.topo.ports.items():
-            if not self.topo.isSwitch(node):
+        for node, links in self.ports.items():
+            if not self.isSwitch(node):
                 num_hosts += 1
         return num_hosts
 
@@ -304,18 +307,17 @@ class BaseTopo:
         if 0:
             return "output"
 
-    def _create_network(self, cpu=-1):
+    def create_network(self, cpu=-1):
         setLogLevel(self._get_log_level(log.level))
-        self.topo.create_nodes()
-        self.topo.create_links()
+        self.create_nodes()
+        self.create_links()
 
     def start_network(self):
         # Start Mininet
         host = custom(CPULimitedHost)
-        self.net = Mininet(topo=self.topo,
-                           controller=None, autoSetMacs=True)
+        self.net = Mininet(topo=self, controller=None, autoSetMacs=True)
         self.net.start()
-        self._configure_network()
+        self._config_network()
         self.started = True
 
     def stop_network(self):

@@ -19,18 +19,18 @@ class StateManager:
                  "stats_keys", "data", "dopamin", "stats",
                  "flow_stats", "procs", "collect_flows", "reward_model"]
 
-    def __init__(self, config, topo_conf):
+    def __init__(self, config, topo):
         self.stats_keys = config["state_model"]
         self.collect_flows = config["collect_flows"]
         self.reward_model = config["reward_model"]
         self.deltas = None
         self.prev_stats = None
         self._set_data_checkpoints(config["output_dir"])
-        self.num_ports = topo_conf.get_num_sw_ports()
-        self._init_stats_matrices(self.num_ports, topo_conf.get_num_hosts())
+        self.num_ports = topo.get_num_sw_ports()
+        self._init_stats_matrices(self.num_ports, topo.get_num_hosts())
 
-    def start(self, topo_conf):
-        self._spawn_collectors(topo_conf)
+    def start(self, topo):
+        self._spawn_collectors(topo)
         self.dopamin = RewardFunction(self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
@@ -68,18 +68,18 @@ class StateManager:
         self.prev_stats = self.stats.copy()
         self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
 
-    def _spawn_collectors(self, topo_conf):
-        sw_ports = topo_conf.get_sw_ports()
-        host_ports = topo_conf.get_host_ports()
-        host_ips = topo_conf.host_ips.values()
+    def _spawn_collectors(self, topo):
+        sw_ports = topo.get_sw_ports()
+        host_ports = topo.get_host_ports()
+        host_ips = topo.host_ips.values()
         # Launch an asynchronous queue collector
         proc = QueueCollector(
-            sw_ports, self.stats, self.STATS_DICT, topo_conf.max_queue)
+            sw_ports, self.stats, self.STATS_DICT, topo.max_queue)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector
         proc = BandwidthCollector(
-            host_ports, self.stats, self.STATS_DICT, topo_conf.max_bps)
+            host_ports, self.stats, self.STATS_DICT, topo.max_bps)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector

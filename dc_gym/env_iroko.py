@@ -62,7 +62,7 @@ class DCEnv(openAIGym):
         self.active = False
         # initialize the topology
         self.topo = self._create_topo(self.conf)
-
+        self.topo.create_network()
         # set the dimensions of the state matrix
         self._set_gym_spaces(self.conf)
         # Set the active traffic matrix

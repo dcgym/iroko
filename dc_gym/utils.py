@@ -31,6 +31,8 @@ def start_process(cmd, out_file=subprocess.STDOUT):
         return subprocess.Popen(cmd.split())
     out = out_file + ".out"
     err = out_file + ".err"
+    log = IrokoLogger("iroko")
+    log.debug("Executing %s " % cmd)
     with open(out, 'w+') as f_out, open(err, 'w+') as f_err:
         return subprocess.Popen(cmd.split(), stdout=f_out, stderr=f_err)
 

@@ -1,0 +1,2158 @@
+2019-05-09 19:37:58,062 - iroko - INFO - Registering the DC environment...
+2019-05-09 19:37:58,062 - iroko - INFO - Registering the DC environment...
+2019-05-09 19:37:58,062 - iroko - INFO - Starting Ray...
+2019-05-09 19:37:58,062 - iroko - INFO - Starting Ray...
+2019-05-09 19:37:58,395 - iroko - INFO - Agent configuration does not exist, starting with default.
+2019-05-09 19:37:58,395 - iroko - INFO - Agent configuration does not exist, starting with default.
+2019-05-09 19:37:58,396 - iroko - INFO - Starting experiment.
+2019-05-09 19:37:58,396 - iroko - INFO - Starting experiment.
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,448 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,571 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,572 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,573 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,574 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,575 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:37:58,579 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,301 - iroko - INFO - Loading topology dc_gym.topos.topo_dumbbell 
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,323 - iroko - INFO - Host h0 IP 10.2.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,324 - iroko - INFO - Host h1 IP 10.1.0.1
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h2 IP 10.2.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,325 - iroko - INFO - Host h3 IP 10.1.0.2
+
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,326 - iroko - INFO - Setting action space from 0.001000 to 1.000000
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,330 - iroko - INFO - Registering signal handler.
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,602 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,603 - iroko - INFO - Stopping network.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,604 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:00,605 - iroko - INFO - Starting environment...
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:11,432 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,262 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,264 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,331 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,407 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:12,409 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,404 - iroko - INFO - Current timesteps 200
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,675 - iroko - INFO - Current timesteps 400
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:13,925 - iroko - INFO - Current timesteps 600
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,199 - iroko - INFO - Current timesteps 800
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,454 - iroko - INFO - Current timesteps 1000
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,675 - iroko - INFO - Current timesteps 1200
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:14,895 - iroko - INFO - Current timesteps 1400
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,157 - iroko - INFO - Current timesteps 1600
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,446 - iroko - INFO - Current timesteps 1800
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:15,762 - iroko - INFO - Current timesteps 2000
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,074 - iroko - INFO - Current timesteps 2200
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,374 - iroko - INFO - Current timesteps 2400
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,655 - iroko - INFO - Current timesteps 2600
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:16,846 - iroko - INFO - Current timesteps 2800
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,018 - iroko - INFO - Current timesteps 3000
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,238 - iroko - INFO - Current timesteps 3200
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,415 - iroko - INFO - Current timesteps 3400
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,586 - iroko - INFO - Current timesteps 3600
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,789 - iroko - INFO - Current timesteps 3800
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:17,972 - iroko - INFO - Current timesteps 4000
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,135 - iroko - INFO - Current timesteps 4200
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,334 - iroko - INFO - Current timesteps 4400
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,520 - iroko - INFO - Current timesteps 4600
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,689 - iroko - INFO - Current timesteps 4800
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:18,869 - iroko - INFO - Current timesteps 5000
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,061 - iroko - INFO - Current timesteps 5200
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,257 - iroko - INFO - Current timesteps 5400
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,448 - iroko - INFO - Current timesteps 5600
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,643 - iroko - INFO - Current timesteps 5800
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:19,828 - iroko - INFO - Current timesteps 6000
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,026 - iroko - INFO - Current timesteps 6200
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,219 - iroko - INFO - Current timesteps 6400
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,408 - iroko - INFO - Current timesteps 6600
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,613 - iroko - INFO - Current timesteps 6800
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:20,873 - iroko - INFO - Current timesteps 7000
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,169 - iroko - INFO - Current timesteps 7200
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,482 - iroko - INFO - Current timesteps 7400
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:21,799 - iroko - INFO - Current timesteps 7600
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,137 - iroko - INFO - Current timesteps 7800
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,513 - iroko - INFO - Current timesteps 8000
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:22,917 - iroko - INFO - Current timesteps 8200
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,265 - iroko - INFO - Current timesteps 8400
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:23,644 - iroko - INFO - Current timesteps 8600
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,032 - iroko - INFO - Current timesteps 8800
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,446 - iroko - INFO - Current timesteps 9000
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,791 - iroko - INFO - Current timesteps 9200
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:24,964 - iroko - INFO - Current timesteps 9400
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,165 - iroko - INFO - Current timesteps 9600
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,391 - iroko - INFO - Current timesteps 9800
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,611 - iroko - INFO - Stopping environment...
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,613 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,615 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,616 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,617 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,618 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,620 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,621 - iroko - INFO - 
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,623 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,624 - iroko - INFO - Stopping network.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:25,626 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,459 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,461 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,463 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,749 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:26,751 - iroko - INFO - Starting environment...
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:37,817 - iroko - INFO - Testing reachability after configuration...
+
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,602 - iroko - INFO - *** Starting traffic
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,604 - iroko - INFO - *** Starting servers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,658 - iroko - INFO - *** Starting controllers
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,717 - iroko - INFO - *** Loading file: /mnt/windows/Projekte/iroko/dc_gym/inputs/dumbbell/incast_2
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:38,721 - iroko - INFO - *** Starting load-generators
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,369 - iroko - INFO - Current timesteps 10000
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,370 - iroko - INFO - Generator Finished. Simulation over. Clearing dc_env...
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,372 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,375 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,377 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,379 - iroko - INFO - QueueCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,381 - iroko - INFO - StatsCollector: Received termination signal! Exiting..
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,383 - iroko - INFO - Stopping bandwidth control.
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,386 - iroko - INFO - PolicyEnforcer: Received termination signal! Exiting..
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,388 - iroko - INFO - Stopping traffic
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,390 - iroko - INFO - 
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,392 - iroko - INFO - *** Stopping traffic processes
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,395 - iroko - INFO - Stopping network.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:39,397 - iroko - INFO - Cleaning up topology and restoring all network variables.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,239 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,249 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,257 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:40,266 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,395 - iroko - INFO - Experiment has completed.
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,400 - iroko - INFO - Cleaning all state
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,404 - iroko - INFO - Stopping network.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,407 - iroko - INFO - Removing the state manager.
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,410 - iroko - INFO - Writing collected data to disk
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,414 - iroko - INFO - Saving statistics...
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
+2019-05-09 19:38:49,417 - iroko - INFO - Done with destroying myself.
