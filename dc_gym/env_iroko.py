@@ -96,7 +96,20 @@ class DCEnv(openAIGym):
 
     def reset(self):
         log.info("Stopping environment...")
-        self.close()
+        if hasattr(self, 'state_man'):
+            log.info("Cleaning all state")
+            self.state_man.terminate()
+        if hasattr(self, 'bw_ctrl'):
+            log.info("Stopping bandwidth control.")
+            self.bw_ctrl.terminate()
+        if hasattr(self, 'traffic_gen'):
+            log.info("Stopping traffic")
+            self.traffic_gen.stop_traffic()
+        if hasattr(self, 'state_man'):
+            log.info("Removing the state manager.")
+            self.state_man.flush_and_close()
+        log.info("Done with destroying myself.")
+
         log.info("Starting environment...")
         self._start_env()
         return np.zeros(self.observation_space.shape)

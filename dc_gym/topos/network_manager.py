@@ -41,7 +41,18 @@ def calc_ecn(max_throughput, avg_pkt_size):
     return marking_threshold
 
 
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(
+                Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
 class NetworkManager():
+    __metaclass__ = Singleton
 
     def __init__(self, topo, tcp_policy="tcp"):
         self.topo = topo
@@ -50,6 +61,7 @@ class NetworkManager():
         self.tcp_policy = tcp_policy
         self.prev_cc = get_congestion_control()
         load_congestion_control(tcp_policy)
+        self.active = False
         self.start_network()
 
     def _apply_qdisc(self, port):
@@ -207,8 +219,8 @@ class NetworkManager():
         self._config_links(net)
         self._config_hosts(net)
         self._connect_controller(net)
-        log.info("Testing reachability after configuration...\n")
-        net.ping()
+        # log.info("Testing reachability after configuration...\n")
+        # net.ping()
         # log.info("Testing bandwidth after configuration...\n")
         # net.iperf()
 
@@ -235,13 +247,16 @@ class NetworkManager():
         self.net = Mininet(topo=self.topo, controller=None, autoSetMacs=True)
         self.net.start()
         self._config_network(self.net)
+        self.active = True
 
     def stop_network(self):
-        log.info("Cleaning up topology and restoring all network variables.")
-        if self.tcp_policy == "dctcp":
-            start_process("sysctl -w net.ipv4.tcp_ecn=0")
-        # reset the active host congestion control to the previous value
-        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-        start_process(cmd)
-        # destroy all virtual interfaces and switches
-        self.net.stop()
+        if self.active:
+            log.info("Removing interfaces and restoring all network state.")
+            if self.tcp_policy == "dctcp":
+                start_process("sysctl -w net.ipv4.tcp_ecn=0")
+            # reset the active host congestion control to the previous value
+            cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+            start_process(cmd)
+            # destroy all virtual interfaces and switches
+            self.net.stop()
+            self.active = False
