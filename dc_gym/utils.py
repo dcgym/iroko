@@ -37,6 +37,14 @@ def start_process(cmd, out_file=subprocess.STDOUT):
         return subprocess.Popen(cmd.split(), stdout=f_out, stderr=f_err)
 
 
+def start_mn_process(cmd, host, out_file=subprocess.STDOUT):
+    if host is not None:
+        host_pid = host.pid
+        mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
+        return start_process(mn_cmd, out_file)
+    return start_process(cmd, out_file)
+
+
 def kill_processes(procs):
     for proc in procs:
         # kill process, 15 is SIGTERM, 9 is SIGKILL
@@ -100,12 +108,14 @@ class TopoFactory(object):
     @staticmethod
     def create(topo_name, options):
         env_name = "dc_gym.topos.topo_" + topo_name
-        env_class = "TopoConfig"
+        env_class = "IrokoTopo"
         log = IrokoLogger("iroko")
         log.info("Loading topology %s " % env_name)
         try:
-            TopoConfig = import_from(env_name, env_class)
+            IrokoTopo = import_from(env_name, env_class)
         except ImportError as e:
             log.info("Could not import requested topology: %s" % e)
             exit(1)
-        return TopoConfig(options)
+        topo = IrokoTopo(options)
+        topo.create_topo()
+        return topo

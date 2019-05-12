@@ -1,5 +1,3 @@
-import os
-from mininet.topo import Topo
 from topos.topo_base import BaseTopo
 from dc_gym.utils import *
 log = IrokoLogger("iroko")
@@ -18,93 +16,63 @@ DEFAULT_CONF = {
 }
 
 
-class NonBlocking(Topo):
-    """
-            Class of NonBlocking Topology.
-    """
-    switchlist = []
-    hostlist = []
-
-    def __init__(self, num_hosts, switch_id):
-        # Topo initiation
-        Topo.__init__(self)
-        self.core_switch = 1
-        self.num_hosts = num_hosts
-        self.switch_id = switch_id
-
-    def create_nodes(self):
-        self.create_core_switch(self.core_switch)
-        self.create_hosts(self.num_hosts)
-
-    def _add_switch(self, number, switch_list):
-        """
-                Create switches.
-        """
-        for index in range(1, number + 1):
-            sw_name = "%ss%d" % (self.switch_id, index)
-            switch_list.append(self.addSwitch(sw_name))
-
-    def create_core_switch(self, NUMBER):
-        self._add_switch(NUMBER, self.switchlist)
-
-    def create_hosts(self, num):
-        """ Create hosts. """
-        for i in range(1, num + 1):
-            host_name = "h%d" % i
-            self.hostlist.append(self.addHost(host_name, cpu=1.0 / num))
-
-    def create_links(self):
-        """
-                Add links between switch and hosts.
-        """
-        for sw in self.switchlist:
-            for host in self.hostlist:
-                # use_htb=False
-                self.addLink(sw, host)
-
-
-class TopoConfig(BaseTopo):
-    NAME = "nonblock"
+class IrokoTopo(BaseTopo):
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
         self.conf.update(conf)
         BaseTopo.__init__(self, self.conf)
-        self.topo = NonBlocking(
-            num_hosts=self.conf["num_hosts"], switch_id=self.switch_id)
-        self._create_network()
-        self.host_ips = {}
+        self.name = "dumbbell"
+        self.core_switch = None
 
-    def _set_host_ip(self, net, topo):
-        hostlist = []
-        for k in range(len(topo.hostlist)):
-            hostlist.append(net.get(topo.hostlist[k]))
+    def create_nodes(self):
+        self.create_core_switch()
+        self.create_hosts(self.conf["num_hosts"])
+
+    def create_core_switch(self):
+        sw_name = "%ss1" % self.switch_id
+        self.core_switch = self.addSwitch(sw_name)
+
+    def create_hosts(self, num):
         i = 1
         j = 1
-        for host in hostlist:
+        """ Create hosts. """
+        for host_num in range(1, num + 1):
+            host_name = "h%d" % host_num
             ip = "10.%d.0.%d" % (i, j)
-            host.setIP(ip)
+            host = self.addHost(host_name, cpu=1.0 / num, ip=ip)
             self.host_ips[host] = ip
+            self.host_list.append(host)
             j += 1
             if j == 3:
                 j = 1
                 i += 1
 
-    def _install_proactive(self, topo):
+    def create_links(self):
+        """
+                Add links between switch and hosts.
+        """
+        for host in self.host_list:
+            self.addLink(self.core_switch, host)
+
+    def _install_proactive(self):
         """
                 Install proactive flow entries for the switch.
         """
-        for sw in topo.switchlist:
+        protocols = ["ip", "arp"]
+        # West Switch
+        ovs_flow_cmd = "ovs-ofctl add-flow %s " % self.core_switch
+        ovs_flow_cmd += "-O OpenFlow13 "
+        for prot in protocols:
             i = 1
             j = 1
-            for k in range(1, topo.num_hosts + 1):
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,arp, \
-                    nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, i, j, k)
-                start_process(cmd)
-                cmd = "ovs-ofctl add-flow %s -O OpenFlow13 \
-                    'table=0,idle_timeout=0,hard_timeout=0,priority=40,ip, \
-                    nw_dst=10.%d.0.%d,actions=output:%d'" % (sw, i, j, k)
+            for k in range(1, self.conf["num_hosts"] + 1):
+                cmd = ovs_flow_cmd
+                cmd += "table=0,idle_timeout=0,"
+                cmd += "hard_timeout=0,priority=10,"
+                cmd += "nw_dst=10.%d.0.%d," % (i, j)
+                cmd += "%s," % prot
+                cmd += "actions=output:%d" % k
                 start_process(cmd)
                 j += 1
                 if j == 3:
@@ -113,5 +81,4 @@ class TopoConfig(BaseTopo):
 
     def _config_topo(self):
         # Set hosts IP addresses.
-        self._set_host_ip(self.net, self.topo)
-        self._install_proactive(self.topo)
+        self._install_proactive()

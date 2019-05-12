@@ -10,7 +10,7 @@ DEFAULT_CONF = {
 }
 
 
-class TopoConfig(BaseTopo):
+class IrokoTopo(BaseTopo):
     """
             A Dumbbell Topology Class.
     """
@@ -19,18 +19,17 @@ class TopoConfig(BaseTopo):
         self.conf = DEFAULT_CONF
         self.conf.update(conf)
         BaseTopo.__init__(self, self.conf)
-        self.num_hosts = self.conf["num_hosts"]
         self.name = "dumbbell"
+
         # Topo initiation
         self.switch_w = None
         self.switch_e = None
         self.hosts_w = []
         self.hosts_e = []
-        self.host_ips = {}
 
     def create_nodes(self):
         self._create_switches()
-        self._create_hosts(self.num_hosts)
+        self._create_hosts(self.conf["num_hosts"])
 
     def _create_switches(self):
         sw_w_name = self.switch_id + "s1"
@@ -54,10 +53,10 @@ class TopoConfig(BaseTopo):
                 ip = "10.2.%d.%d" % (c_class, (d_class + 2) / 2)
                 host = self.addHost(name=name, cpu=1.0 / num, ip=ip)
                 self.hosts_e.append(host)
-            log.info("Host %s IP %s\n" % (host, ip))
+            log.info("Host %s IP %s" % (host, ip))
             self.host_ips[host] = ip
 
-        self.hostlist = self.hosts_w + self.hosts_e
+        self.host_list = self.hosts_w + self.hosts_e
 
     def create_links(self):
         """

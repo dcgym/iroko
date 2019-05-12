@@ -18,7 +18,7 @@ DEFAULT_CONF = {
 }
 
 
-class TopoConfig(BaseTopo):
+class IrokoTopo(BaseTopo):
     """ Class of Fattree Topology. """
 
     def __init__(self, conf={}):
@@ -26,29 +26,26 @@ class TopoConfig(BaseTopo):
         self.conf.update(conf)
         BaseTopo.__init__(self, self.conf)
         self.name = "fattree"
-        fanout = self.conf["fanout"]
+
+        # Init Topo
+        self.fanout = self.conf["fanout"]
         # check if fanout is valid
-        if fanout not in [4, 8]:
+        if self.fanout not in [4, 8]:
             log.error("Invalid fanout!")
             return -1
-        self.host_ips = {}
-        # Init Topo
-        self.pod = fanout
-        self.num_hosts = self.conf["num_hosts"]
-        self.density = self.conf["num_hosts"] / (fanout * fanout / 2)
-        self.core_switch_num = (fanout / 2)**2
-        self.agg_switch_num = fanout * fanout / 2
-        self.edge_switch_num = fanout * fanout / 2
+        self.density = self.conf["num_hosts"] / (self.fanout**2 / 2)
+        self.core_switch_num = (self.fanout / 2)**2
+        self.agg_switch_num = self.fanout**2 / 2
+        self.edge_switch_num = self.fanout**2 / 2
         self.core_switches = []
         self.agg_switches = []
         self.edge_switches = []
-        self.hostlist = []
 
     def create_nodes(self):
         self._add_switches(self.core_switch_num, 1, self.core_switches)
         self._add_switches(self.agg_switch_num, 2, self.agg_switches)
         self._add_switches(self.edge_switch_num, 3, self.edge_switches)
-        self.create_hosts(self.num_hosts)
+        self.create_hosts(self.conf["num_hosts"])
 
     def _add_switches(self, number, level, switch_list):
         """ Create switches. """
@@ -57,15 +54,24 @@ class TopoConfig(BaseTopo):
             switch_list.append(self.addSwitch(sw_name))
 
     def create_hosts(self, num):
+        i = 1
+        j = 1
         """ Create hosts. """
-        for i in range(1, num + 1):
-            host_name = "h%d" % i
-            self.hostlist.append(self.addHost(host_name, cpu=1.0 / num))
+        for host_num in range(1, num + 1):
+            host_name = "h%d" % host_num
+            ip = "10.%d.0.%d" % (i, j)
+            host = self.addHost(host_name, cpu=1.0 / num, ip=ip)
+            self.host_ips[host] = ip
+            self.host_list.append(host)
+            j += 1
+            if j == self.density + 1:
+                j = 1
+                i += 1
 
     def create_links(self):
         """ Add network links. """
         # Core to Agg
-        end = self.pod / 2
+        end = self.fanout / 2
         for switch in range(0, self.agg_switch_num, end):
             for i in range(0, end):
                 for j in range(0, end):
@@ -84,37 +90,22 @@ class TopoConfig(BaseTopo):
             for i in range(0, self.density):
                 self.addLink(
                     self.edge_switches[switch],
-                    self.hostlist[self.density * switch + i])
-
-    def _set_host_ip(self, net):
-        hostlist = []
-        for k in range(len(self.hostlist)):
-            hostlist.append(net.get(self.hostlist[k]))
-        i = 1
-        j = 1
-        for host in hostlist:
-            ip = "10.%d.0.%d" % (i, j)
-            host.setIP(ip)
-            self.host_ips[host] = ip
-            j += 1
-            if j == self.density + 1:
-                j = 1
-                i += 1
+                    self.host_list[self.density * switch + i])
 
     def create_subnet_list(self, num):
         """
             Create the subnet list of the certain Pod.
         """
         subnetlist = []
-        remainder = num % (self.pod / 2)
-        if self.pod == 4:
+        remainder = num % (self.fanout / 2)
+        if self.fanout == 4:
             if remainder == 0:
                 subnetlist = [num - 1, num]
             elif remainder == 1:
                 subnetlist = [num, num + 1]
             else:
                 pass
-        elif self.pod == 8:
+        elif self.fanout == 8:
             if remainder == 0:
                 subnetlist = [num - 3, num - 2, num - 1, num]
             elif remainder == 1:
@@ -129,7 +120,7 @@ class TopoConfig(BaseTopo):
             pass
         return subnetlist
 
-    def _install_proactive(self, net):
+    def _install_proactive(self):
         """
             Install proactive flow entries for switches.
         """
@@ -146,7 +137,7 @@ class TopoConfig(BaseTopo):
                 cmd = ovs_grp_cmd
                 cmd += "group_id=1,type=select,"
                 cmd += "bucket=output:1,bucket=output:2"
-                if self.pod == 8:
+                if self.fanout == 8:
                     cmd += ",bucket=output:3,bucket=output:4"
                 start_process(cmd)
 
@@ -167,7 +158,7 @@ class TopoConfig(BaseTopo):
                         cmd += "hard_timeout=0,priority=40,"
                         cmd += "%s," % prot
                         cmd += "nw_dst=10.%d.0.%d," % (num, i)
-                        cmd += "actions=output:%d" % (self.pod / 2 + i)
+                        cmd += "actions=output:%d" % (self.fanout / 2 + i)
                         start_process(cmd)
 
                 # Aggregation Switches
@@ -181,7 +172,7 @@ class TopoConfig(BaseTopo):
                         cmd += "hard_timeout=0,priority=40,"
                         cmd += "%s," % prot
                         cmd += "nw_dst=10.%d.0.0/16," % i
-                        cmd += "actions=output:%d" % (self.pod / 2 + k)
+                        cmd += "actions=output:%d" % (self.fanout / 2 + k)
                         start_process(cmd)
                         k += 1
 
@@ -199,13 +190,11 @@ class TopoConfig(BaseTopo):
                         cmd += "actions=output:%d" % j
                         start_process(cmd)
                         k += 1
-                        if k == self.pod / 2 + 1:
+                        if k == self.fanout / 2 + 1:
                             j += 1
                             k = 1
 
     def _config_topo(self):
-        # Set hosts IP addresses.
-        self._set_host_ip(self.net)
         # Install proactive flow entries
         if self.conf["ecmp"]:
-            self._install_proactive(self.net)
+            self._install_proactive()

@@ -29,8 +29,8 @@ class StateManager:
         self.num_ports = topo.get_num_sw_ports()
         self._init_stats_matrices(self.num_ports, topo.get_num_hosts())
 
-    def start(self, topo):
-        self._spawn_collectors(topo)
+    def start(self, net_man):
+        self._spawn_collectors(net_man)
         self.dopamin = RewardFunction(self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
@@ -68,18 +68,18 @@ class StateManager:
         self.prev_stats = self.stats.copy()
         self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
 
-    def _spawn_collectors(self, topo):
-        sw_ports = topo.get_sw_ports()
-        host_ports = topo.get_host_ports()
-        host_ips = topo.host_ips.values()
+    def _spawn_collectors(self, net_man):
+        sw_ports = net_man.get_sw_ports()
+        host_ports = net_man.get_host_ports()
+        host_ips = net_man.topo.host_ips.values()
         # Launch an asynchronous queue collector
         proc = QueueCollector(
-            sw_ports, self.stats, self.STATS_DICT, topo.max_queue)
+            sw_ports, self.stats, self.STATS_DICT, net_man.topo.max_queue)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector
         proc = BandwidthCollector(
-            host_ports, self.stats, self.STATS_DICT, topo.max_bps)
+            host_ports, self.stats, self.STATS_DICT, net_man.topo.max_bps)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector

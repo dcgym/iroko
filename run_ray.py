@@ -254,7 +254,6 @@ def configure_ray(agent):
         "iterations": ARGS.timesteps,
         "tf_index": ARGS.pattern_index,
         "topo_conf": {},
-
     }
 
     # customized configurations

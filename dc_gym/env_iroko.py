@@ -9,6 +9,7 @@ from ctypes import c_ulong
 from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
 from dc_gym.utils import TopoFactory
+from dc_gym.topos.network_manager import NetworkManager
 from dc_gym.utils import IrokoLogger
 from dc_gym.utils import shmem_to_nparray
 log = IrokoLogger("iroko")
@@ -61,8 +62,9 @@ class DCEnv(openAIGym):
         self.conf.update(conf)
         self.active = False
         # initialize the topology
-        self.topo = self._create_topo(self.conf)
-        self.topo.create_network()
+        self.topo = TopoFactory.create(
+            self.conf["topo"], self.conf["topo_conf"])
+        self.net_man = None
         # set the dimensions of the state matrix
         self._set_gym_spaces(self.conf)
         # Set the active traffic matrix
@@ -77,13 +79,13 @@ class DCEnv(openAIGym):
         atexit.register(self.close)
 
     def _start_env(self):
-        self.topo.start_network()
+        self.net_man = NetworkManager(self.topo, self.conf["agent"].lower())
         # initialize the traffic generator and state manager
-        self.traffic_gen = TrafficGen(self.topo, self.conf["transport"])
-        self.state_man.start(self.topo)
+        self.traffic_gen = TrafficGen(self.net_man, self.conf["transport"])
+        self.state_man.start(self.net_man)
         self.tx_rate.fill(self.topo.max_bps)
         self.bw_ctrl = BandwidthController(
-            self.topo.host_ctrl_map, self.tx_rate)
+            self.net_man.host_ctrl_map, self.tx_rate)
         self.steps = 0
         self.reward = 0
 
@@ -98,10 +100,6 @@ class DCEnv(openAIGym):
         log.info("Starting environment...")
         self._start_env()
         return np.zeros(self.observation_space.shape)
-
-    def _create_topo(self, conf):
-        conf["topo_conf"]["tcp_policy"] = conf["agent"].lower()
-        return TopoFactory.create(conf["topo"], conf["topo_conf"])
 
     def _set_gym_spaces(self, conf):
         # set configuration for the gym environment
@@ -179,9 +177,9 @@ class DCEnv(openAIGym):
         if hasattr(self, 'traffic_gen'):
             log.info("Stopping traffic")
             self.traffic_gen.stop_traffic()
-        if hasattr(self, 'topo'):
+        if self.net_man is not None:
             log.info("Stopping network.")
-            self.topo.stop_network()
+            self.net_man.stop_network()
         if hasattr(self, 'state_man'):
             log.info("Removing the state manager.")
             self.state_man.flush_and_close()
