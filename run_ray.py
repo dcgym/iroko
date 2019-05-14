@@ -218,7 +218,7 @@ def get_tune_experiment(config, agent):
     if SCHEDULE:
         ex_conf["stop"] = {"time_total_s": ARGS.timesteps / 2}
         ex_conf["num_samples"] = 2
-        config["env_config"]["topo_conf"]["parallel_envs"] = True
+        config["env_config"]["parallel_envs"] = True
         # custom changes to experiment
         log.info("Performing tune experiment")
         config, scheduler = set_tuning_parameters(agent, config)
@@ -268,7 +268,7 @@ def configure_ray(agent):
     if "ppo" in config['env_config']['agent'].lower():
         config["env_config"]["ext_squashing"] = False
     if config["num_workers"] > 1:
-        config["env_config"]["topo_conf"]["parallel_envs"] = True
+        config["env_config"]["parallel_envs"] = True
     if ARGS.timesteps > 50000:
         config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
     return config

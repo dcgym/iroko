@@ -1,5 +1,6 @@
 from __future__ import division  # For Python 2
 import os
+import fnmatch
 import json
 import csv
 import argparse
@@ -268,12 +269,25 @@ def analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir):
     plt.gcf().clear()
 
 
+def pick_stats_file(results_folder):
+    results = []
+    for root, dirnames, filenames in os.walk(results_folder):
+        for filename in fnmatch.filter(filenames, 'runtime_statistics.npy'):
+            results.append(os.path.join(root, filename))
+    if results:
+        largest = max(results, key=(lambda result: os.stat(result).st_size))
+        return largest
+
+
 def preprocess_data(algo, metrics, runs, transport_dir):
     run_list = {metric: [] for metric in metrics}
     for index in range(runs):
         run_dir = transport_dir + "run%d" % index
         results_folder = '%s/%s' % (run_dir, algo.lower())
-        stats_file = "%s/runtime_statistics.npy" % results_folder
+        stats_file = pick_stats_file(results_folder)
+        if not stats_file:
+            print("No stats file found!")
+            exit(1)
         print("Loading %s..." % stats_file)
         with FileLock(stats_file + ".lock"):
             try:

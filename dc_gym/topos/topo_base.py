@@ -1,8 +1,5 @@
 import os
 import sys
-import random
-import string
-
 from mininet.log import setLogLevel
 from mininet.topo import Topo
 
@@ -17,8 +14,8 @@ sys.path.insert(0, FILE_DIR)
 DEFAULT_CONF = {
     "max_capacity": 10e6,       # max bw capacity of link in bytes
     "min_capacity": 0.1e6,      # min possible bw of an interface in bytes
-    "parallel_envs": False,     # enable ids to support multiple topologies
-    "num_hosts": "0"            # the initial number of hosts is zero
+    "num_hosts": "0",           # the initial number of hosts is zero
+    "id": ""                    # ids support multiple topologies
 }
 
 
@@ -30,18 +27,6 @@ def calculate_max_queue(max_bps):
         if queue < 4e5:
             queue = 4e5
     return queue
-
-
-def generate_switch_id(conf):
-    ''' Mininet needs unique ids if we want to launch
-     multiple topologies at once '''
-    if not conf["parallel_envs"]:
-        return ""
-    # Best collision-free technique for the limited amount of characters
-    sw_id = ''.join(random.choice(''.join([random.choice(
-            string.ascii_letters + string.digits)
-        for ch in range(4)])) for _ in range(4))
-    return sw_id
 
 
 def get_log_level(log_level):
@@ -69,7 +54,7 @@ class BaseTopo(Topo):
         self.host_list = []
         self.host_ips = {}
         self.max_bps = self.conf["max_capacity"]
-        self.switch_id = generate_switch_id(self.conf)
+        self.switch_id = self.conf["id"]
         self.max_queue = calculate_max_queue(self.max_bps)
         setLogLevel(get_log_level(log.level))
 

@@ -92,7 +92,7 @@ class StateManager:
         self.data = {}
         # define file name
         runtime_name = "%s/runtime_statistics.npy" % (data_dir)
-        self.stats_file = open(runtime_name, 'wb+')
+        self.stats_file = open(runtime_name, 'ab+')
         self.data["reward"] = []
         self.data["actions"] = []
         self.data["stats"] = []

@@ -2,16 +2,21 @@ from __future__ import print_function
 import sys
 import atexit
 import numpy as np
-from gym import Env as openAIGym, spaces
-from dc_gym.control.iroko_bw_control import BandwidthController
+import random
+import string
 from multiprocessing import Array
 from ctypes import c_ulong
+from gym import Env as openAIGym, spaces
+
+from dc_gym.control.iroko_bw_control import BandwidthController
 from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
 from dc_gym.utils import TopoFactory
 from dc_gym.topos.network_manager import NetworkManager
 from dc_gym.utils import IrokoLogger
 from dc_gym.utils import shmem_to_nparray
+from dc_gym.utils import check_dir
+
 log = IrokoLogger("iroko")
 
 DEFAULT_CONF = {
@@ -28,13 +33,13 @@ DEFAULT_CONF = {
     # Use the simplest topology for tests.
     "topo": "dumbbell",
     # Which agent to use for traffic management. By default this is TCP.
-    "agent": "TCP",
+    "agent": "tcp",
     # Which transport protocol to use. Defaults to the common TCP.
     "transport": "tcp",
     # How many steps to run the analysis for.
     "iterations": 10000,
     # Topology specific configuration (traffic pattern, number of hosts)
-    "topo_conf": {"parallel_envs": False},
+    "topo_conf": {},
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
     # "backlog", "olimit", "drops","bw_rx","bw_tx"
@@ -49,27 +54,39 @@ DEFAULT_CONF = {
     "reward_model": ["joint_queue"],
     # Are algorithms using their own squashing function or do we have to do it?
     "ext_squashing": True,
+    "parallel_envs": False,
+    "id": "",
 }
+
+
+def generate_id():
+    ''' Mininet needs unique ids if we want to launch
+     multiple topologies at once '''
+    # Best collision-free technique for the limited amount of characters
+    sw_id = ''.join(random.choice(''.join([random.choice(
+            string.ascii_letters + string.digits)
+        for ch in range(4)])) for _ in range(4))
+    return sw_id
 
 
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
-                 "reward", "pbar", "killed",
-                 "input_file", "output_dir"]
+                 "reward", "pbar", "killed", "net_man", "input_file"]
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
         self.conf.update(conf)
-        self.active = False
+        if self.conf["parallel_envs"]:
+            identifier = generate_id()
+            self.conf["id"] = identifier
+            self.conf["topo_conf"]["id"] = identifier
         # initialize the topology
         self.topo = TopoFactory.create(
             self.conf["topo"], self.conf["topo_conf"])
-        self.net_man = None
         # set the dimensions of the state matrix
         self._set_gym_spaces(self.conf)
         # Set the active traffic matrix
         self.input_file = None
-        self.output_dir = None
         self.set_traffic_matrix(self.conf["tf_index"])
         self.state_man = StateManager(self.conf, self.topo)
         # handle unexpected exits scenarios gracefully
@@ -92,7 +109,6 @@ class DCEnv(openAIGym):
         # Finally, initialize traffic
         self.start_traffic()
         self.bw_ctrl.start()
-        self.active = True
 
     def reset(self):
         log.info("Stopping environment...")
@@ -139,7 +155,10 @@ class DCEnv(openAIGym):
         traffic_file = self.topo.get_traffic_pattern(index)
         self.input_file = '%s/%s/%s' % (
             self.conf["input_dir"], self.conf["topo"], traffic_file)
-        self.output_dir = '%s' % (self.conf["output_dir"])
+
+        if self.conf["id"] != "":
+            self.conf["output_dir"] += "/%s" % self.conf["id"]
+            check_dir(self.conf["output_dir"])
 
     def step(self, action):
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
@@ -177,10 +196,6 @@ class DCEnv(openAIGym):
         sys.exit(1)
 
     def close(self):
-        # if not self.active:
-        #     log.info("Chill, I am already cleaning up...")
-        #     return
-        # self.active = False
         if hasattr(self, 'state_man'):
             log.info("Cleaning all state")
             self.state_man.terminate()
@@ -190,7 +205,7 @@ class DCEnv(openAIGym):
         if hasattr(self, 'traffic_gen'):
             log.info("Stopping traffic")
             self.traffic_gen.stop_traffic()
-        if self.net_man is not None:
+        if hasattr(self, 'net_man'):
             log.info("Stopping network.")
             self.net_man.stop_network()
         if hasattr(self, 'state_man'):
@@ -202,7 +217,8 @@ class DCEnv(openAIGym):
         return self.traffic_gen.traffic_is_active()
 
     def start_traffic(self):
-        self.traffic_gen.start_traffic(self.input_file, self.output_dir)
+        self.traffic_gen.start_traffic(self.input_file, self.conf["output_dir"]
+                                       )
 
 
 def squash_action(action, action_min, action_max):

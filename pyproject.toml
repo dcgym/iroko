@@ -32,7 +32,7 @@ tqdm = { version = "*", python = "~2.7 || >=3.5"}
 
 # Ray dependencies
 opencv-python = { version = "*", python = "~2.7 || >=3.5"}
-tensorflow = { version = "*", python = "~2.7 || >=3.5"}
+tensorflow = { version = ">=1.13", python = "~2.7 || >=3.5"}
 lz4 = { version = "*", python = "~2.7 || >=3.5"}
 psutil = { version = "*", python = "~2.7 || >=3.5"}
 setproctitle = { version = "*", python = "~2.7 || >=3.5"}

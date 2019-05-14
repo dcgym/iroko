@@ -61,7 +61,6 @@ class NetworkManager():
         self.tcp_policy = tcp_policy
         self.prev_cc = get_congestion_control()
         load_congestion_control(tcp_policy)
-        self.active = False
         self.start_network()
 
     def _apply_qdisc(self, port):
@@ -72,7 +71,7 @@ class NetworkManager():
         # start_process(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
-        #     self.max_bps, self.max_bps)
+        #     self.topo.max_bps, self.topo.max_bps)
         # log.info(tc_cmd + cmd)
         # start_process(tc_cmd + cmd)
 
@@ -99,7 +98,7 @@ class NetworkManager():
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 red "
             cmd += "limit %d " % (limit)
-            cmd += "bandwidth  %dbit " % self.max_bps
+            cmd += "bandwidth  %dbit " % self.topo.max_bps
             cmd += "avpkt %d " % avg_pkt_size
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
@@ -150,7 +149,7 @@ class NetworkManager():
         # min_q = 400
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 10:1 choke limit %d " % limit
-        # cmd += "bandwidth  %dbit " % self.max_bps
+        # cmd += "bandwidth  %dbit " % self.topo.max_bps
         # cmd += "min %d " % (min_q)
         # cmd += "max %d " % (max_q)
         # cmd += "probability 0.001"
@@ -247,16 +246,16 @@ class NetworkManager():
         self.net = Mininet(topo=self.topo, controller=None, autoSetMacs=True)
         self.net.start()
         self._config_network(self.net)
-        self.active = True
 
     def stop_network(self):
-        if self.active:
-            log.info("Removing interfaces and restoring all network state.")
-            if self.tcp_policy == "dctcp":
-                start_process("sysctl -w net.ipv4.tcp_ecn=0")
-            # reset the active host congestion control to the previous value
-            cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-            start_process(cmd)
-            # destroy all virtual interfaces and switches
+        log.info("Removing interfaces and restoring all network state.")
+        if self.tcp_policy == "dctcp":
+            start_process("sysctl -w net.ipv4.tcp_ecn=0")
+        # reset the active host congestion control to the previous value
+        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+        start_process(cmd)
+        # destroy all virtual interfaces and switches
+        try:
             self.net.stop()
-            self.active = False
+        except Exception as e:
+            log.error('Failed to delete the virtual network:\n' + str(e))
