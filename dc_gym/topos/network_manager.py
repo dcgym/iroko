@@ -41,18 +41,24 @@ def calc_ecn(max_throughput, avg_pkt_size):
     return marking_threshold
 
 
-class Singleton(type):
+class _Singleton(type):
+    """ A metaclass that creates a Singleton base class when called.
+    https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
+    """
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(
-                Singleton, cls).__call__(*args, **kwargs)
+                _Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
-class NetworkManager():
-    __metaclass__ = Singleton
+class Singleton(_Singleton('SingletonMeta', (object,), {})):
+    pass
+
+
+class NetworkManager(Singleton):
 
     def __init__(self, topo, tcp_policy="tcp"):
         self.topo = topo

@@ -58,7 +58,11 @@ def kill_processes(procs):
 def change_owner(directory):
     import pwd
     import grp
-    user = os.getlogin()
+    if 'SUDO_USER' in os.environ:
+        user = os.environ['SUDO_USER']
+    else:
+        user = os.environ['USER']
+
     uid = pwd.getpwnam(user).pw_uid
     gid = grp.getgrnam(user).gr_gid
     for root, folders, files in os.walk(directory):
