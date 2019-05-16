@@ -12,15 +12,16 @@ The data center emulator makes heavy uses of Linux tooling and its networking fe
 - `GCC` or `Clang` and the `build-essentials` are required.
 - `git` for version control
 - `libnl-route-3-dev` to compile the traffic managers
-- `bwn-ng` and `ifstat` to monitor traffic
-- `python` and `python-setuptools` to build Python packages and run the emulator
+- `ifstat` and `tcpdump` to monitor traffic
+- `python3` and `python3-setuptools` to build Python packages and run the emulator
 
 ## Python Dependencies
-The generator supports both Python2 and Python3. `pip` and `pip3` can be used to install the packages.
+The generator supports only Python3. `pip3` can be used to install the packages.
 
 - `numpy` for matrix operations
 - `gym` to install openAI gym
-- `seaborn` and `matplotlib` to generate plots
+- `seaborn`, `pandas` and `matplotlib` to generate plots
+- `gevent` for lightweight threading
 
 ## Mininet Dependencies
 The datacenter networks are emulated using [Mininet](https://github.com/mininet/mininet). At minimum Mininet requires the installation of
@@ -28,10 +29,18 @@ The datacenter networks are emulated using [Mininet](https://github.com/mininet/
 
 ## Ray Dependencies
 The emulator uses [Ray](https://github.com/ray-project/ray) to implement and evaluate reinforcement learning algorithms. Ray's dependencies include:
-- `tensorflow`, `setproctitle`, `psutil`, `opencv-python`
+- Pip: `tensorflow`, `setproctitle`, `psutil`, `opencv-python`, `lz4`
+- Apt: `libsm6`, `libxext6`, `libxrender-dev`
 
 ## Goben Dependencies
 The emulator generates and measures traffic using [Goben](https://github.com/udhos/goben). While an amd64 binary is already provided in the repository, the generator submodule can also be compiled using `Go 1.11`. The `contrib/` folder contains a script to install Goben locally.
 
 # Installation
 A convenient, self-contained way to install the emulator is to run the `./install.sh`. It will install most dependencies locally via [Poetry](https://github.com/sdispater/poetry).
+
+# Run
+To test the emulator you can run `sudo python3 run_basic.py`. This is the most basic usage example of the Iroko environment.
+
+`run_ray.py` contains examples on how to use `Ray` with this project.
+
+`benchmark.py` is a test suite, which runs multiple tests in sequence and produces a comparison plot at the end of all runs.

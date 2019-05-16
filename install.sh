@@ -17,13 +17,18 @@ sudo apt install -y python3-dev       # for python3.x installs
 sudo apt install python-setuptools    # required to install pip
 sudo apt install python3-setuptools   # required to install pip
 
+
+# Get the correct Python version
+PYTHON_VERSION=`python -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
+PYTHON3_VERSION=`python3 -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
+
 # install Mininet dependencies
 sudo apt install -y openvswitch-switch
 sudo apt install -y cgroup-bin
 sudo apt install -y help2man
 # install Mininet
 cd contrib/mininet
-sudo make install                   # install the Python2 version
+# sudo make install                   # install the Python2 version
 sudo make install PYTHON=python3    # install the Python3 version
 cd ../..
 
@@ -66,19 +71,15 @@ make -C dc_gym/control
 export PATH+=$PATH:~/.local/bin
 wget https://bootstrap.pypa.io/get-pip.py
 python3 get-pip.py --user
-python get-pip.py --user
+# python get-pip.py --user
 rm get-pip.py
 
-# Get the correct Python version
-PYTHON_VERSION=`python -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
-PYTHON3_VERSION=`python3 -c 'import sys; version=sys.version_info[:3]; print("{0}{1}".format(*version))'`
-
 # Install the dc_gym locally
-pip install --upgrade --user dist/*.whl
+# pip install --upgrade --user dist/*.whl
 pip3 install --upgrade --user dist/*.whl
 
 # Install the latest ray build for Python 2 and 3
-pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.7.0.dev3-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
+# pip install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.7.0.dev3-cp${PYTHON_VERSION}-cp${PYTHON_VERSION}mu-manylinux1_x86_64.whl
 pip3 install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.7.0.dev3-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray runtime dependencies...

@@ -7,7 +7,8 @@ license = "Apache-2.0"
 
 authors = [
     "Fabian Ruffy",
-    "Michael Przystupa"
+    "Michael Przystupa",
+    "Ivan Beschastnikh"
 ]
 
 readme = 'README.md'
@@ -18,21 +19,21 @@ homepage = "https://github.com/dc_gym/iroko"
 keywords = ['tcp', 'congestion control', 'reinforcement learning', 'rl', 'data center']
 
 [tool.poetry.dependencies]
-python = "~2.7 || >=3.5"  # Compatible python versions
+# python = ">=3.5"  # Compatible python versions
 toml = "^0.9"
 
 # DCgym dependencies
-numpy = { version = "*", python = "~2.7 || >=3.5"}
-gym = { version = ">=0.12.1", python = "~2.7 || >=3.5"}
-seaborn = { version = "*", python = "~2.7 || >=3.5"}
-matplotlib = { version = "*", python = "~2.7 || >=3.5"}
-gevent = { version = "*", python = "~2.7 || >=3.5"}
-pandas = { version = "*", python = "~2.7 || >=3.5"}
-tqdm = { version = "*", python = "~2.7 || >=3.5"}
+numpy = { version = "*", python = ">=3.5"}
+gym = { version = ">=0.12.1", python = ">=3.5"}
+seaborn = { version = "*", python = ">=3.5"}
+matplotlib = { version = "*", python = ">=3.5"}
+gevent = { version = "*", python = ">=3.5"}
+pandas = { version = "*", python = ">=3.5"}
+tqdm = { version = "*", python = ">=3.5"}
 
 # Ray dependencies
-opencv-python = { version = "*", python = "~2.7 || >=3.5"}
-tensorflow = { version = ">=1.13", python = "~2.7 || >=3.5"}
-lz4 = { version = "*", python = "~2.7 || >=3.5"}
-psutil = { version = "*", python = "~2.7 || >=3.5"}
-setproctitle = { version = "*", python = "~2.7 || >=3.5"}
+opencv-python = { version = "*", python = ">=3.5"}
+tensorflow = { version = ">=1.13", python = ">=3.5"}
+lz4 = { version = "*", python = ">=3.5"}
+psutil = { version = "*", python = ">=3.5"}
+setproctitle = { version = "*", python = ">=3.5"}

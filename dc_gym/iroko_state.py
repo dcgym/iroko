@@ -15,7 +15,7 @@ class StateManager:
     STATS_DICT = {"backlog": 0, "olimit": 1,
                   "drops": 2, "bw_rx": 3, "bw_tx": 4}
     __slots__ = ["num_ports", "deltas", "prev_stats", "stats_file",
-                 "stats_keys", "data", "dopamin", "stats",
+                 "stats_keys", "data", "dopamin", "stats", "output_dir",
                  "flow_stats", "procs", "collect_flows", "reward_model"]
 
     def __init__(self, conf, topo):
@@ -24,22 +24,26 @@ class StateManager:
         self.reward_model = conf["reward_model"]
         self.deltas = None
         self.prev_stats = None
-        self._set_data_checkpoints(conf["output_dir"])
+        self.stats_file = None
+        self.output_dir = conf["output_dir"]
         self.num_ports = topo.get_num_sw_ports()
         self._init_stats_matrices(self.num_ports, topo.get_num_hosts())
 
     def start(self, net_man):
+        self._set_data_checkpoints(self.output_dir)
         self._spawn_collectors(net_man)
         self.dopamin = RewardFunction(self.reward_model, self.STATS_DICT)
 
     def flush_and_close(self):
-        log.info("Writing collected data to disk")
-        with FileLock(self.stats_file.name + ".lock"):
-            try:
-                self.flush()
-            except Exception as e:
-                log.info("Error flushing file %s" % self.stats_file.name, e)
-        # self.stats_file.close()
+        if self.stats_file:
+            log.info("Writing collected data to disk")
+            with FileLock(self.stats_file.name + ".lock"):
+                try:
+                    self.flush()
+                except Exception as e:
+                    log.info("Error flushing file %s" %
+                             self.stats_file.name, e)
+            # self.stats_file.close()
 
     def terminate(self):
         self._terminate_collectors()

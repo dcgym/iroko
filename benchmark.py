@@ -60,7 +60,7 @@ def dump_config(path, pattern):
 
 
 def launch_test(algo, results_subdir, transport, pattern):
-    cmd = "sudo python run_ray.py "
+    cmd = "sudo python3 run_ray.py "
     cmd += "-a %s " % algo
     cmd += "-t %d " % STEPS
     cmd += "--output %s " % results_subdir

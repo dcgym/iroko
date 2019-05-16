@@ -306,7 +306,7 @@ def init():
         run(config)
     dc_utils.change_owner(results_dir)
     # Wait until the topology is torn down completely
-    time.sleep(10)
+    # time.sleep(10)
     log.info("Experiment has completed.")
 
 
