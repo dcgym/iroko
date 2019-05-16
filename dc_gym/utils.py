@@ -3,6 +3,8 @@ import numpy as np
 import subprocess
 import os
 import sys
+import random
+import string
 
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -71,6 +73,15 @@ def change_owner(directory):
         for file in files:
             os.chown(os.path.join(root, file), uid, gid)
 
+
+def generate_id():
+    ''' Mininet needs unique ids if we want to launch
+     multiple topologies at once '''
+    # Best collision-free technique for the limited amount of characters
+    sw_id = ''.join(random.choice(''.join([random.choice(
+            string.ascii_letters + string.digits)
+        for ch in range(4)])) for _ in range(4))
+    return sw_id
 
 def check_dir(directory):
     log = IrokoLogger("iroko")

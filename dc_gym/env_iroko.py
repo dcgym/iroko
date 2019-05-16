@@ -2,8 +2,6 @@ from __future__ import print_function
 import sys
 import atexit
 import numpy as np
-import random
-import string
 from multiprocessing import Array
 from ctypes import c_ulong
 from gym import Env as openAIGym, spaces
@@ -13,11 +11,9 @@ from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
 from dc_gym.utils import TopoFactory
 from dc_gym.topos.network_manager import NetworkManager
-from dc_gym.utils import IrokoLogger
-from dc_gym.utils import shmem_to_nparray
-from dc_gym.utils import check_dir
+import dc_gym.utils as dc_utils
 
-log = IrokoLogger("iroko")
+log = dc_utils.IrokoLogger("iroko")
 
 DEFAULT_CONF = {
     # Input folder of the traffic matrix.
@@ -55,39 +51,55 @@ DEFAULT_CONF = {
     # Are algorithms using their own squashing function or do we have to do it?
     "ext_squashing": True,
     "parallel_envs": False,
-    "id": "",
 }
 
 
-def generate_id():
-    ''' Mininet needs unique ids if we want to launch
-     multiple topologies at once '''
-    # Best collision-free technique for the limited amount of characters
-    sw_id = ''.join(random.choice(''.join([random.choice(
-            string.ascii_letters + string.digits)
-        for ch in range(4)])) for _ in range(4))
-    return sw_id
+def squash_action(action, action_min, action_max):
+    action_diff = (action_max - action_min)
+    return (np.tanh(action) + 1.0) / 2.0 * action_diff + action_min
+
+
+def clip_action(action, action_min, action_max):
+    """ Truncates the entries in action to the range defined between
+    action_min and action_max. """
+    return np.clip(action, action_min, action_max)
+
+
+def sigmoid(action, derivative=False):
+    sigm = 1. / (1. + np.exp(-action))
+    if derivative:
+        return sigm * (1. - sigm)
+    return sigm
 
 
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
-                 "reward", "pbar", "killed", "net_man", "input_file"]
+                 "reward", "pbar", "killed", "net_man", "input_file",
+                 "short_id"]
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
         self.conf.update(conf)
+
+        # Init one-to-one mapped variables
+        self.short_id = ""
+        self.net_man = None
+        self.traffic_gen = None
+        self.bw_ctrl = None
+        self.input_file = None
+
+        # set the id of this environment
         if self.conf["parallel_envs"]:
-            identifier = generate_id()
-            self.conf["id"] = identifier
-            self.conf["topo_conf"]["id"] = identifier
+            self.short_id = dc_utils.generate_id()
         # initialize the topology
+        self.conf["topo_conf"]["id"] = self.short_id
         self.topo = TopoFactory.create(
             self.conf["topo"], self.conf["topo_conf"])
         # set the dimensions of the state matrix
-        self._set_gym_spaces(self.conf)
+        self._set_gym_matrices(self.conf)
         # Set the active traffic matrix
-        self.input_file = None
         self.set_traffic_matrix(self.conf["tf_index"])
+        # Init the state manager
         self.state_man = StateManager(self.conf, self.topo)
         # handle unexpected exits scenarios gracefully
         log.info("Registering signal handler.")
@@ -95,42 +107,7 @@ class DCEnv(openAIGym):
         # signal.signal(signal.SIGTERM, self._handle_interrupt)
         atexit.register(self.close)
 
-    def _start_env(self):
-        self.net_man = NetworkManager(self.topo, self.conf["agent"].lower())
-        # initialize the traffic generator and state manager
-        self.traffic_gen = TrafficGen(self.net_man, self.conf["transport"])
-        self.state_man.start(self.net_man)
-        self.tx_rate.fill(self.topo.max_bps)
-        self.bw_ctrl = BandwidthController(
-            self.net_man.host_ctrl_map, self.tx_rate)
-        self.steps = 0
-        self.reward = 0
-
-        # Finally, initialize traffic
-        self.start_traffic()
-        self.bw_ctrl.start()
-
-    def reset(self):
-        log.info("Stopping environment...")
-        if hasattr(self, 'state_man'):
-            log.info("Cleaning all state")
-            self.state_man.terminate()
-        if hasattr(self, 'bw_ctrl'):
-            log.info("Stopping bandwidth control.")
-            self.bw_ctrl.terminate()
-        if hasattr(self, 'traffic_gen'):
-            log.info("Stopping traffic")
-            self.traffic_gen.stop_traffic()
-        if hasattr(self, 'state_man'):
-            log.info("Removing the state manager.")
-            self.state_man.flush_and_close()
-        log.info("Done with destroying myself.")
-
-        log.info("Starting environment...")
-        self._start_env()
-        return np.zeros(self.observation_space.shape)
-
-    def _set_gym_spaces(self, conf):
+    def _set_gym_matrices(self, conf):
         # set configuration for the gym environment
         num_ports = self.topo.get_num_sw_ports()
         num_actions = self.topo.get_num_hosts()
@@ -148,17 +125,58 @@ class DCEnv(openAIGym):
             shape=(num_ports * num_features,))
         log.info("Setting action space from %f to %f" %
                  (action_min, action_max))
+        # Initialize the action array shared with the control manager
         tx_rate = Array(c_ulong, num_actions)
-        self.tx_rate = shmem_to_nparray(tx_rate, np.int64)
+        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
 
     def set_traffic_matrix(self, index):
         traffic_file = self.topo.get_traffic_pattern(index)
         self.input_file = '%s/%s/%s' % (
             self.conf["input_dir"], self.conf["topo"], traffic_file)
 
-        if self.conf["id"] != "":
-            self.conf["output_dir"] += "/%s" % self.conf["id"]
-            check_dir(self.conf["output_dir"])
+        if self.short_id != "":
+            self.conf["output_dir"] += "/%s" % self.short_id
+            dc_utils.check_dir(self.conf["output_dir"])
+
+    def _start_env(self):
+        # start the manager with the live topology information
+        self.traffic_gen = TrafficGen(self.net_man, self.conf["transport"])
+        self.state_man.start(self.net_man)
+        self.tx_rate.fill(self.topo.max_bps)
+        self.bw_ctrl = BandwidthController(
+            self.net_man.host_ctrl_map, self.tx_rate)
+        self.steps = 0
+        self.reward = 0
+
+        # Finally, initialize traffic
+        self.start_traffic()
+        self.bw_ctrl.start()
+
+    def _stop_env(self):
+        log.info("Stopping environment...")
+        if self.state_man:
+            log.info("Stopping the state manager.")
+            log.info("Cleaning all state.")
+            self.state_man.terminate()
+            self.state_man.flush_and_close()
+        if self.bw_ctrl:
+            log.info("Stopping bandwidth control.")
+            self.bw_ctrl.terminate()
+        if self.traffic_gen:
+            log.info("Stopping traffic")
+            self.traffic_gen.stop_traffic()
+        log.info("Done with destroying myself.")
+
+    def reset(self):
+        # actually generate a topology if it does not exist yet
+        if not self.net_man:
+            log.info("Starting network manager...")
+            self.net_man = NetworkManager(
+                self.topo, self.conf["agent"].lower())
+        self._stop_env()
+        log.info("Starting environment...")
+        self._start_env()
+        return np.zeros(self.observation_space.shape)
 
     def step(self, action):
         do_sample = (self.steps % self.conf["sample_delta"]) == 0
@@ -170,6 +188,7 @@ class DCEnv(openAIGym):
         for index, a in enumerate(action):
             self.tx_rate[index] = a * self.topo.max_bps
 
+        # For now we run forever
         # done = not self.is_traffic_proc_alive()
         done = False
 
@@ -196,21 +215,10 @@ class DCEnv(openAIGym):
         sys.exit(1)
 
     def close(self):
-        if hasattr(self, 'state_man'):
-            log.info("Cleaning all state")
-            self.state_man.terminate()
-        if hasattr(self, 'bw_ctrl'):
-            log.info("Stopping bandwidth control.")
-            self.bw_ctrl.terminate()
-        if hasattr(self, 'traffic_gen'):
-            log.info("Stopping traffic")
-            self.traffic_gen.stop_traffic()
-        if hasattr(self, 'net_man'):
+        self._stop_env()
+        if self.net_man:
             log.info("Stopping network.")
             self.net_man.stop_network()
-        if hasattr(self, 'state_man'):
-            log.info("Removing the state manager.")
-            self.state_man.flush_and_close()
         log.info("Done with destroying myself.")
 
     def is_traffic_proc_alive(self):
@@ -219,21 +227,3 @@ class DCEnv(openAIGym):
     def start_traffic(self):
         self.traffic_gen.start_traffic(self.input_file, self.conf["output_dir"]
                                        )
-
-
-def squash_action(action, action_min, action_max):
-    action_diff = (action_max - action_min)
-    return (np.tanh(action) + 1.0) / 2.0 * action_diff + action_min
-
-
-def clip_action(action, action_min, action_max):
-    """ Truncates the entries in action to the range defined between
-    action_min and action_max. """
-    return np.clip(action, action_min, action_max)
-
-
-def sigmoid(action, derivative=False):
-    sigm = 1. / (1. + np.exp(-action))
-    if derivative:
-        return sigm * (1. - sigm)
-    return sigm

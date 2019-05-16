@@ -19,13 +19,13 @@ class StateManager:
                  "stats_keys", "data", "dopamin", "stats",
                  "flow_stats", "procs", "collect_flows", "reward_model"]
 
-    def __init__(self, config, topo):
-        self.stats_keys = config["state_model"]
-        self.collect_flows = config["collect_flows"]
-        self.reward_model = config["reward_model"]
+    def __init__(self, conf, topo):
+        self.stats_keys = conf["state_model"]
+        self.collect_flows = conf["collect_flows"]
+        self.reward_model = conf["reward_model"]
         self.deltas = None
         self.prev_stats = None
-        self._set_data_checkpoints(config["output_dir"])
+        self._set_data_checkpoints(conf["output_dir"])
         self.num_ports = topo.get_num_sw_ports()
         self._init_stats_matrices(self.num_ports, topo.get_num_hosts())
 

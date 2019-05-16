@@ -41,24 +41,7 @@ def calc_ecn(max_throughput, avg_pkt_size):
     return marking_threshold
 
 
-class _Singleton(type):
-    """ A metaclass that creates a Singleton base class when called.
-    https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
-    """
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(
-                _Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class Singleton(_Singleton('SingletonMeta', (object,), {})):
-    pass
-
-
-class NetworkManager(Singleton):
+class NetworkManager():
 
     def __init__(self, topo, tcp_policy="tcp"):
         self.topo = topo
@@ -178,13 +161,13 @@ class NetworkManager(Singleton):
         start_process("ip link set %s mtu 1500" % port)
 
     def _connect_controller(self, net):
-        controller = RemoteController(self.topo.switch_id + "c0")
+        controller = RemoteController(self.topo.switch_id + "_c")
         net.addController(controller)
         for i, host in enumerate(self.topo.host_list):
             # Configure host
             net.addLink(controller, host)
             # Configure controller
-            ctrl_iface = "%sc0-eth%d" % (self.topo.switch_id, i)
+            ctrl_iface = "%s_c-eth%d" % (self.topo.switch_id, i)
 
             for index, switch in self.topo.ports[host].items():
                 switch_iface = switch[0] + "-eth" + str(switch[1])
