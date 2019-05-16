@@ -1,6 +1,6 @@
 from topos.topo_base import BaseTopo
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology
@@ -73,7 +73,7 @@ class IrokoTopo(BaseTopo):
                 cmd += "nw_dst=10.%d.0.%d," % (i, j)
                 cmd += "%s," % prot
                 cmd += "actions=output:%d" % k
-                start_process(cmd)
+                dc_utils.start_process(cmd)
                 j += 1
                 if j == 3:
                     j = 1

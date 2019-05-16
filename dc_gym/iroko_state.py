@@ -7,9 +7,8 @@ from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
 from dc_gym.iroko_reward import RewardFunction
-from dc_gym.utils import IrokoLogger
-from dc_gym.utils import shmem_to_nparray
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 
 class StateManager:
@@ -56,13 +55,13 @@ class StateManager:
         # Set up the shared stats matrix
         stats_arr_len = num_ports * len(self.STATS_DICT)
         mp_stats = Array(c_ulong, stats_arr_len)
-        np_stats = shmem_to_nparray(mp_stats, np.float64)
+        np_stats = dc_utils.shmem_to_nparray(mp_stats, np.float64)
         self.stats = np_stats.reshape((len(self.STATS_DICT), num_ports))
         # Set up the shared flow matrix
         if (self.collect_flows):
             flow_arr_len = num_ports * num_hosts * 2
             mp_flows = Array(c_ubyte, flow_arr_len)
-            np_flows = shmem_to_nparray(mp_flows, np.uint8)
+            np_flows = dc_utils.shmem_to_nparray(mp_flows, np.uint8)
             self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
         # Save the initialized stats matrix to compute deltas
         self.prev_stats = self.stats.copy()

@@ -16,9 +16,8 @@ from ray.tune.experiment import Experiment
 from ray.tune.schedulers import PopulationBasedTraining
 # Iroko imports
 import dc_gym
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
-
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 # set up paths
 cwd = os.getcwd()
@@ -119,7 +118,7 @@ class RandomAgent(Trainer):
 
 
 def get_env(env_config):
-    return EnvFactory.create(env_config)
+    return dc_utils.EnvFactory.create(env_config)
 
 
 def get_gym(env_config):
@@ -293,7 +292,7 @@ def tune_run(config):
 
 def init():
     results_dir = ARGS.output_dir + "/" + ARGS.agent
-    check_dir(results_dir)
+    dc_utils.check_dir(results_dir)
     log.info("Registering the DC environment...")
     register_env("dc_env", get_gym)
     log.info("Starting Ray...")
@@ -305,7 +304,7 @@ def init():
         tune_run(config)
     else:
         run(config)
-    change_owner(results_dir)
+    dc_utils.change_owner(results_dir)
     # Wait until the topology is torn down completely
     time.sleep(10)
     log.info("Experiment has completed.")

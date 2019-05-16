@@ -1,6 +1,6 @@
 from topos.topo_base import BaseTopo
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 DEFAULT_CONF = {
     "num_hosts": 4,             # number of hosts in the topology
@@ -86,12 +86,12 @@ class IrokoTopo(BaseTopo):
                 cmd += "%s," % prot
                 cmd += "nw_dst=%s," % host_ip
                 cmd += "actions=output:%d" % port
-                start_process(cmd)
+                dc_utils.start_process(cmd)
             cmd = ovs_flow_cmd
             cmd += "table=0,idle_timeout=0,hard_timeout=0,priority=10,"
             cmd += "%s," % prot
             cmd += "nw_dst=10.2.0.0/16,actions=output:1"
-            start_process(cmd)
+            dc_utils.start_process(cmd)
 
             # East Switch
             ovs_flow_cmd = "ovs-ofctl add-flow %s " % self.switch_e
@@ -105,12 +105,12 @@ class IrokoTopo(BaseTopo):
                 cmd += "%s," % prot
                 cmd += "nw_dst=%s," % host_ip
                 cmd += "actions=output:%d" % port
-                start_process(cmd)
+                dc_utils.start_process(cmd)
             cmd = ovs_flow_cmd
             cmd += "table=0,idle_timeout=0,hard_timeout=0,priority=10,"
             cmd += "%s," % prot
             cmd += "nw_dst=10.1.0.0/16,actions=output:1"
-            start_process(cmd)
+            dc_utils.start_process(cmd)
 
     def _config_topo(self):
         # Set hosts IP addresses.

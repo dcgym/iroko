@@ -11,17 +11,33 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
 
 
-def IrokoLogger(name="Iroko", fname="iroko"):
-    logging.basicConfig()
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-    #fhan = logging.FileHandler(fname)
-    # fhan.setLevel(logging.INFO)
-    # logger.addHandler(fhan)
-    # formatter = logging.Formatter(
-    #    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # fhan.setFormatter(formatter)
-    return logger
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(
+                Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class IrokoLogger(object, metaclass=Singleton):
+
+    def __init__(self):
+        self.logger = None
+        logging.basicConfig()
+        self.logger = logging.getLogger("Iroko")
+        self.logger.setLevel(logging.INFO)
+
+        fhan = logging.FileHandler("iroko.log")
+        fhan.setLevel(logging.INFO)
+        self.logger.addHandler(fhan)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fhan.setFormatter(formatter)
+
+    def get_logger(self):
+        return self.logger
 
 
 def shmem_to_nparray(shmem_array, dtype):
@@ -33,7 +49,7 @@ def start_process(cmd, out_file=subprocess.STDOUT):
         return subprocess.Popen(cmd.split())
     out = out_file + ".out"
     err = out_file + ".err"
-    log = IrokoLogger("iroko")
+    log = IrokoLogger.__call__().get_logger()
     log.debug("Executing %s " % cmd)
     with open(out, 'w+') as f_out, open(err, 'w+') as f_err:
         return subprocess.Popen(cmd.split(), stdout=f_out, stderr=f_err)
@@ -83,8 +99,9 @@ def generate_id():
         for ch in range(4)])) for _ in range(4))
     return sw_id
 
+
 def check_dir(directory):
-    log = IrokoLogger("iroko")
+    log = IrokoLogger.__call__().get_logger()
     # create the folder if it does not exit
     if not directory == '' and not os.path.exists(directory):
         log.info("Folder %s does not exist! Creating..." % directory)
@@ -107,7 +124,7 @@ class EnvFactory(object):
 
         env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
-        log = IrokoLogger("iroko")
+        log = IrokoLogger.__call__().get_logger()
         log.info("Loading environment %s " % env_name)
         try:
             BaseEnv = import_from(env_name, env_class)
@@ -124,7 +141,7 @@ class TopoFactory(object):
     def create(topo_name, options):
         env_name = "dc_gym.topos.topo_" + topo_name
         env_class = "IrokoTopo"
-        log = IrokoLogger("iroko")
+        log = IrokoLogger.__call__().get_logger()
         log.info("Loading topology %s " % env_name)
         try:
             IrokoTopo = import_from(env_name, env_class)

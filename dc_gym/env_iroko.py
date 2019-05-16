@@ -13,7 +13,7 @@ from dc_gym.utils import TopoFactory
 from dc_gym.topos.network_manager import NetworkManager
 import dc_gym.utils as dc_utils
 
-log = dc_utils.IrokoLogger("iroko")
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 DEFAULT_CONF = {
     # Input folder of the traffic matrix.

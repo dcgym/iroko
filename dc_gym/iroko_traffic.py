@@ -1,10 +1,9 @@
 import os
 import sys
 import csv
-from subprocess import Popen as popen
 from time import sleep
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 # The binaries are located in the control subfolder
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +54,7 @@ class TrafficGen():
         for host in hosts:
             out_file = "%s/%s_server" % (out_dir, host.name)
             server_cmd = traffic_gen
-            s_proc = start_mn_process(server_cmd, host, out_file)
+            s_proc = dc_utils.start_mn_process(server_cmd, host, out_file)
             self.procs.append(s_proc)
 
     def _start_controllers(self, hosts, out_dir):
@@ -64,7 +63,7 @@ class TrafficGen():
         if not os.path.isfile(traffic_ctrl):
             log.info("The traffic controller does not exist.\n"
                      "Run the install.sh script to compile it.")
-            kill_processes(self.procs)
+            dc_utils.kill_processes(self.procs)
             exit(1)
         log.info('*** Starting controllers')
         for host in hosts:
@@ -75,7 +74,7 @@ class TrafficGen():
             ctrl_cmd += "-n %s " % iface_net
             ctrl_cmd += "-c %s " % ifaces_ctrl
             ctrl_cmd += "-r %d " % self.net_man.topo.conf["max_capacity"]
-            c_proc = start_mn_process(ctrl_cmd, host, out_file)
+            c_proc = dc_utils.start_mn_process(ctrl_cmd, host, out_file)
             self.procs.append(c_proc)
 
     def _start_client(self, traffic_gen, host, out_dir, dst_hosts):
@@ -96,7 +95,7 @@ class TrafficGen():
         traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
-        t_proc = start_mn_process(traffic_cmd, host, out_file)
+        t_proc = dc_utils.start_mn_process(traffic_cmd, host, out_file)
         self.procs.append(t_proc)
 
     def _start_pkt_capture_tshark(self, out_dir):
@@ -114,7 +113,7 @@ class TrafficGen():
         dmp_cmd += "-q "                        # do not log.info to stdout
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
-        dmp_proc = start_process(dmp_cmd, out_file=dmp_file)
+        dmp_proc = dc_utils.start_process(dmp_cmd, out_file=dmp_file)
         self.procs.append(dmp_proc)
 
     def _start_pkt_capture_tcpdump(self, host, out_dir):
@@ -129,7 +128,7 @@ class TrafficGen():
         dmp_cmd += "%s " % self.transport  # filter for transport protocol
         dmp_cmd += "-Z root "
         dmp_cmd += "-s96 "      # Capture only headers
-        dmp_proc = start_mn_process(dmp_cmd, host, dmp_file)
+        dmp_proc = dc_utils.start_mn_process(dmp_cmd, host, dmp_file)
         self.procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):
@@ -137,7 +136,7 @@ class TrafficGen():
         if not os.path.basename(input_file) == "all":
             traffic_pattern = parse_traffic_file(input_file)
             if traffic_pattern is None:
-                kill_processes(self.procs)
+                dc_utils.kill_processes(self.procs)
                 exit(1)
         log.info('*** Starting load-generators')
         if os.path.basename(input_file) == "all":
@@ -189,6 +188,6 @@ class TrafficGen():
         log.info('')
         if self.traffic_is_active:
             log.info('*** Stopping traffic processes')
-            kill_processes(self.procs)
+            dc_utils.kill_processes(self.procs)
             del self.procs[:]
         sys.stdout.flush()

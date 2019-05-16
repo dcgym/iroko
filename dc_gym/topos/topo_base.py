@@ -3,9 +3,8 @@ import sys
 from mininet.log import setLogLevel
 from mininet.topo import Topo
 
-from dc_gym.utils import *
-
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))

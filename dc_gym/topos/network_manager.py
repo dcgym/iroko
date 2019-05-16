@@ -1,10 +1,10 @@
 import os
+import sys
 from mininet.node import RemoteController
 from mininet.net import Mininet
 
-from dc_gym.utils import *
-
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,13 +18,13 @@ def get_congestion_control():
 
 def load_congestion_control(tcp_policy):
     if tcp_policy == "dctcp":
-        start_process("modprobe tcp_dctcp")
-        start_process("sysctl -w net.ipv4.tcp_ecn=1")
+        dc_utils.start_process("modprobe tcp_dctcp")
+        dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=1")
     elif tcp_policy == "tcp_nv":
-        start_process("modprobe tcp_nv")
+        dc_utils.start_process("modprobe tcp_nv")
     elif tcp_policy == "pcc":
         if (os.popen("lsmod | grep pcc").read() == ""):
-            start_process("insmod %s/tcp_pcc.ko" % FILE_DIR)
+            dc_utils.start_process("insmod %s/tcp_pcc.ko" % FILE_DIR)
 
 
 def calc_ecn(max_throughput, avg_pkt_size):
@@ -57,12 +57,12 @@ class NetworkManager():
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1: hfsc default 10"
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
         # tc_cmd = "tc class add dev %s " % (port)
         # cmd = "parent 1: classid 1:10 hfsc sc rate %dbit ul rate %dbit" % (
         #     self.topo.max_bps, self.topo.max_bps)
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
         limit = int(self.topo.max_queue)
         avg_pkt_size = 1500  # MTU packet size
@@ -72,12 +72,12 @@ class NetworkManager():
         # cmd = "root handle 1: estimator 250msec 1sec htb default 10 "
         cmd += " direct_qlen %d " % (limit / avg_pkt_size)
         log.debug(tc_cmd + cmd)
-        start_process(tc_cmd + cmd)
+        dc_utils.start_process(tc_cmd + cmd)
         tc_cmd = "tc class add dev %s " % (port)
         cmd = "parent 1: classid 1:10 htb rate %dbit burst %d" % (
             self.topo.max_bps, self.topo.max_bps)
         log.debug(tc_cmd + cmd)
-        start_process(tc_cmd + cmd)
+        dc_utils.start_process(tc_cmd + cmd)
 
         if self.tcp_policy == "dctcp":
             marking_threshold = calc_ecn(self.topo.max_bps, avg_pkt_size)
@@ -97,24 +97,24 @@ class NetworkManager():
             cmd += "probability 0.1"
             cmd += " ecn "
             log.debug(tc_cmd + cmd)
-            start_process(tc_cmd + cmd)
+            dc_utils.start_process(tc_cmd + cmd)
         else:
             tc_cmd = "tc qdisc add dev %s " % (port)
             cmd = "parent 1:10 handle 20:1 bfifo "
             cmd += " limit %d" % limit
-            start_process(tc_cmd + cmd)
+            dc_utils.start_process(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "root handle 1 netem limit %d rate 10mbit" % (
         #     limit / avg_pkt_size)
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
         # limit = int(self.topo.max_queue)
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 20: codel "
         # cmd += " limit %d" % (limit)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
         # limit = int(self.topo.max_queue)
         # max_q = self.topo.max_queue / 4
@@ -123,14 +123,14 @@ class NetworkManager():
         # cmd = "parent 1:10 handle 20:1 sfq limit %d" % (
         #     self.topo.max_queue)
         # if self.dctcp:
-        #     start_process("sysctl -w net.ipv4.tcp_ecn=1")
+        #     dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
         #     # cmd += "redflowlimit "
         #     # cmd += "min %d " % (min_q)
         #     # cmd += "max %d " % (max_q)
         #     # cmd += "probability 1"
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
         # Apply tc choke to mark excess packets in the queue with ecn
         # limit = int(self.topo.max_queue)
@@ -145,20 +145,20 @@ class NetworkManager():
         # # if self.dctcp:
         # cmd += " ecn "
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
         # tc_cmd = "tc qdisc add dev %s " % (port)
         # cmd = "parent 1:10 handle 30:1 fq_codel limit %d " % (
         #     self.topo.max_queue)
         # if ("dctcp" in self.conf) and self.conf["dctcp"]:
-        #     start_process("sysctl -w net.ipv4.tcp_ecn=1")
+        #     dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=1")
         #     cmd += "ecn "
         # log.info(tc_cmd + cmd)
-        # start_process(tc_cmd + cmd)
+        # dc_utils.start_process(tc_cmd + cmd)
 
-        start_process("ip link set %s txqueuelen %d" %
-                      (port, limit / avg_pkt_size))
-        start_process("ip link set %s mtu 1500" % port)
+        dc_utils.start_process("ip link set %s txqueuelen %d" %
+                               (port, limit / avg_pkt_size))
+        dc_utils.start_process("ip link set %s mtu 1500" % port)
 
     def _connect_controller(self, net):
         controller = RemoteController(self.topo.switch_id + "_c")
@@ -183,23 +183,27 @@ class NetworkManager():
         for host in net.hosts:
             # Increase the maximum total buffer-space allocatable
             # This is measured in units of pages (4096 bytes)
-            start_mn_process("sysctl -w net.ipv4.tcp_window_scaling=1", host)
-            start_mn_process("sysctl -w net.ipv4.tcp_timestamps=1", host)
-            start_mn_process("sysctl -w net.ipv4.tcp_sack=1", host)
-            start_mn_process("sysctl -w net.ipv4.tcp_syn_retries=10", host)
-            start_mn_process(
+            dc_utils.start_mn_process(
+                "sysctl -w net.ipv4.tcp_window_scaling=1", host)
+            dc_utils.start_mn_process(
+                "sysctl -w net.ipv4.tcp_timestamps=1", host)
+            dc_utils.start_mn_process("sysctl -w net.ipv4.tcp_sack=1", host)
+            dc_utils.start_mn_process(
+                "sysctl -w net.ipv4.tcp_syn_retries=10", host)
+            dc_utils.start_mn_process(
                 "sysctl -w net.core.default_qdisc=pfifo_fast", host)
-            # start_mn_process("sysctl -w net.ipv4.tcp_recovery=0")
+            # dc_utils.start_mn_process("sysctl -w net.ipv4.tcp_recovery=0")
             if self.tcp_policy == "dctcp":
-                start_mn_process(
+                dc_utils.start_mn_process(
                     "sysctl -w net.ipv4.tcp_congestion_control=dctcp", host)
-                start_mn_process("sysctl -w net.ipv4.tcp_ecn=1", host)
-                start_mn_process("sysctl -w net.ipv4.tcp_ecn_fallback=0", host)
+                dc_utils.start_mn_process("sysctl -w net.ipv4.tcp_ecn=1", host)
+                dc_utils.start_mn_process(
+                    "sysctl -w net.ipv4.tcp_ecn_fallback=0", host)
             elif self.tcp_policy == "tcp_nv":
-                start_mn_process(
+                dc_utils.start_mn_process(
                     "sysctl -w net.ipv4.tcp_congestion_control=nv", host)
             elif self.tcp_policy == "pcc":
-                start_mn_process(
+                dc_utils.start_mn_process(
                     "sysctl -w net.ipv4.tcp_congestion_control=pcc", host)
 
     def _config_network(self, net):
@@ -239,10 +243,10 @@ class NetworkManager():
     def stop_network(self):
         log.info("Removing interfaces and restoring all network state.")
         if self.tcp_policy == "dctcp":
-            start_process("sysctl -w net.ipv4.tcp_ecn=0")
+            dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=0")
         # reset the active host congestion control to the previous value
         cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-        start_process(cmd)
+        dc_utils.start_process(cmd)
         # destroy all virtual interfaces and switches
         try:
             self.net.stop()

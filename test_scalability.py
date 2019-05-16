@@ -15,8 +15,9 @@ from ray.tune.registry import register_env
 import ray.tune as tune
 # Iroko imports
 import dc_gym
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
+
 # Fixed matplotlib import
 import matplotlib
 matplotlib.use('Agg')
@@ -84,7 +85,7 @@ class MaxAgent(Agent):
 
 
 def get_env(env_config):
-    return EnvFactory.create(env_config)
+    return dc_utils.EnvFactory.create(env_config)
 
 
 def get_agent(agent_name):
@@ -229,7 +230,7 @@ data_dirs = {
 def init():
     increments = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     if not ARGS.plot:
-        check_dir(OUTPUT_DIR)
+        dc_utils.check_dir(OUTPUT_DIR)
         log.info("Registering the DC environment...")
         register_env("dc_env", get_env)
 

@@ -6,8 +6,8 @@ import time
 import json
 import socket
 from plot import plot
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 # set up paths
 exec_dir = os.getcwd()
@@ -80,7 +80,7 @@ def run_tests():
         testname = generate_testname(OUTPUT_DIR)
         results_dir = "%s/%s" % (OUTPUT_DIR, testname)
         log.info("Saving results to %s" % results_dir)
-        check_dir(results_dir)
+        dc_utils.check_dir(results_dir)
         log.info("Dumping configuration in %s" % results_dir)
         dump_config(results_dir, pattern)
         for index in range(RUNS):

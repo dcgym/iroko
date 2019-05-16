@@ -4,8 +4,8 @@ import os
 
 # Iroko imports
 import dc_gym
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 
 # set up paths
@@ -44,7 +44,7 @@ def test_run(input_dir, output_dir, env, topo):
         "iterations": ARGS.timesteps,
         "tf_index": 0
     }
-    dc_env = EnvFactory.create(env_config)
+    dc_env = dc_utils.EnvFactory.create(env_config)
     dc_env.reset()
     for epoch in range(ARGS.timesteps):
         action = dc_env.action_space.sample()
@@ -62,7 +62,7 @@ def clean():
 
 def init():
     output_dir = ARGS.output_dir + "/" + ARGS.agent
-    check_dir(output_dir)
+    dc_utils.check_dir(output_dir)
     test_run(INPUT_DIR, output_dir, ARGS.env, ARGS.topo)
 
 

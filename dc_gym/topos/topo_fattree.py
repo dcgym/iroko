@@ -1,6 +1,6 @@
 from topos.topo_base import BaseTopo
-from dc_gym.utils import *
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology
@@ -139,13 +139,13 @@ class IrokoTopo(BaseTopo):
                 cmd += "bucket=output:1,bucket=output:2"
                 if self.fanout == 8:
                     cmd += ",bucket=output:3,bucket=output:4"
-                start_process(cmd)
+                dc_utils.start_process(cmd)
 
                 # Configure entries per protocol
                 for prot in protocols:
                     cmd = ovs_flow_cmd
                     cmd += "table=0,priority=10,%s,actions=group:1" % prot
-                    start_process(cmd)
+                    dc_utils.start_process(cmd)
 
             # Configure entries per protocol
             for prot in protocols:
@@ -159,7 +159,7 @@ class IrokoTopo(BaseTopo):
                         cmd += "%s," % prot
                         cmd += "nw_dst=10.%d.0.%d," % (num, i)
                         cmd += "actions=output:%d" % (self.fanout / 2 + i)
-                        start_process(cmd)
+                        dc_utils.start_process(cmd)
 
                 # Aggregation Switches
                 if sw in self.agg_switches:
@@ -173,7 +173,7 @@ class IrokoTopo(BaseTopo):
                         cmd += "%s," % prot
                         cmd += "nw_dst=10.%d.0.0/16," % i
                         cmd += "actions=output:%d" % (self.fanout / 2 + k)
-                        start_process(cmd)
+                        dc_utils.start_process(cmd)
                         k += 1
 
                 # Core Switches
@@ -188,7 +188,7 @@ class IrokoTopo(BaseTopo):
                         cmd += "%s," % prot
                         cmd += "nw_dst=10.%d.0.0/16," % i
                         cmd += "actions=output:%d" % j
-                        start_process(cmd)
+                        dc_utils.start_process(cmd)
                         k += 1
                         if k == self.fanout / 2 + 1:
                             j += 1

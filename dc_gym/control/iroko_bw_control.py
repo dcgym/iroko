@@ -3,8 +3,8 @@ import ctypes
 import gevent
 import multiprocessing
 import time
-from dc_gym.utils import IrokoLogger
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 

@@ -1,8 +1,8 @@
 from __future__ import print_function
 import numpy as np
 import math
-from dc_gym.utils import IrokoLogger
-log = IrokoLogger("iroko")
+import dc_gym.utils as dc_utils
+log = dc_utils.IrokoLogger.__call__().get_logger()
 
 
 def fairness_reward(actions, queues=None):
