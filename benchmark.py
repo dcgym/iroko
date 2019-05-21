@@ -1,13 +1,19 @@
-from __future__ import print_function
 import os
-import subprocess
 import datetime
 import time
-import json
 import socket
+
+import run_ray
 from plot import plot
+
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+
+# configure logging
+import logging
+logging.basicConfig(format="%(levelname)s:%(message)s",
+                    level=logging.INFO)
+log = logging.getLogger(__name__)
+
 
 # set up paths
 exec_dir = os.getcwd()
@@ -55,13 +61,12 @@ def dump_config(path, pattern):
     ts = time.time()
     st = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S')
     test_config["timestamp"] = st
-    with open(path + "/test_config.json", 'w') as fp:
-        json.dump(test_config, fp)
+    dc_utils.dump_json(path=path, name="bench_config", data=test_config)
 
 
 def launch_test(algo, results_subdir, transport, pattern):
-    cmd = "sudo python3 run_ray.py "
-    cmd += "-a %s " % algo
+    # cmd = "sudo python3 run_ray.py "
+    cmd = "-a %s " % algo
     cmd += "-t %d " % STEPS
     cmd += "--output %s " % results_subdir
     cmd += "--topo %s " % TOPO
@@ -72,7 +77,9 @@ def launch_test(algo, results_subdir, transport, pattern):
     # always use TCP if we are dealing with a TCP algorithm
     cmd += "--transport %s " % transport
     cmd += "--pattern %d " % pattern
-    subprocess.call(cmd.split())
+    log.info("Calling Ray command:")
+    log.info("%s" % cmd)
+    run_ray.main(cmd.split())
 
 
 def run_tests():
@@ -92,7 +99,6 @@ def run_tests():
             for algo in TCP_ALGOS:
                 results_subdir = "%s/%s_run%d" % (results_dir, "tcp", index)
                 launch_test(algo, results_subdir, "tcp", pattern)
-        time.sleep(10)
         # Plot the results and save the graphs under the given test name
         plot(results_dir, PLOT_DIR, testname)
 

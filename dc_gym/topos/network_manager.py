@@ -4,7 +4,8 @@ from mininet.node import RemoteController
 from mininet.net import Mininet
 
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +47,7 @@ class NetworkManager():
     def __init__(self, topo, tcp_policy="tcp"):
         self.topo = topo
         self.net = None
+        self.net_stopped = False
         self.host_ctrl_map = {}
         self.tcp_policy = tcp_policy
         self.prev_cc = get_congestion_control()
@@ -91,7 +93,7 @@ class NetworkManager():
             cmd += "avpkt %d " % avg_pkt_size
             cmd += "min %d " % min_q
             cmd += "max %d " % max_q
-            # # Ballpark burst hard limit...
+            # Ballpark burst hard limit...
             burst = (min_q + min_q + max_q) / (3 * avg_pkt_size)
             cmd += "burst %d " % burst
             cmd += "probability 0.1"
@@ -227,7 +229,7 @@ class NetworkManager():
         sw_intfs = []
         for switch in switches:
             for intf in switch.intfNames():
-                if intf is not 'lo':
+                if intf is not "lo":
                     sw_intfs.append(intf)
         return sw_intfs
 
@@ -239,16 +241,17 @@ class NetworkManager():
         self.net = Mininet(topo=self.topo, controller=None, autoSetMacs=True)
         self.net.start()
         self._config_network(self.net)
+        self.net_stopped = False
 
     def stop_network(self):
-        log.info("Removing interfaces and restoring all network state.")
-        if self.tcp_policy == "dctcp":
-            dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=0")
-        # reset the active host congestion control to the previous value
-        cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
-        dc_utils.start_process(cmd)
-        # destroy all virtual interfaces and switches
-        try:
+        if not self.net_stopped:
+            self.net_stopped = True
+            log.info("Removing interfaces and restoring all network state.")
+            if self.tcp_policy == "dctcp":
+                dc_utils.start_process("sysctl -w net.ipv4.tcp_ecn=0")
+            # reset the active host congestion control to the previous value
+            cmd = "sysctl -w net.ipv4.tcp_congestion_control=%s" % self.prev_cc
+            dc_utils.start_process(cmd)
+            log.info("Deleting the virtual network")
             self.net.stop()
-        except Exception as e:
-            log.error('Failed to delete the virtual network:\n' + str(e))
+            log.info("Successfully deleted the virtual network")

@@ -5,7 +5,11 @@ import os
 # Iroko imports
 import dc_gym
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+# configure logging
+import logging
+logging.basicConfig(format="%(levelname)s:%(message)s",
+                    level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 # set up paths
@@ -49,7 +53,7 @@ def test_run(input_dir, output_dir, env, topo):
     for epoch in range(ARGS.timesteps):
         action = dc_env.action_space.sample()
         dc_env.step(action)
-    print('Generator Finished. Simulation over. Clearing dc_env...')
+    print("Generator Finished. Simulation over. Clearing dc_env...")
     dc_env.close()
 
 

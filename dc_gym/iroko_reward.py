@@ -1,16 +1,15 @@
-from __future__ import print_function
 import numpy as np
 import math
-import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 
 def fairness_reward(actions, queues=None):
-    '''Compute Jain's fairness index for a list of values.
+    """Compute Jain"s fairness index for a list of values.
     See http://en.wikipedia.org/wiki/Fairness_measure for fairness equations.
     @param values: list of values
     @return fairness: JFI
-    '''
+    """
     num = sum(actions) ** 2
     denom = len(actions) * sum([i ** 2 for i in actions])
     return num / float(denom)
@@ -52,6 +51,8 @@ def selu_reward(reward):
 
 
 class RewardFunction:
+    __slots__ = ["stats_dict", "reward_funs"]
+
     def __init__(self, reward_models, stats_dict):
         self.stats_dict = stats_dict
         self.reward_funs = self._set_reward(reward_models)
@@ -71,7 +72,7 @@ class RewardFunction:
 
 
 # small script to visualize the reward output
-if __name__ == '__main__':
+if __name__ == "__main__":
     import matplotlib.pyplot as plt
     queues = [i * 0.1 for i in range(0, 11)]
     actions = [i * .001 for i in range(0, 1000)]
@@ -82,7 +83,7 @@ if __name__ == '__main__':
             action_input = np.array([action])
             rewards.append((joint_queue_reward(action_input, queue_input)))
         plt.plot(actions, rewards, label="Queue Size %f" % queue)
-    plt.xlabel('Action Input')
-    plt.ylabel('Reward')
+    plt.xlabel("Action Input")
+    plt.ylabel("Reward")
     plt.legend()
     plt.show()

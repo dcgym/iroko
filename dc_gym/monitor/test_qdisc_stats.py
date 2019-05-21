@@ -1,5 +1,5 @@
-''' Simple test suite to verify the functionality of the bandwidth
-    control library. Hardcoded. '''
+""" Simple test suite to verify the functionality of the bandwidth
+    control library. Hardcoded. """
 
 import ctypes
 import os
@@ -11,7 +11,7 @@ class Qdisc(ctypes.Structure):
     pass
 
 
-q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
+q_lib = ctypes.CDLL(FILE_DIR + "/libqdisc_stats.so")
 q_lib.init_qdisc_monitor.argtypes = [ctypes.c_char_p]
 q_lib.init_qdisc_monitor.restype = ctypes.POINTER(Qdisc)
 qdisc = q_lib.init_qdisc_monitor("sw1-eth1")

@@ -6,17 +6,11 @@ import csv
 import argparse
 import numpy as np
 import pandas as pd
-from filelock import FileLock
-import glob
-from dc_gym.utils import check_dir
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
+import dc_gym.utils as dc_utils
 
-MAX_BW = 10e6
-STATS_DICT = {"backlog": 0, "olimit": 1,
-              "drops": 2, "bw_rx": 3, "bw_tx": 4}
+# configure logging
+import logging
+log = logging.getLogger(__name__)
 
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 ROOT = "candidates"
@@ -26,8 +20,8 @@ PARSER.add_argument('--input', '-i', dest='input_dir')
 ARGS = PARSER.parse_args()
 
 
-def parse_config(results_dir):
-    with open(results_dir + "/test_config.json") as conf_file:
+def parse_config(conf_dir, name):
+    with open(f"{conf_dir}/{name}.json") as conf_file:
         return json.load(conf_file)
 
 
@@ -52,6 +46,10 @@ def np_dict_to_pd(np_dict, key, df_type="float64"):
 
 
 def plot_barchart(algos, plt_stats, plt_name):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots(2, 1, figsize=(20, 10))
     ax_overlimits = ax[0]
     ax_drops = ax[1]
@@ -86,9 +84,9 @@ def compute_rolling_df_mean(pd_df, roll):
 
 
 def compute_rolling_df_99p(pd_df, roll):
-    print(roll)
+    log.info(roll)
     rolling_df = pd_df.rolling(roll, center=True).quantile(.01).dropna()
-    print(rolling_df)
+    log.info(rolling_df)
     return rolling_df.reset_index(drop=True)
 
 
@@ -119,6 +117,11 @@ def normalize_df_z_score(pd_df):
 
 
 def plot_lineplot(algos, plt_stats, timesteps, plt_name):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     # Set seaborn style for plotting
     sns.set(style="ticks", rc={"lines.linewidth": 1.2,
                                "axes.spines.right": False,
@@ -127,14 +130,14 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     # sns.set_context("paper")
     metrics = {}
     plt_metrics = ["reward", "queues", "bw"]
-    print("Converting numpy arrays into pandas dataframes.")
+    log.info("Converting numpy arrays into pandas dataframes.")
     metrics["reward"] = np_dict_to_pd(plt_stats, "rewards")
     metrics["actions"] = np_dict_to_pd(plt_stats, "actions")
     metrics["queues"] = np_dict_to_pd(plt_stats, "backlog")
     metrics["bw"] = np_dict_to_pd(plt_stats, "bw_tx")
-    print("Computing overlimit deltas.")
+    log.info("Computing overlimit deltas.")
     metrics["overlimits"] = np_dict_to_pd(plt_stats, "olimit").diff()
-    print("Computing drops deltas.")
+    log.info("Computing drops deltas.")
     metrics["drops"] = np_dict_to_pd(plt_stats, "drops").diff()
 
     fig, ax = plt.subplots(len(plt_metrics), 1, sharex=True, squeeze=True)
@@ -146,18 +149,19 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
 
     for index, metric in enumerate(plt_metrics):
         metric_df = metrics[metric]
-        print("Computing rolling %s." % metric)
+        log.info("Computing rolling %s." % metric)
         metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
-        print("Normalizing %s." % metric)
+        log.info("Normalizing %s." % metric)
         metric_df = normalize_df_min_max(metric_df)
-        print ("Plotting %s..." % metric)
+        log.info("Plotting %s..." % metric)
         if index == 0:
             plt_legend = "brief"
         else:
             plt_legend = False
         ax[index] = sns.lineplot(data=metric_df.sample(sample),
                                  ax=ax[index], legend=plt_legend,
-                                 markers=True, markevery=marker_range, style="event")
+                                 markers=True, markevery=marker_range,
+                                 style="event")
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
             ax[index].set_xlabel("Steps")
@@ -165,47 +169,9 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
         ax[index].margins(y=0.15)
     ax[0].legend(bbox_to_anchor=(0.5, 1.45), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))
-    print("Saving plot %s" % plt_name)
-    check_dir(plt_name)
+    log.info("Saving plot %s" % plt_name)
     plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
     plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
-    plt.gcf().clear()
-
-
-def process_ping_files(results_folder):
-    ping_files = [i for i in glob.glob("%s/ping*.csv" % results_folder)]
-    host_pings = []
-    for pf in ping_files:
-        print("Import csv file: %s" % pf)
-        ping = np.genfromtxt(
-            pf, delimiter=',', usecols=(1), invalid_raise=False)
-        sample_start = int(len(ping) - len(ping) / 10)
-        host_pings.append(np.nanmean(ping[sample_start:]))
-    return np.nanmean(host_pings)
-
-
-def plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport):
-    algos = rl_algos + tcp_algos
-    host_pings = {}
-    for algo in algos:
-        if (algo in tcp_algos):
-            transport_dir = data_dir + "/tcp_"
-        else:
-            transport_dir = data_dir + "/%s_" % (transport.lower())
-        ping_runs = []
-        for index in range(runs):
-            run_dir = transport_dir + "run%d" % index
-            results_folder = '%s/%s' % (run_dir, algo.lower())
-            ping_runs.append(process_ping_files(results_folder))
-        host_pings[algo] = np.nanmean(ping_runs)
-    ping_df = pd.DataFrame.from_dict(host_pings, orient='index').transpose()
-    print(ping_df)
-    # Convert to milliseconds
-    ping_df = ping_df.div(1e6)
-    fig = sns.barplot(data=ping_df)
-    fig.set(xlabel='Algorithm', ylabel='Average RTT (ms)')
-    plt.savefig(plt_name + "_ping.png", bbox_inches='tight', pad_inches=0.05)
-    plt.savefig(plt_name + "_ping.pdf", bbox_inches='tight', pad_inches=0.05)
     plt.gcf().clear()
 
 
@@ -225,7 +191,7 @@ def process_rtt_files(data_dir, runs, algo):
         results_folder = '%s/%s' % (run_dir, algo.lower())
         run_tcptrace(results_folder)
         rtt_name = "%s/rtt.csv" % results_folder
-        print("Import csv file: %s" % rtt_name)
+        log.info("Import csv file: %s" % rtt_name)
         with open(rtt_name) as rtt_file:
             rtt_csv = csv.DictReader(rtt_file)
             for row in rtt_csv:
@@ -240,43 +206,95 @@ def process_rtt_files(data_dir, runs, algo):
 
 
 def analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     algos = rl_algos + tcp_algos
     host_rtt = {}
     for algo in algos:
         host_rtt[algo] = process_rtt_files(data_dir, runs, algo)
-    ping_df = pd.DataFrame.from_dict(host_rtt, orient='index')
-    ping_df = pd.melt(ping_df.reset_index(), id_vars='index',
+    pcap_df = pd.DataFrame.from_dict(host_rtt, orient='index')
+    pcap_df = pd.melt(pcap_df.reset_index(), id_vars='index',
                       var_name="Metric",
                       value_name="Average RTT (ms)")
-    ping_df = ping_df.rename(columns={'index': 'Algorithm'})
+    pcap_df = pcap_df.rename(columns={'index': 'Algorithm'})
     # Convert to milliseconds
-    # ping_df = ping_df.div(1e6)
+    # pcap_df = pcap_df.div(1e6)
     fig = sns.catplot(x='Metric', y='Average RTT (ms)',
-                      hue="Algorithm", data=ping_df, kind='bar')
+                      hue="Algorithm", data=pcap_df, kind='bar')
     from itertools import cycle
     hatches = cycle(["/", "-", "+", "x", '-', '+', 'x', 'O', '.'])
 
-    num_locations = len(ping_df.Metric.unique())
+    num_locations = len(pcap_df.Metric.unique())
     for i, patch in enumerate(fig.ax.patches):
         # Blue bars first, then green bars
         if i % num_locations == 0:
             hatch = next(hatches)
         patch.set_hatch(hatch)
     plt_name += "_rtt"
-    print("Saving plot %s" % plt_name)
+    log.info("Saving plot %s" % plt_name)
     plt.savefig(plt_name + ".png", bbox_inches='tight', pad_inches=0.05)
     plt.savefig(plt_name + ".pdf", bbox_inches='tight', pad_inches=0.05)
     plt.gcf().clear()
 
 
-def pick_stats_file(results_folder):
+def find_stats_files(results_folder):
     results = []
     for root, dirnames, filenames in os.walk(results_folder):
-        for filename in fnmatch.filter(filenames, 'runtime_statistics.npy'):
+        for filename in fnmatch.filter(filenames, 'statistics.npy'):
+
             results.append(os.path.join(root, filename))
-    if results:
-        largest = max(results, key=(lambda result: os.stat(result).st_size))
-        return largest
+    return results
+
+
+def get_stats(statistics, stats_dict, metrics):
+    stats = {}
+    rewards = np.array(statistics["reward"])
+    host_actions = np.moveaxis(statistics["actions"], 0, -1)
+    port_stats = np.moveaxis(statistics["stats"], 0, -1)
+    port_queues = np.array(port_stats[stats_dict["backlog"]])
+    port_bws = np.array(port_stats[stats_dict["bw_tx"]])
+    port_overlimits = np.array(port_stats[stats_dict["olimit"]])
+    port_drops = np.array(port_stats[stats_dict["drops"]])
+    # rewards
+    if rewards.size:
+        stats["rewards"] = rewards
+    # actions
+    log.info("Computing mean of host actions per step.")
+    actions = host_actions.mean(axis=0)
+    if actions.size:
+        stats["actions"] = actions
+    # queues
+    log.info("Computing mean of interface queues per step.")
+    flat_queues = port_queues.mean(axis=0)
+    if flat_queues.size:
+        stats["backlog"] = flat_queues
+    # bandwidths
+    log.info("Computing mean of interface bandwidth per step.")
+    flat_bw = port_bws.mean(axis=0)
+    if flat_bw.size:
+        stats["bw_tx"] = flat_bw
+    # overlimits
+    log.info("Computing mean of interface overlimits per step.")
+    mean_overlimits = port_overlimits.mean(axis=0)
+    if mean_overlimits.size:
+        stats["olimit"] = mean_overlimits
+    # drops
+    log.info("Computing mean of interface drops per step.")
+    mean_drops = port_drops.mean(axis=0)
+    if mean_drops.size:
+        stats["drops"] = mean_drops
+    return stats
+
+
+def merge_stats(stats):
+    stats_avg = {}
+    for metric in stats:
+        zipped_metrics = list(map(list, zip(*stats[metric])))
+        stats_avg[metric] = np.mean(zipped_metrics, axis=1)
+    return stats_avg
 
 
 def preprocess_data(algo, metrics, runs, transport_dir):
@@ -284,61 +302,32 @@ def preprocess_data(algo, metrics, runs, transport_dir):
     for index in range(runs):
         run_dir = transport_dir + "run%d" % index
         results_folder = '%s/%s' % (run_dir, algo.lower())
-        stats_file = pick_stats_file(results_folder)
-        if not stats_file:
-            print("No stats file found!")
-            exit(1)
-        print("Loading %s..." % stats_file)
-        with FileLock(stats_file + ".lock"):
-            try:
-                with open(stats_file, 'rb') as stats_handle:
-                    statistics = np.load(stats_handle).item()
-                    if not next(iter(statistics.values())):
-                        statistics = np.load(stats_handle).item()
-            except Exception as e:
-                print("Error loading file %s" % stats_file, e)
+        env_config = parse_config(results_folder, "env_config")
+        stats_dict = env_config["stats_dict"]
+        stats_files = find_stats_files(results_folder)
+        stats = {metric: [] for metric in metrics}
+        for stats_file in stats_files:
+            if not stats_file:
+                log.info("No stats file found!")
                 exit(1)
-        rewards = np.array(statistics["reward"])
-        host_actions = np.moveaxis(statistics["actions"], 0, -1)
-        port_stats = np.moveaxis(statistics["stats"], 0, -1)
-        port_queues = np.array(port_stats[STATS_DICT["backlog"]])
-        port_bws = np.array(port_stats[STATS_DICT["bw_tx"]])
-        port_overlimits = np.array(port_stats[STATS_DICT["olimit"]])
-        port_drops = np.array(port_stats[STATS_DICT["drops"]])
-        # rewards
-        if rewards.size:
-            run_list["rewards"].append(rewards)
-        num_samples = len(rewards)
-        # actions
-        print("Computing mean of host actions per step.")
-        actions = host_actions.mean(axis=0)
-        if actions.size:
-            run_list["actions"].append(actions)
-        # queues
-        print("Computing mean of interface queues per step.")
-        flat_queues = port_queues.mean(axis=0)
-        if flat_queues.size:
-            run_list["backlog"].append(flat_queues)
-        # bandwidths
-        print("Computing mean of interface bandwidth per step.")
-        flat_bw = port_bws.mean(axis=0)
-        if flat_bw.size:
-            run_list["bw_tx"].append(flat_bw)
-        # overlimits
-        print("Computing mean of interface overlimits per step.")
-        mean_overlimits = port_overlimits.mean(axis=0)
-        if mean_overlimits.size:
-            run_list["olimit"].append(mean_overlimits)
-        # drops
-        print("Computing mean of interface drops per step.")
-        mean_drops = port_drops.mean(axis=0)
-        if mean_drops.size:
-            run_list["drops"].append(mean_drops)
+            log.info("Loading %s..." % stats_file)
+            try:
+                statistics = np.load(stats_file).item()
+            except Exception as e:
+                log.info("Error loading file %s" % stats_file, e)
+                exit(1)
+            stats_list = get_stats(statistics, stats_dict, metrics)
+            for metric in metrics:
+                stats[metric].append(stats_list[metric])
+        stats_avg = merge_stats(stats)
+        for metric in metrics:
+            run_list[metric].append(stats_avg[metric])
+        num_samples = env_config["iterations"] / env_config["sample_delta"]
     return run_list, num_samples
 
 
 def plot(data_dir, plot_dir, name):
-    test_config = parse_config(data_dir)
+    test_config = parse_config(data_dir, "bench_config")
     rl_algos = test_config["rl_algorithms"]
     tcp_algos = test_config["tcp_algorithms"]
     algos = rl_algos + tcp_algos
@@ -350,7 +339,8 @@ def plot(data_dir, plot_dir, name):
     for transport in transports:
         plt_name = "%s/" % (plot_dir)
         plt_name += "%s" % name
-        plt_name += "_%s" % topo
+        dc_utils.check_dir(plt_name)
+        plt_name += "/%s" % topo
         plt_name += "_%s" % transport
         plt_name += "_%s" % timesteps
         plt_stats = {"rewards": {}, "actions": {}, "backlog": {},
@@ -365,26 +355,26 @@ def plot(data_dir, plot_dir, name):
             if (num_samples < min_samples):
                 min_samples = num_samples
             # average over all runs
-            print ("Computing the average across all runs.")
+            log.info("Computing the average across all runs.")
             for stat in run_list.keys():
                 min_len = min([len(ls) for ls in run_list[stat]])
                 pruned_list = [ls[:min_len] for ls in run_list[stat]]
                 plt_stats[stat][algo] = np.mean(pruned_list, axis=0)
         plot_lineplot(algos, plt_stats, min_samples, plt_name)
-        if transport == "tcp":
-            analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
-        # plot_ping(rl_algos, tcp_algos, plt_name, runs, data_dir, transport)
+        # if transport == "tcp":
+        #    analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir)
         # plot_barchart(algos, plt_stats, plt_name)
 
 
 if __name__ == '__main__':
-
+    logging.basicConfig(format="%(levelname)s:%(message)s",
+                        level=logging.INFO)
     if ARGS.input_dir:
         plot(ARGS.input_dir, PLOT_DIR, os.path.basename(
             os.path.normpath(ARGS.input_dir)))
         exit(0)
 
     for folder in next(os.walk(ROOT))[1]:
-        print("Crawling folder %s " % folder)
+        log.info("Crawling folder %s " % folder)
         machinedir = ROOT + "/" + folder
         plot(machinedir, PLOT_DIR, folder)

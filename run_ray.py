@@ -1,10 +1,10 @@
 from __future__ import print_function
 import argparse
 import os
+import glob
 import random
-import logging
-import time
 import json
+import time
 
 # Ray imports
 import ray
@@ -17,45 +17,16 @@ from ray.tune.schedulers import PopulationBasedTraining
 # Iroko imports
 import dc_gym
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+
+# configure logging
+import logging
+log = logging.getLogger(__name__)
 
 # set up paths
 cwd = os.getcwd()
 lib_dir = os.path.dirname(dc_gym.__file__)
 INPUT_DIR = lib_dir + '/inputs'
 OUTPUT_DIR = cwd + '/results'
-
-PARSER = argparse.ArgumentParser()
-PARSER.add_argument('--env', '-e', dest='env',
-                    default='iroko', help='The platform to run.')
-PARSER.add_argument('--topo', dest='topo',
-                    default='dumbbell', help='The topology to operate on.')
-PARSER.add_argument('--num_hosts', dest='num_hosts',
-                    default='4', help='The number of hosts in the topology.')
-PARSER.add_argument('--agent', '-a', dest='agent', default="PG",
-                    help='must be string of either: PPO, DDPG, PG,'
-                         ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
-PARSER.add_argument('--timesteps', '-t', dest='timesteps',
-                    type=int, default=10000,
-                    help='total number of timesteps to train rl agent, '
-                         'if tune specified is wall clock time')
-PARSER.add_argument('--pattern', '-p', dest='pattern_index',
-                    type=int, default=0,
-                    help='Traffic pattern we are testing.')
-PARSER.add_argument('--checkpoint_freq', '-cf', dest='checkpoint_freq',
-                    type=int, default=0,
-                    help='how often to checkpoint model')
-PARSER.add_argument('--restore', '-r', dest='restore', default=None,
-                    help='Path to checkpoint to restore (for testing), must '
-                    'end like this: <path>/checkpoint-* where star is the '
-                    'check point number')
-PARSER.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
-                    help='Folder which contains all the collected metrics.')
-PARSER.add_argument('--transport', dest='transport', default="udp",
-                    help='Choose the transport protocol of the hosts.')
-PARSER.add_argument('--tune', action="store_true", default=False,
-                    help='Specify whether to perform hyperparameter tuning')
-ARGS = PARSER.parse_args()
 
 
 class MaxAgent(Trainer):
@@ -178,16 +149,6 @@ def set_tuning_parameters(agent, config):
     return config, scheduler
 
 
-def clean():
-    ''' A big fat hammer to get rid of all the debris left over by ray '''
-    log.info("Removing all previous traces of Mininet and ray")
-    ray_kill = "sudo kill -9 $(ps aux | grep 'ray' | awk '{print $2}')"
-    os.system(ray_kill)
-    os.system('sudo mn -c')
-    os.system("sudo killall -9 goben")
-    os.system("sudo killall -9 node_control")
-
-
 def get_agent(agent_name):
 
     if agent_name.lower() == "rnd":
@@ -202,20 +163,18 @@ def get_agent(agent_name):
     return agent_class
 
 
-def get_tune_experiment(config, agent):
+def get_tune_experiment(config, agent, timesteps):
     SCHEDULE = False
     scheduler = None
     agent_class = get_agent(agent)
     ex_conf = {}
     ex_conf["name"] = agent
     ex_conf["run"] = agent_class
-    ex_conf["local_dir"] = ARGS.output_dir
-    ex_conf["stop"] = {"timesteps_total": ARGS.timesteps}
-    ex_conf["checkpoint_freq"] = ARGS.checkpoint_freq
-    ex_conf["checkpoint_at_end"] = True
-    ex_conf["restore"] = ARGS.restore
+    ex_conf["local_dir"] = config["env_config"]["output_dir"]
+    ex_conf["stop"] = {"timesteps_total": timesteps}
+
     if SCHEDULE:
-        ex_conf["stop"] = {"time_total_s": ARGS.timesteps / 2}
+        ex_conf["stop"] = {"time_total_s": timesteps / 2}
         ex_conf["num_samples"] = 2
         config["env_config"]["parallel_envs"] = True
         # custom changes to experiment
@@ -226,10 +185,10 @@ def get_tune_experiment(config, agent):
     return experiment, scheduler
 
 
-def configure_ray(agent):
+def configure_ray(args):
     # Load the config specific to the agent
     try:
-        with open("%s/ray_configs/%s.json" % (cwd, ARGS.agent), 'r') as fp:
+        with open("%s/ray_configs/%s.json" % (cwd, args.agent), 'r') as fp:
             config = json.load(fp)
     except IOError:
         # File does not exist, just initialize an empty configuration.
@@ -245,70 +204,169 @@ def configure_ray(agent):
 
     config["env_config"] = {
         "input_dir": INPUT_DIR,
-        "output_dir": ARGS.output_dir + "/" + ARGS.agent,
-        "env": ARGS.env,
-        "topo": ARGS.topo,
-        "agent": ARGS.agent,
-        "transport": ARGS.transport,
-        "iterations": ARGS.timesteps,
-        "tf_index": ARGS.pattern_index,
+        "output_dir": args.output_dir + "/" + args.agent,
+        "env": args.env,
+        "topo": args.topo,
+        "agent": args.agent,
+        "transport": args.transport,
+        "iterations": args.timesteps,
+        "tf_index": args.pattern_index,
         "topo_conf": {},
     }
 
     # customized configurations
-    if agent.lower() == "td3":
+    if args.agent.lower() == "td3":
         config["twin_q"] = True
         config['env_config']['agent'] = "ddpg"
-    if agent.lower() == "apex_ddpg":
+    if args.agent.lower() == "apex_ddpg":
         if config["num_workers"] < 2:
             config["num_workers"] = 2
 
-    # DDPG uses the default squashing function
-    if "ppo" in config['env_config']['agent'].lower():
-        config["env_config"]["ext_squashing"] = False
     if config["num_workers"] > 1:
         config["env_config"]["parallel_envs"] = True
-    if ARGS.timesteps > 50000:
-        config["env_config"]["sample_delta"] = int(ARGS.timesteps / 50000)
+    if args.timesteps > 50000:
+        config["env_config"]["sample_delta"] = int(args.timesteps / 50000)
     return config
 
 
-def run(config):
+def run(config, timesteps):
     agent_class = get_agent(config["env_config"]["agent"])
     agent = agent_class(config=config, env="dc_env")
     steps = 0
-    while steps < ARGS.timesteps:
+    while steps < timesteps:
         output = agent.train()
         steps += output["timesteps_this_iter"]
         log.info("Current timesteps %d" % steps)
-    log.info('Generator Finished. Simulation over. Clearing dc_env...')
+    log.info("Generator Finished. Simulation over. Clearing dc_env...")
 
 
-def tune_run(config):
+def tune_run(config, timesteps):
     agent = config['env_config']['agent']
-    experiment, scheduler = get_tune_experiment(config, agent)
-    tune.run(experiment, config=config, scheduler=scheduler, loggers=[log])
+    experiment, scheduler = get_tune_experiment(config, agent, timesteps)
+    tune.run(experiment, config=config, scheduler=scheduler, verbose=0)
+    log.info("Tune run over. Clearing dc_env...")
 
 
-def init():
-    results_dir = ARGS.output_dir + "/" + ARGS.agent
-    dc_utils.check_dir(results_dir)
+def check_file(pattern):
+    for fname in glob.glob(pattern, recursive=True):
+        if os.path.isfile(fname):
+            return True
+    return False
+
+
+def get_args(args=None):
+    p = argparse.ArgumentParser()
+    p.add_argument('--env', '-e', dest='env',
+                   default='iroko', help='The platform to run.')
+    p.add_argument('--topo', dest='topo',
+                   default='dumbbell', help='The topology to operate on.')
+    p.add_argument('--num_hosts', dest='num_hosts',
+                   default='4', help='The number of hosts in the topology.')
+    p.add_argument('--agent', '-a', dest='agent', default="PG",
+                   help='must be string of either: PPO, DDPG, PG,'
+                   ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
+    p.add_argument('--timesteps', '-t', dest='timesteps',
+                   type=int, default=10000,
+                   help='total number of timesteps to train rl agent, '
+                   'if tune specified is wall clock time')
+    p.add_argument('--pattern', '-p', dest='pattern_index',
+                   type=int, default=0,
+                   help='Traffic pattern we are testing.')
+    p.add_argument('--checkpoint_freq', '-cf', dest='checkpoint_freq',
+                   type=int, default=0,
+                   help='how often to checkpoint model')
+    p.add_argument('--restore', '-r', dest='restore', default=None,
+                   help='Path to checkpoint to restore (for testing), must '
+                   'end like this: <path>/checkpoint-* where star is the '
+                        'check point number')
+    p.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
+                   help='Folder which contains all the collected metrics.')
+    p.add_argument('--transport', dest='transport', default="udp",
+                   help='Choose the transport protocol of the hosts.')
+    p.add_argument('--tune', action="store_true", default=False,
+                   help='Specify whether to perform hyperparameter tuning')
+    return p.parse_args(args)
+
+
+def kill_ray():
+    dc_utils.kill_processes_with_name("ray_")
+    if dc_utils.list_processes("ray_"):
+        # Show 'em who's boss
+        dc_utils.kill_processes_with_name("ray_", use_sigkill=True)
+
+
+def clean():
+    ''' A big fat hammer to get rid of all the debris left over by ray '''
+    log.info("Removing all previous traces of Mininet and ray")
+    kill_ray()
+    os.system('sudo mn -c')
+    dc_utils.kill_processes_with_name("goben")
+    dc_utils.kill_processes_with_name("node_control")
+
+
+def wait_for_ovs():
+    import subprocess
+    ovs_cmd = "ovs-vsctl --timeout=10 list-br"
+    timeout = 0
+    while True:
+        result = subprocess.run(ovs_cmd.split(), stdout=subprocess.PIPE)
+        if result.stdout == b'':
+            break
+        # time out after 60 seconds and clean up...
+        if timeout > 60:
+            log.error("Timed out! Swinging the cleaning hammer...")
+            clean()
+            return
+        log.info("...")
+        time.sleep(1)
+        timeout += 1
+
+
+def main(args=None):
+    logging.basicConfig(format="%(levelname)s:%(message)s",
+                        level=logging.INFO)
+    args = get_args(args)
+    if args is None:
+        log.error("Something went wrong while parsing arguments!")
+        exit(1)
+
     log.info("Registering the DC environment...")
-    register_env("dc_env", get_gym)
+    register_env("dc_env", get_env)
+    # Configure all ray input parameters based on the arguments
+    config = configure_ray(args)
+    output_dir = config["env_config"]["output_dir"]
+    # Check if the output directory exists before running
+    dc_utils.check_dir(output_dir)
+    # Dump the configuration
+    dc_utils.dump_json(path=output_dir, name="ray_config", data=config)
+
     log.info("Starting Ray...")
-    ray.init(num_cpus=2, logging_level=logging.ERROR)
-    config = configure_ray(ARGS.agent)
+    ts = time.time()
+    ray.init(ignore_reinit_error=True,
+             logging_level=logging.WARN,
+             temp_dir=output_dir,
+             plasma_store_socket_name="/tmp/plasma_socket%s" % ts,
+             raylet_socket_name="/tmp/raylet_socket%s" % ts)
+
     log.info("Starting experiment.")
-    # Basic ray train currently does not work, always use tune for now
-    if ARGS.tune:
-        tune_run(config)
+    if args.tune:
+        tune_run(config, args.timesteps)
     else:
-        run(config)
-    dc_utils.change_owner(results_dir)
+        run(config, args.timesteps)
+
     # Wait until the topology is torn down completely
-    # time.sleep(10)
+    # The flaky Mininet stop() call necessitates this
+    # This is an unfortunate reality and may conflict with other ovs setups
+    log.info("Waiting for environment to complete...")
+    wait_for_ovs()
+    # Take control back from root
+    dc_utils.change_owner(output_dir)
+    # Ray doesn't play nice and prevents proper shutdown sometimes
+    ray.shutdown()
+    time.sleep(1)
+    kill_ray()
     log.info("Experiment has completed.")
 
 
 if __name__ == '__main__':
-    init()
+    main()

@@ -1,18 +1,19 @@
 from topos.topo_base import BaseTopo
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 DEFAULT_CONF = {
     "num_hosts": 16,            # number of hosts in the topology
-    "traffic_files": ['stag_prob_0_2_3_data', 'stag_prob_1_2_3_data',
-                      'stag_prob_2_2_3_data', 'stag_prob_0_5_3_data',
-                      'stag_prob_1_5_3_data', 'stag_prob_2_5_3_data',
-                      'stride1_data', 'stride2_data', 'stride4_data',
-                      'stride8_data', 'random0_data', 'random1_data',
-                      'random2_data', 'random0_bij_data', 'random1_bij_data',
-                      'random2_bij_data', 'random_2_flows_data',
-                      'random_3_flows_data', 'random_4_flows_data',
-                      'hotspot_one_to_one_data'],
+    "traffic_files": ["stag_prob_0_2_3_data", "stag_prob_1_2_3_data",
+                      "stag_prob_2_2_3_data", "stag_prob_0_5_3_data",
+                      "stag_prob_1_5_3_data", "stag_prob_2_5_3_data",
+                      "stride1_data", "stride2_data", "stride4_data",
+                      "stride8_data", "random0_data", "random1_data",
+                      "random2_data", "random0_bij_data", "random1_bij_data",
+                      "random2_bij_data", "random_2_flows_data",
+                      "random_3_flows_data", "random_4_flows_data",
+                      "hotspot_one_to_one_data"],
 }
 
 

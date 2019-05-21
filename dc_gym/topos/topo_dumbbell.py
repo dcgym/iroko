@@ -1,6 +1,7 @@
 from topos.topo_base import BaseTopo
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 DEFAULT_CONF = {
     "num_hosts": 4,             # number of hosts in the topology

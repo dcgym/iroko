@@ -3,7 +3,8 @@ import sys
 import csv
 from time import sleep
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 # The binaries are located in the control subfolder
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,13 +23,27 @@ def parse_traffic_file(traffic_file):
 
 
 class TrafficGen():
+    name = "TrafficGen"
     SUPPORTED_TRANSPORT = ["tcp", "udp"]
 
-    def __init__(self, net_man, transport):
-        self.name = 'TrafficGen'
+    def __init__(self, net_man, transport, out_dir):
         self.net_man = net_man
-        self.procs = []
+        self.service_procs = []
+        self.traffic_procs = []
         self._set_t_type(transport)
+        self.out_dir = out_dir
+        dc_utils.check_dir(out_dir)
+        self._init_services()
+
+    def start(self, input_file):
+        self._start_traffic(input_file)
+
+    def stop(self):
+        self._stop_traffic()
+
+    def close(self):
+        self._stop_traffic()
+        self._stop_services()
 
     def _set_t_type(self, transport):
         if transport.lower() in self.SUPPORTED_TRANSPORT:
@@ -42,30 +57,30 @@ class TrafficGen():
             exit(1)
 
     def traffic_is_active(self):
-        ''' Return false if any of the processes has terminated '''
-        for proc in self.procs:
+        """ Return false if any of the processes has terminated """
+        for proc in self.service_procs:
             poll = proc.poll()
             if poll is not None:
                 return False
         return True
 
     def _start_servers(self, hosts, traffic_gen, out_dir):
-        log.info('*** Starting servers')
+        log.info("Starting servers")
         for host in hosts:
             out_file = "%s/%s_server" % (out_dir, host.name)
             server_cmd = traffic_gen
             s_proc = dc_utils.start_mn_process(server_cmd, host, out_file)
-            self.procs.append(s_proc)
+            self.service_procs.append(s_proc)
 
     def _start_controllers(self, hosts, out_dir):
         # The binary of the host rate limiter
-        traffic_ctrl = FILE_DIR + '/control/node_control'
+        traffic_ctrl = FILE_DIR + "/control/node_control"
         if not os.path.isfile(traffic_ctrl):
             log.info("The traffic controller does not exist.\n"
                      "Run the install.sh script to compile it.")
-            dc_utils.kill_processes(self.procs)
+            dc_utils.kill_processes(self.service_procs)
             exit(1)
-        log.info('*** Starting controllers')
+        log.info("Starting controllers")
         for host in hosts:
             iface_net = host.intfList()[0]
             ifaces_ctrl = host.intfList()[1]
@@ -75,7 +90,7 @@ class TrafficGen():
             ctrl_cmd += "-c %s " % ifaces_ctrl
             ctrl_cmd += "-r %d " % self.net_man.topo.conf["max_capacity"]
             c_proc = dc_utils.start_mn_process(ctrl_cmd, host, out_file)
-            self.procs.append(c_proc)
+            self.service_procs.append(c_proc)
 
     def _start_client(self, traffic_gen, host, out_dir, dst_hosts):
         if not dst_hosts:
@@ -96,7 +111,7 @@ class TrafficGen():
         if self.transport == "udp":
             traffic_cmd += "-udp "
         t_proc = dc_utils.start_mn_process(traffic_cmd, host, out_file)
-        self.procs.append(t_proc)
+        self.traffic_procs.append(t_proc)
 
     def _start_pkt_capture_tshark(self, out_dir):
         # start a tshark capture process
@@ -114,7 +129,7 @@ class TrafficGen():
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
         dmp_proc = dc_utils.start_process(dmp_cmd, out_file=dmp_file)
-        self.procs.append(dmp_proc)
+        self.service_procs.append(dmp_proc)
 
     def _start_pkt_capture_tcpdump(self, host, out_dir):
         # start a tcpdump capture process
@@ -129,16 +144,17 @@ class TrafficGen():
         dmp_cmd += "-Z root "
         dmp_cmd += "-s96 "      # Capture only headers
         dmp_proc = dc_utils.start_mn_process(dmp_cmd, host, dmp_file)
-        self.procs.append(dmp_proc)
+        self.service_procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):
-        log.info('*** Loading file: %s' % input_file)
+        log.info("Loading file: %s" % input_file)
         if not os.path.basename(input_file) == "all":
             traffic_pattern = parse_traffic_file(input_file)
             if traffic_pattern is None:
-                dc_utils.kill_processes(self.procs)
+                log.error("No traffic pattern provided!")
+                dc_utils.kill_processes(self.service_procs)
                 exit(1)
-        log.info('*** Starting load-generators')
+        log.info("Starting load-generators")
         if os.path.basename(input_file) == "all":
             # generate an all-to-all pattern
             for src_host in hosts:
@@ -156,38 +172,48 @@ class TrafficGen():
                     if host_ip == config_row["src"]:
                         dst_hosts.append(config_row["dst"])
                 self._start_client(traffic_gen, src_host, out_dir, dst_hosts)
-                self._start_pkt_capture_tcpdump(src_host, out_dir)
+                # self._start_pkt_capture_tcpdump(src_host, out_dir)
 
-    def start_traffic(self, input_file, out_dir):
-        ''' Run the traffic generator and monitor all of the interfaces '''
-        if not input_file:
-            return
-        log.info('*** Starting traffic')
-        if not os.path.exists(out_dir):
-            log.info("Result folder %s does not exist, creating..." % out_dir)
-            os.makedirs(out_dir)
-
+    def _init_services(self):
+        """ Run the servers and monitors on all the host interfaces """
         hosts = self.net_man.get_net().hosts
         # The binary of the traffic generator
-        traffic_gen = FILE_DIR + '/goben'
+        traffic_gen = FILE_DIR + "/goben"
         if not os.path.isfile(traffic_gen):
             log.info("The traffic generator does not exist.\n"
                      "Run the install.sh script with the --goben"
-                     " option to compile it.\n")
+                     " option to compile it.")
             exit(1)
         # Suppress ouput of the traffic generators
         traffic_gen += " -silent "
-        self._start_servers(hosts, traffic_gen, out_dir)
-        self._start_controllers(hosts, out_dir)
-        self._start_generators(hosts, input_file, traffic_gen, out_dir)
-        # self._start_pkt_capture(out_dir)
+        self._start_servers(hosts, traffic_gen, self.out_dir)
+        self._start_controllers(hosts, self.out_dir)
+        # self._start_pkt_capture(self.out_dir)
         # wait for load controllers to initialize
         sleep(0.5)
 
-    def stop_traffic(self):
-        log.info('')
-        if self.traffic_is_active:
-            log.info('*** Stopping traffic processes')
-            dc_utils.kill_processes(self.procs)
-            del self.procs[:]
+    def _stop_services(self):
+        log.info("")
+        log.info("Stopping services")
+        dc_utils.kill_processes(self.service_procs)
+        del self.service_procs[:]
+        sys.stdout.flush()
+
+    def _start_traffic(self, input_file):
+        """ Run the traffic generators"""
+        if not input_file:
+            log.error("No traffic file provided!")
+            exit(1)
+        hosts = self.net_man.get_net().hosts
+        # The binary of the traffic generator
+        traffic_gen = FILE_DIR + "/goben"
+
+        log.info("Starting traffic")
+        self._start_generators(hosts, input_file, traffic_gen, self.out_dir)
+
+    def _stop_traffic(self):
+        log.info("")
+        log.info("Stopping traffic processes")
+        dc_utils.kill_processes(self.traffic_procs)
+        del self.traffic_procs[:]
         sys.stdout.flush()

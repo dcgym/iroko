@@ -3,8 +3,8 @@ import ctypes
 import gevent
 import multiprocessing
 import time
-import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -22,7 +22,7 @@ class BandwidthController(multiprocessing.Process):
     def __init__(self, host_ctrl_map, txrate):
         multiprocessing.Process.__init__(self)
         self.host_ctrl_map = host_ctrl_map
-        self.name = 'PolicyEnforcer'
+        self.name = "PolicyEnforcer"
         self.txrate = txrate
         # self.sock_map = self.bind_sockets(host_ctrl_map)
         self.bw_lib = self.init_backend()
@@ -38,15 +38,18 @@ class BandwidthController(multiprocessing.Process):
                 self.kill.set()
         self._clean()
 
-    def terminate(self):
+    def stop(self):
         log.info("%s: Received termination signal! Exiting.." % self.name)
         self.kill.set()
+
+    def close(self):
+        self.stop()
 
     def _clean(self):
         pass
 
     def init_backend(self):
-        bw_lib = ctypes.CDLL(FILE_DIR + '/libbw_control.so')
+        bw_lib = ctypes.CDLL(FILE_DIR + "/libbw_control.so")
         bw_lib.init_ring.argtypes = [
             ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint]
         bw_lib.init_ring.restype = ctypes.POINTER(Ring)
@@ -60,10 +63,10 @@ class BandwidthController(multiprocessing.Process):
         for sw_iface, ctrl_iface in host_ctrl_map.items():
             ring_list[sw_iface] = {}
             rx_ring = self.bw_lib.init_ring(
-                ctrl_iface.encode('ascii'), self.SRC_PORT,
+                ctrl_iface.encode("ascii"), self.SRC_PORT,
                 self.PACKET_RX_RING)
             tx_ring = self.bw_lib.init_ring(
-                ctrl_iface.encode('ascii'), self.SRC_PORT,
+                ctrl_iface.encode("ascii"), self.SRC_PORT,
                 self.PACKET_TX_RING)
             ring_list[sw_iface]["rx"] = rx_ring
             ring_list[sw_iface]["tx"] = tx_ring
@@ -94,7 +97,7 @@ class BandwidthController(multiprocessing.Process):
 
 
 # small script to test the functionality of the bw control operations
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_list = {"test": "c0-eth0", "fest": "c0-eth1",
                  "nest": "c0-eth2", "quest": "c0-eth3"}
     ic = BandwidthController("Iroko", test_list)

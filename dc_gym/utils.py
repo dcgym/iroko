@@ -1,4 +1,3 @@
-import logging
 import numpy as np
 import subprocess
 import os
@@ -6,38 +5,12 @@ import sys
 import random
 import string
 
+import logging
+log = logging.getLogger(__name__)
+
 cwd = os.getcwd()
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, FILE_DIR)
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(
-                Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class IrokoLogger(object, metaclass=Singleton):
-
-    def __init__(self):
-        self.logger = None
-        logging.basicConfig()
-        self.logger = logging.getLogger("Iroko")
-        self.logger.setLevel(logging.INFO)
-
-        fhan = logging.FileHandler("iroko.log")
-        fhan.setLevel(logging.INFO)
-        self.logger.addHandler(fhan)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fhan.setFormatter(formatter)
-
-    def get_logger(self):
-        return self.logger
 
 
 def shmem_to_nparray(shmem_array, dtype):
@@ -45,13 +18,13 @@ def shmem_to_nparray(shmem_array, dtype):
 
 
 def start_process(cmd, out_file=subprocess.STDOUT):
-    if out_file is subprocess.STDOUT:
-        return subprocess.Popen(cmd.split())
-    out = out_file + ".out"
-    err = out_file + ".err"
-    log = IrokoLogger.__call__().get_logger()
     log.debug("Executing %s " % cmd)
-    with open(out, 'w+') as f_out, open(err, 'w+') as f_err:
+    if out_file is subprocess.STDOUT:
+        return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+    err = out_file + ".err"
+    out = out_file + ".out"
+    with open(out, "w+") as f_out, open(err, "w+") as f_err:
         return subprocess.Popen(cmd.split(), stdout=f_out, stderr=f_err)
 
 
@@ -63,23 +36,45 @@ def start_mn_process(cmd, host, out_file=subprocess.STDOUT):
     return start_process(cmd, out_file)
 
 
-def kill_processes(procs):
+def list_processes(pattern):
+    import psutil
+    procs = []
+    for proc in psutil.process_iter():
+        if pattern in proc.name():
+            log.info("Found %s" % proc)
+            procs.append(proc)
+    return procs
+
+
+def kill_processes(procs, use_sigkill=False):
     for proc in procs:
         # kill process, 15 is SIGTERM, 9 is SIGKILL
         try:
             os.kill(proc.pid, 15)
-            # os.kill(proc.pid, 9)
+            if use_sigkill:
+                os.kill(proc.pid, 9)
         except OSError:
             pass
+
+
+def kill_processes_with_name(pattern, use_sigkill=False):
+    procs = list_processes(pattern)
+    kill_processes(procs, use_sigkill)
+
+
+def dump_json(path, name, data):
+    import json
+    with open(f"{path}/{name}.json", 'w') as fp:
+        json.dump(data, fp)
 
 
 def change_owner(directory):
     import pwd
     import grp
-    if 'SUDO_USER' in os.environ:
-        user = os.environ['SUDO_USER']
+    if "SUDO_USER" in os.environ:
+        user = os.environ["SUDO_USER"]
     else:
-        user = os.environ['USER']
+        user = os.environ["USER"]
 
     uid = pwd.getpwnam(user).pw_uid
     gid = grp.getgrnam(user).gr_gid
@@ -91,19 +86,18 @@ def change_owner(directory):
 
 
 def generate_id():
-    ''' Mininet needs unique ids if we want to launch
-     multiple topologies at once '''
+    """ Mininet needs unique ids if we want to launch
+     multiple topologies at once """
     # Best collision-free technique for the limited amount of characters
-    sw_id = ''.join(random.choice(''.join([random.choice(
-            string.ascii_letters + string.digits)
+    sw_id = "".join(random.choice("".join([random.choice(
+        string.ascii_letters + string.digits)
         for ch in range(4)])) for _ in range(4))
     return sw_id
 
 
 def check_dir(directory):
-    log = IrokoLogger.__call__().get_logger()
     # create the folder if it does not exit
-    if not directory == '' and not os.path.exists(directory):
+    if not directory == "" and not os.path.exists(directory):
         log.info("Folder %s does not exist! Creating..." % directory)
         os.makedirs(directory)
         # preserve the original owner
@@ -124,7 +118,6 @@ class EnvFactory(object):
 
         env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
-        log = IrokoLogger.__call__().get_logger()
         log.info("Loading environment %s " % env_name)
         try:
             BaseEnv = import_from(env_name, env_class)
@@ -141,7 +134,6 @@ class TopoFactory(object):
     def create(topo_name, options):
         env_name = "dc_gym.topos.topo_" + topo_name
         env_class = "IrokoTopo"
-        log = IrokoLogger.__call__().get_logger()
         log.info("Loading topology %s " % env_name)
         try:
             IrokoTopo = import_from(env_name, env_class)

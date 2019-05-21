@@ -1,66 +1,67 @@
-from filelock import FileLock
 from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
 import numpy as np
+
 
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
 from dc_gym.iroko_reward import RewardFunction
 import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 
 class StateManager:
-    STATS_DICT = {"backlog": 0, "olimit": 1,
-                  "drops": 2, "bw_rx": 3, "bw_tx": 4}
     __slots__ = ["num_ports", "deltas", "prev_stats", "stats_file",
-                 "stats_keys", "data", "dopamin", "stats", "output_dir",
-                 "flow_stats", "procs", "collect_flows", "reward_model"]
+                 "stats_keys", "stats_dict", "stats_samples", "dopamin",
+                 "stats", "flow_stats", "procs", "collect_flows",
+                 "reward_model"]
 
-    def __init__(self, conf, topo):
+    def __init__(self, conf, topo, stats_dict):
+        self.stats = None
+        self.prev_stats = None
+        self.flow_stats = None
+        self.deltas = None
+        self.stats_samples = None
+        self.procs = []
+        self.stats_dict = stats_dict
+
+        self.stats_file = "%s/statistics" % conf["output_dir"]
         self.stats_keys = conf["state_model"]
         self.collect_flows = conf["collect_flows"]
         self.reward_model = conf["reward_model"]
-        self.deltas = None
-        self.prev_stats = None
-        self.stats_file = None
-        self.output_dir = conf["output_dir"]
+
         self.num_ports = topo.get_num_sw_ports()
         self._init_stats_matrices(self.num_ports, topo.get_num_hosts())
 
     def start(self, net_man):
-        self._set_data_checkpoints(self.output_dir)
+        self._set_data_checkpoints()
         self._spawn_collectors(net_man)
-        self.dopamin = RewardFunction(self.reward_model, self.STATS_DICT)
+        self.dopamin = RewardFunction(self.reward_model, self.stats_dict)
 
-    def flush_and_close(self):
-        if self.stats_file:
-            log.info("Writing collected data to disk")
-            with FileLock(self.stats_file.name + ".lock"):
-                try:
-                    self.flush()
-                except Exception as e:
-                    log.info("Error flushing file %s" %
-                             self.stats_file.name, e)
-            # self.stats_file.close()
-
-    def terminate(self):
+    def stop(self):
         self._terminate_collectors()
 
-    def reset(self):
-        # self.flush()
-        pass
+        log.info("Writing collected data to disk")
+        try:
+            self._flush()
+        except Exception as e:
+            log.error("Error flushing file %s" % self.stats_file, e)
+        if self.stats_samples:
+            self.stats_samples = None
+        self.stats.fill(0)
+        self.prev_stats.fill(0)
+
+    def close(self):
+        self.stop()
 
     def _init_stats_matrices(self, num_ports, num_hosts):
-        self.stats = None
-        self.flow_stats = None
-        self.procs = []
         # Set up the shared stats matrix
-        stats_arr_len = num_ports * len(self.STATS_DICT)
+        stats_arr_len = num_ports * len(self.stats_dict)
         mp_stats = Array(c_ulong, stats_arr_len)
         np_stats = dc_utils.shmem_to_nparray(mp_stats, np.float64)
-        self.stats = np_stats.reshape((len(self.STATS_DICT), num_ports))
+        self.stats = np_stats.reshape((len(self.stats_dict), num_ports))
         # Set up the shared flow matrix
         if (self.collect_flows):
             flow_arr_len = num_ports * num_hosts * 2
@@ -69,7 +70,7 @@ class StateManager:
             self.flow_stats = np_flows.reshape((num_ports, 2, num_hosts))
         # Save the initialized stats matrix to compute deltas
         self.prev_stats = self.stats.copy()
-        self.deltas = np.zeros(shape=(len(self.STATS_DICT), num_ports))
+        self.deltas = np.zeros(shape=(len(self.stats_dict), num_ports))
 
     def _spawn_collectors(self, net_man):
         sw_ports = net_man.get_sw_ports()
@@ -77,12 +78,12 @@ class StateManager:
         host_ips = net_man.topo.host_ips.values()
         # Launch an asynchronous queue collector
         proc = QueueCollector(
-            sw_ports, self.stats, self.STATS_DICT, net_man.topo.max_queue)
+            sw_ports, self.stats, self.stats_dict, net_man.topo.max_queue)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous bandwidth collector
         proc = BandwidthCollector(
-            host_ports, self.stats, self.STATS_DICT, net_man.topo.max_bps)
+            host_ports, self.stats, self.stats_dict, net_man.topo.max_bps)
         proc.start()
         self.procs.append(proc)
         # Launch an asynchronous flow collector
@@ -91,14 +92,12 @@ class StateManager:
             proc.start()
             self.procs.append(proc)
 
-    def _set_data_checkpoints(self, data_dir):
-        self.data = {}
+    def _set_data_checkpoints(self):
         # define file name
-        runtime_name = "%s/runtime_statistics.npy" % (data_dir)
-        self.stats_file = open(runtime_name, 'ab+')
-        self.data["reward"] = []
-        self.data["actions"] = []
-        self.data["stats"] = []
+        self.stats_samples = {}
+        self.stats_samples["reward"] = []
+        self.stats_samples["actions"] = []
+        self.stats_samples["stats"] = []
 
     def _terminate_collectors(self):
         for proc in self.procs:
@@ -120,9 +119,9 @@ class StateManager:
             state = []
             for key in self.stats_keys:
                 if (key.startswith("d_")):
-                    state.append(self.deltas[self.STATS_DICT[key[2:]]][index])
+                    state.append(self.deltas[self.stats_dict[key[2:]]][index])
                 else:
-                    state.append(self.stats[self.STATS_DICT[key]][index])
+                    state.append(self.stats[self.stats_dict[key]][index])
             if self.collect_flows:
                 state.extend(self.flow_stats[index])
             obs.append(np.array(state))
@@ -131,15 +130,14 @@ class StateManager:
 
         if (do_sample):
             # Save collected data
-            self.data["stats"].append(self.stats.copy())
-            self.data["reward"].append(reward)
-            self.data["actions"].append(curr_action.copy())
+            self.stats_samples["stats"].append(self.stats.copy())
+            self.stats_samples["reward"].append(reward)
+            self.stats_samples["actions"].append(curr_action.copy())
         return np.array(obs), reward
 
-    def flush(self):
-        log.info("Saving statistics...")
-        if self.data["reward"]:
-            np.save(self.stats_file, np.array(self.data))
-            self.stats_file.flush()
-            for key in self.data.keys():
-                del self.data[key][:]
+    def _flush(self):
+        if self.stats_samples:
+            log.info("Saving statistics...")
+            # self.stats_samples.sync()
+            np.save(self.stats_file, self.stats_samples)
+            log.info("Done saving statistics...")

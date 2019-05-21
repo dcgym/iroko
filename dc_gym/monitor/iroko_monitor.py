@@ -3,8 +3,8 @@ import multiprocessing
 import ctypes
 import os
 import time
-import dc_gym.utils as dc_utils
-log = dc_utils.IrokoLogger.__call__().get_logger()
+import logging
+log = logging.getLogger(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,7 +13,7 @@ class Collector(multiprocessing.Process):
 
     def __init__(self, iface_list):
         multiprocessing.Process.__init__(self)
-        self.name = 'Collector'
+        self.name = "Collector"
         self.iface_list = iface_list
         self.kill = multiprocessing.Event()
 
@@ -21,8 +21,8 @@ class Collector(multiprocessing.Process):
         cmd = "sudo ovs-vsctl list-br | xargs -L1 sudo ovs-vsctl list-ports"
         output = subprocess.check_output(cmd, shell=True).decode()
         iface_list_temp = []
-        for row in output.split('\n'):
-            if row != '':
+        for row in output.split("\n"):
+            if row != "":
                 iface_list_temp.append(row)
         self.iface_list = iface_list_temp
 
@@ -50,7 +50,7 @@ class BandwidthCollector(Collector):
 
     def __init__(self, iface_list, shared_stats, stats_dict, max_bps):
         Collector.__init__(self, iface_list)
-        self.name = 'StatsCollector'
+        self.name = "StatsCollector"
         self.stats = shared_stats
         self.max_bps = max_bps
         self.stats_dict = stats_dict
@@ -89,7 +89,7 @@ class QueueCollector(Collector):
 
     def __init__(self, iface_list, shared_stats, stats_dict, max_queue):
         Collector.__init__(self, iface_list)
-        self.name = 'QueueCollector'
+        self.name = "QueueCollector"
         self.stats = shared_stats
         self.stats_dict = stats_dict
         self.max_queue = max_queue
@@ -98,7 +98,7 @@ class QueueCollector(Collector):
 
     def _init_stats(self):
         # init qdisc C library
-        q_lib = ctypes.CDLL(FILE_DIR + '/libqdisc_stats.so')
+        q_lib = ctypes.CDLL(FILE_DIR + "/libqdisc_stats.so")
         q_lib.init_qdisc_monitor.argtypes = [ctypes.c_char_p]
         q_lib.init_qdisc_monitor.restype = ctypes.POINTER(Qdisc)
         return q_lib
@@ -116,7 +116,7 @@ class QueueCollector(Collector):
 
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
-            qdisc = self.q_lib.init_qdisc_monitor(iface.encode('ascii'))
+            qdisc = self.q_lib.init_qdisc_monitor(iface.encode("ascii"))
             queue_backlog = float(self.q_lib.get_qdisc_backlog(qdisc))
             queue_backlog /= float(self.max_queue)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)
@@ -142,7 +142,7 @@ class FlowCollector(Collector):
 
     def __init__(self, iface_list, host_ips, shared_flows):
         Collector.__init__(self, iface_list)
-        self.name = 'FlowCollector'
+        self.name = "FlowCollector"
         self.host_ips = host_ips
         self.shared_flows = shared_flows
 
@@ -163,9 +163,9 @@ class FlowCollector(Collector):
             proc.wait()
             output, _ = proc.communicate()
             output = output.decode()
-            for row in output.split('\n'):
-                if row != '':
-                    src, dst = row.split(' ')
+            for row in output.split("\n"):
+                if row != "":
+                    src, dst = row.split(" ")
                     for i, ip in enumerate(self.host_ips):
                         i_src = 0
                         i_dst = 1
