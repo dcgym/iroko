@@ -208,7 +208,7 @@ void teardown_raw_backend(struct ring *ring) {
     free(ring);
 }
 
-void send_pkt(struct ring *ring, uint8_t *packet, size_t packet_len) {
+int send_pkt(struct ring *ring, uint8_t *packet, size_t packet_len) {
 #ifdef PACKET_MMAPV2
     int nframes = ring->rd_num;
     struct tpacket2_hdr *next = get_next_frame(ring, ring->p_offset);
@@ -232,8 +232,7 @@ void send_pkt(struct ring *ring, uint8_t *packet, size_t packet_len) {
     next->tp_status = TP_STATUS_SEND_REQUEST;
     ring->p_offset = (ring->p_offset + 1) % nframes;
     int ret = sendto(ring->socket, NULL, 0, 0, NULL, 0);
-    if (ret == -1) {
-        perror("sendto");
-        exit(1);
-    }
+    if (ret == -1)
+        RETURN_ERROR(EXIT_FAILURE, "sendto:");
+    return EXIT_SUCCESS;
 }

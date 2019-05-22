@@ -6,6 +6,7 @@
 #include <netinet/udp.h>        // UDP header declarations
 #include <linux/version.h>      // Linux version check
 #include <poll.h>               // polling descriptors
+#include <stdlib.h>
 
 // Older kernel versions do not support TPACKET_V3.
 // Something is wrong with TPACKET_V3, so let's always use TPACKET_V2 for now.
@@ -56,6 +57,6 @@ struct block_desc {
 
 struct ring *init_raw_backend(const char *iface, int port, int type);
 void teardown_raw_backend(struct ring *ring);
-void send_pkt(struct ring *ring, uint8_t *packet, size_t packet_len);
+int send_pkt(struct ring *ring, uint8_t *packet, size_t packet_len);
 
 #endif // RAW_UDP_SOCKET_H

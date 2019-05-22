@@ -7,8 +7,6 @@ import dc_gym
 import dc_gym.utils as dc_utils
 # configure logging
 import logging
-logging.basicConfig(format="%(levelname)s:%(message)s",
-                    level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
@@ -71,4 +69,6 @@ def init():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format="%(levelname)s:%(message)s",
+                        level=logging.INFO)
     init()

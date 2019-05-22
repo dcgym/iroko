@@ -21,9 +21,10 @@ struct rtnl_qdisc *init_qdisc_monitor(char *interface) {
     if (err)
         fprintf(stderr,"qdisc_alloc_cache: %s\n", nl_geterror(err));
     qdisc = rtnl_qdisc_get_by_parent(qdisc_cache, ifindex, TC_H_ROOT);
-    if(!qdisc)
+    if(!qdisc) {
         fprintf(stderr,"Qdisc for interface %s not found!\n", interface);
-
+        return NULL;
+    }
     /* Free all allocated data structures */
     nl_cache_free(qdisc_cache);
     nl_socket_free(sock);

@@ -117,6 +117,10 @@ class QueueCollector(Collector):
     def _get_qdisc_stats(self, iface_list):
         for index, iface in enumerate(iface_list):
             qdisc = self.q_lib.init_qdisc_monitor(iface.encode("ascii"))
+            if not qdisc:
+                log.error("Fatal Error when trying to set up a qdisc")
+                self.kill.set()
+                return
             queue_backlog = float(self.q_lib.get_qdisc_backlog(qdisc))
             queue_backlog /= float(self.max_queue)
             queue_drops = self.q_lib.get_qdisc_drops(qdisc)

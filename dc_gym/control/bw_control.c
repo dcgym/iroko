@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <net/if.h>
 
 #include "raw_udp_socket.h"
 
@@ -40,7 +41,7 @@ void fill_frame(uint8_t *ether_frame) {
     udp_hdr->source = htons(src_port);
 }
 
-int send_bw_allocation(uint64_t allocation, struct ring *ring_tx, uint16_t dst_port) {
+int send_bw(uint64_t allocation, struct ring *ring_tx, uint16_t dst_port) {
     uint8_t ether_frame[100];
     fill_frame(ether_frame);
     struct ethhdr *eth_hdr = (struct ethhdr *)ether_frame;
@@ -53,22 +54,27 @@ int send_bw_allocation(uint64_t allocation, struct ring *ring_tx, uint16_t dst_p
     udp_hdr->dest = htons(dst_port);
     memcpy (ether_frame + HDRS_LEN, &allocation, sizeof(uint64_t));
     int pkt_len = HDRS_LEN + sizeof(uint64_t);
-    send_pkt(ring_tx, ether_frame, pkt_len);
-    return 0;
+    return send_pkt(ring_tx, ether_frame, pkt_len);
 }
 
 #ifdef PACKET_MMAPV2
-void walk_ring(struct ring *ring_rx) {
+int walk_ring(struct ring *ring_rx) {
+    char ifbuffer[IF_NAMESIZE];
+    char *ifname;
     while (likely(!sigint)) {
         struct tpacket2_hdr *hdr = ring_rx->rd[ring_rx->p_offset].iov_base;
         if (((hdr->tp_status & TP_STATUS_USER) == TP_STATUS_USER) == 0) {
             poll(&ring_rx->pfd, 1, -1);
+            ifname = if_indextoname(ring_rx->ll.sll_ifindex, ifbuffer);
+            if (!ifname)
+                RETURN_ERROR(EXIT_FAILURE, "receive_packet");
             continue;
         }
         hdr->tp_status = TP_STATUS_KERNEL;
         ring_rx->p_offset = (ring_rx->p_offset + 1) % ring_rx->rd_num;
         break;
     }
+    return EXIT_SUCCESS;
 }
 #else
 void walk_block(struct block_desc *pbd, const int ring_offset) {
@@ -148,7 +154,7 @@ void teardown_ring(struct ring *ring) {
 //     struct ring *ring_rx = init_ring("h1-eth0", 20135, PACKET_RX_RING);
 //     struct ring *ring_tx = init_ring("h1-eth0", 20135, PACKET_TX_RING);
 //     printf("SENDING PACKET\n");
-//     send_bw_allocation(100, ring_tx, 12321);
+//     send_bw(100, ring_tx, 12321);
 //     printf("WAITING...\n");
 //     wait_for_reply(ring_rx);
 //     printf("WAITING DONE\n");

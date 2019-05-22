@@ -202,7 +202,6 @@ class DCEnv(openAIGym):
         if self.state_man:
             log.info("%s Stopping all state collectors..." % self.short_id)
             self.state_man.close()
-            self.state_man = None
         if self.bw_ctrl:
             log.info("%s Shutting down bandwidth control..." % self.short_id)
             self.bw_ctrl.close()

@@ -41,7 +41,7 @@ def list_processes(pattern):
     procs = []
     for proc in psutil.process_iter():
         if pattern in proc.name():
-            log.info("Found %s" % proc)
+            log.debug("Found %s" % proc)
             procs.append(proc)
     return procs
 

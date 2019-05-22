@@ -53,8 +53,9 @@ class BandwidthController(multiprocessing.Process):
         bw_lib.init_ring.argtypes = [
             ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint]
         bw_lib.init_ring.restype = ctypes.POINTER(Ring)
-        bw_lib.send_bw_allocation.argtypes = [
+        bw_lib.send_bw.argtypes = [
             ctypes.c_ulong, ctypes.POINTER(Ring), ctypes.c_ushort]
+        bw_lib.send_bw.restype = ctypes.c_int
         bw_lib.wait_for_reply.argtypes = [ctypes.POINTER(Ring)]
         return bw_lib
 
@@ -80,7 +81,8 @@ class BandwidthController(multiprocessing.Process):
     def send_cntrl_pckt(self, iface, txrate):
         # Get the tx ring to transmit a packet
         tx_ring = self.ring_list[iface]["tx"]
-        self.bw_lib.send_bw_allocation(int(txrate), tx_ring, self.DST_PORT)
+        ret = self.bw_lib.send_bw(int(txrate), tx_ring, self.DST_PORT)
+        return ret
 
     def await_response(self, iface):
         rx_ring = self.ring_list[iface]["rx"]
@@ -90,7 +92,10 @@ class BandwidthController(multiprocessing.Process):
 
     def broadcast_bw(self):
         for index, ctrl_iface in enumerate(self.host_ctrl_map):
-            self.send_cntrl_pckt(ctrl_iface, self.txrate[index])
+            if self.send_cntrl_pckt(ctrl_iface, self.txrate[index]) != 0:
+                log.error("Could not send packet!")
+                self.kill.set()
+                return
         for ctrl_iface in self.host_ctrl_map.keys():
             self.await_response(ctrl_iface)
         time.sleep(0.001)

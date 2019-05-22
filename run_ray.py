@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 cwd = os.getcwd()
 lib_dir = os.path.dirname(dc_gym.__file__)
 INPUT_DIR = lib_dir + '/inputs'
-OUTPUT_DIR = cwd + '/results'
+ROOT_OUTPUT_DIR = cwd + '/results'
 
 
 class MaxAgent(Trainer):
@@ -163,14 +163,14 @@ def get_agent(agent_name):
     return agent_class
 
 
-def get_tune_experiment(config, agent, timesteps):
+def get_tune_experiment(config, agent, timesteps, root_dir):
     SCHEDULE = False
     scheduler = None
     agent_class = get_agent(agent)
     ex_conf = {}
     ex_conf["name"] = agent
     ex_conf["run"] = agent_class
-    ex_conf["local_dir"] = config["env_config"]["output_dir"]
+    ex_conf["local_dir"] = root_dir
     ex_conf["stop"] = {"timesteps_total": timesteps}
 
     if SCHEDULE:
@@ -204,7 +204,7 @@ def configure_ray(args):
 
     config["env_config"] = {
         "input_dir": INPUT_DIR,
-        "output_dir": args.output_dir + "/" + args.agent,
+        "output_dir": args.root_output + "/" + args.agent,
         "env": args.env,
         "topo": args.topo,
         "agent": args.agent,
@@ -221,6 +221,9 @@ def configure_ray(args):
     if args.agent.lower() == "apex_ddpg":
         if config["num_workers"] < 2:
             config["num_workers"] = 2
+
+    if args.agent.lower() == "a3c":
+        config["env_config"]["parallel_envs"] = True
 
     if config["num_workers"] > 1:
         config["env_config"]["parallel_envs"] = True
@@ -240,10 +243,11 @@ def run(config, timesteps):
     log.info("Generator Finished. Simulation over. Clearing dc_env...")
 
 
-def tune_run(config, timesteps):
+def tune_run(config, timesteps, root_dir):
     agent = config['env_config']['agent']
-    experiment, scheduler = get_tune_experiment(config, agent, timesteps)
-    tune.run(experiment, config=config, scheduler=scheduler, verbose=0)
+    experiment, scheduler = get_tune_experiment(
+        config, agent, timesteps, root_dir)
+    tune.run(experiment, config=config, scheduler=scheduler, verbose=1)
     log.info("Tune run over. Clearing dc_env...")
 
 
@@ -252,6 +256,40 @@ def check_file(pattern):
         if os.path.isfile(fname):
             return True
     return False
+
+
+def kill_ray():
+    dc_utils.kill_processes_with_name("ray_")
+    if dc_utils.list_processes("ray_"):
+        # Show 'em who's boss
+        dc_utils.kill_processes_with_name("ray_", use_sigkill=True)
+
+
+def clean():
+    ''' A big fat hammer to get rid of all the debris left over by ray '''
+    log.info("Removing all previous traces of Mininet and ray")
+    kill_ray()
+    os.system('sudo mn -c')
+    dc_utils.kill_processes_with_name("goben")
+    dc_utils.kill_processes_with_name("node_control")
+
+
+def wait_for_ovs():
+    import subprocess
+    ovs_cmd = "ovs-vsctl --timeout=10 list-br"
+    timeout = 60
+    while True:
+        result = subprocess.run(ovs_cmd.split(), stdout=subprocess.PIPE)
+        if result.stdout == b'':
+            break
+        # time out after 60 seconds and clean up...
+        if timeout == 0:
+            log.error("Timed out! Swinging the cleaning hammer...")
+            clean()
+            return
+        log.info("Timing out in %d..." % timeout)
+        time.sleep(1)
+        timeout -= 1
 
 
 def get_args(args=None):
@@ -279,47 +317,13 @@ def get_args(args=None):
                    help='Path to checkpoint to restore (for testing), must '
                    'end like this: <path>/checkpoint-* where star is the '
                         'check point number')
-    p.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
+    p.add_argument('--output', dest='root_output', default=ROOT_OUTPUT_DIR,
                    help='Folder which contains all the collected metrics.')
     p.add_argument('--transport', dest='transport', default="udp",
                    help='Choose the transport protocol of the hosts.')
     p.add_argument('--tune', action="store_true", default=False,
                    help='Specify whether to perform hyperparameter tuning')
     return p.parse_args(args)
-
-
-def kill_ray():
-    dc_utils.kill_processes_with_name("ray_")
-    if dc_utils.list_processes("ray_"):
-        # Show 'em who's boss
-        dc_utils.kill_processes_with_name("ray_", use_sigkill=True)
-
-
-def clean():
-    ''' A big fat hammer to get rid of all the debris left over by ray '''
-    log.info("Removing all previous traces of Mininet and ray")
-    kill_ray()
-    os.system('sudo mn -c')
-    dc_utils.kill_processes_with_name("goben")
-    dc_utils.kill_processes_with_name("node_control")
-
-
-def wait_for_ovs():
-    import subprocess
-    ovs_cmd = "ovs-vsctl --timeout=10 list-br"
-    timeout = 0
-    while True:
-        result = subprocess.run(ovs_cmd.split(), stdout=subprocess.PIPE)
-        if result.stdout == b'':
-            break
-        # time out after 60 seconds and clean up...
-        if timeout > 60:
-            log.error("Timed out! Swinging the cleaning hammer...")
-            clean()
-            return
-        log.info("...")
-        time.sleep(1)
-        timeout += 1
 
 
 def main(args=None):
@@ -350,7 +354,7 @@ def main(args=None):
 
     log.info("Starting experiment.")
     if args.tune:
-        tune_run(config, args.timesteps)
+        tune_run(config, args.timesteps, args.root_output)
     else:
         run(config, args.timesteps)
 
@@ -360,11 +364,11 @@ def main(args=None):
     log.info("Waiting for environment to complete...")
     wait_for_ovs()
     # Take control back from root
-    dc_utils.change_owner(output_dir)
+    dc_utils.change_owner(args.root_output)
     # Ray doesn't play nice and prevents proper shutdown sometimes
     ray.shutdown()
-    time.sleep(1)
-    kill_ray()
+    # time.sleep(1)
+    # kill_ray()
     log.info("Experiment has completed.")
 
 
