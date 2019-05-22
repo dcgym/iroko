@@ -1,5 +1,6 @@
 import atexit
 import numpy as np
+import os
 from multiprocessing import Array
 from ctypes import c_ulong
 from gym import Env as openAIGym, spaces
@@ -11,16 +12,18 @@ from dc_gym.iroko_state import StateManager
 from dc_gym.utils import TopoFactory
 from dc_gym.topos.network_manager import NetworkManager
 
+
 import logging
 log = logging.getLogger(__name__)
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_CONF = {
     # Input folder of the traffic matrix.
-    "input_dir": "../inputs/",
+    "input_dir": f"{FILE_DIR}/inputs/",
     # Which traffic matrix to run. Defaults to the first item in the list.
     "tf_index": 0,
     # Output folder for the measurements during trial runs.
-    "output_dir": "../results/",
+    "output_dir": "results/",
     # When to take state samples. Defaults to taking a sample at every step.
     "sample_delta": 1,
     # Use the simplest topology for tests.
@@ -116,18 +119,24 @@ class DCEnv(openAIGym):
         num_actions = self.topo.get_num_hosts()
         num_features = len(self.conf["state_model"])
         10e6 / self.topo.conf["max_capacity"]
-        action_min = 10000.0 / float(self.topo.conf["max_capacity"])
-        action_max = 1.0
+        min_bw = 10000.0 / float(self.topo.conf["max_capacity"])
+        action_min = np.empty(num_actions)
+        action_min.fill(min_bw)
+        action_max = np.empty(num_actions)
+        action_max.fill(1.0)
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
+        obs_min = np.empty(num_ports * num_features)
+        obs_min.fill(-np.inf)
+        obs_max = np.empty(num_ports * num_features)
+        obs_max.fill(np.inf)
         self.action_space = spaces.Box(
-            low=action_min, high=action_max,
-            dtype=np.float64, shape=(num_actions,))
+            low=action_min, high=action_max, dtype=np.float64)
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, dtype=np.float64,
-            shape=(num_ports * num_features,))
-        log.info("%s Setting action space from %f to %f" %
-                 (self.short_id, action_min, action_max))
+            low=obs_min, high=obs_max, dtype=np.float64)
+        log.info("%s Setting action space" % (self.short_id))
+        log.info(f"from {action_min}")
+        log.info(f"to {action_max}")
         # Initialize the action array shared with the control manager
         tx_rate = Array(c_ulong, num_actions)
         self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
@@ -225,17 +234,9 @@ class DCEnv(openAIGym):
         for index, a in enumerate(action):
             self.tx_rate[index] = a * self.topo.max_bps
 
-        # log.info("%s Iteration %d Actions: " % self.steps, end="")
-        # for index, h_iface in enumerate(self.topo.host_ctrl_map):
-        #     rate = action[index]
-        #     log.info("%s  %s:%f " % (h_iface, rate), end="")
-        # log.info("")
-        # log.info("%s State:", obs)
-        # log.info("%s Reward:", reward)
-        # if self.steps & (32 - 1):
-        # log.info(pred_bw)
-        # if not self.steps & (64 - 1):
-        #     self.bw_ctrl.broadcast_bw(pred_bw, self.topo.host_ctrl_map)
+        log.debug("%s Iteration %d" % (self.short_id, self.steps))
+        log.debug("%s Reward: %.3f" % (self.short_id, reward))
+
         # For now we run forever
         done = False
         self.steps = self.steps + 1

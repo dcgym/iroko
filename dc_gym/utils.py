@@ -64,6 +64,7 @@ def kill_processes_with_name(pattern, use_sigkill=False):
 
 def dump_json(path, name, data):
     import json
+    check_dir(path)
     with open(f"{path}/{name}.json", 'w') as fp:
         json.dump(data, fp)
 
