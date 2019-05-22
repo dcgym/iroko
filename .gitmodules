@@ -12,3 +12,5 @@
     url = https://github.com/PCCproject/PCC-Kernel
     path = contrib/pcc
     ignore = dirty
+[submodule "baselines"]
+	url = https://github.com/openai/baselines
