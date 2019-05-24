@@ -106,38 +106,52 @@ def get_gym(env_config):
 def set_tuning_parameters(agent, config):
     scheduler = None
     if agent.lower() == "ppo":
-        # Postprocess the perturbed config to ensure it's still valid
         def explore(config):
-            # ensure we collect enough timesteps to do sgd
+            config["train_batch_size"] = max(
+                config["train_batch_size"], 2000)  # should be 4 at minimum
             if config["train_batch_size"] < config["sgd_minibatch_size"] * 2:
                 config["train_batch_size"] = config["sgd_minibatch_size"] * 2
             # ensure we run at least one sgd iter
             if config["num_sgd_iter"] < 1:
                 config["num_sgd_iter"] = 1
+            if config['horizon'] < 32:
+                config['horizon'] = 32
+            for k in config.keys():
+                if k == 'use_gae':
+                    continue  # that one is fine and also non numeric
+                if config[k] < 0.0:
+                    # this...is a lazy way to make sure things are at worse 0
+                    config[k] = 0.0
             return config
-        # optimization related parameters
-        # hype_params["kl_coeff"] = lambda: random.uniform(.1, .8)
-        # hype_params["entropy_coeff"] = lambda: random.uniform(0.0, 1.0)
-        # hype_params["kl_target"] = lambda: random.uniform(0.0, 0.05)
-        hype_params = {
-            "lambda": lambda: random.uniform(0.9, 1.0),
-            "clip_param": lambda: random.uniform(0.01, 0.5),
-            "lr": [1e-3, 5e-4, 1e-4, 5e-5, 1e-5],
-            "num_sgd_iter": lambda: random.randint(1, 30),
-            "sgd_minibatch_size": lambda: random.randint(128, 16384),
-            "train_batch_size": lambda: random.randint(2000, 160000),
+        hyper_params = {
+            # update frequency
+            "horizon": random.randint(10000, 50000),
+            "sgd_minibatch_size": random.randint(128, 16384),
+            "train_batch_size": random.randint(2000, 160000),
+            "num_sgd_iter": random.randint(3, 30),
+            # Objective hyperparams:
+            # "clip_param": random.uniform(0.01, 0.5),
+            # "kl_target": random.uniform(0.003, 0.03),
+            # "kl_coeff": random.uniform(0.3, 1),
+            # "use_gae": random.choice([True, False]),
+            # "gamma": random.choice([0.99,
+            #                        random.uniform(0.8, 0.9997),
+            #                        random.uniform(0.8, 0.9997)]),
+            # "lambda": random.uniform(0.9, 1.0),
+
+            # val fn & entropy coeff
+            # "vf_loss_coeff": random.choice([0.5, 1.0]),
+            # "entropy_coeff": random.uniform(0, 0.01),
+            # "lr": random.uniform(5e-6, 0.003),
         }
-        config["num_sgd_iter"] = tune.sample_from(
-            lambda spec: random.choice([10, 20, 30])),
-        config["sgd_minibatch_size"] = tune.sample_from(
-            lambda spec: random.choice([128, 512, 2048])),
-        config["train_batch_size"] = tune.sample_from(
-            lambda spec: random.choice([10000, 20000, 40000]))
+        # creates a wide range of the potential population
+        for k in hyper_params.keys():
+            config[k] = tune.sample_from(lambda spec: hyper_params[k])
         scheduler = PopulationBasedTraining(time_attr="time_total_s",
                                             reward_attr="episode_reward_mean",
                                             perturbation_interval=120,
-                                            resample_probability=0.25,
-                                            hyperparam_mutations=hype_params,
+                                            resample_probability=0.80,
+                                            hyperparam_mutations=hyper_params,
                                             custom_explore_fn=explore)
 
     if agent.lower() == "ddpg":
@@ -164,7 +178,7 @@ def get_agent(agent_name):
 
 
 def get_tune_experiment(config, agent, timesteps, root_dir):
-    SCHEDULE = False
+    SCHEDULE = True
     scheduler = None
     agent_class = get_agent(agent)
     ex_conf = {}
@@ -193,7 +207,7 @@ def configure_ray(args):
     except IOError:
         # File does not exist, just initialize an empty configuration.
         log.info("Agent configuration does not exist, starting with default.")
-        config = {}
+    config = {}
     # Add the dynamic environment configuration
     config["env"] = "dc_env"
     config["clip_actions"] = True
@@ -247,7 +261,7 @@ def tune_run(config, timesteps, root_dir):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(
         config, agent, timesteps, root_dir)
-    tune.run(experiment, config=config, scheduler=scheduler, verbose=1)
+    tune.run(experiment, config=config, scheduler=scheduler, verbose=2)
     log.info("Tune run over. Clearing dc_env...")
 
 
@@ -316,7 +330,7 @@ def get_args(args=None):
     p.add_argument('--restore', '-r', dest='restore', default=None,
                    help='Path to checkpoint to restore (for testing), must '
                    'end like this: <path>/checkpoint-* where star is the '
-                        'check point number')
+                   'check point number')
     p.add_argument('--output', dest='root_output', default=ROOT_OUTPUT_DIR,
                    help='Folder which contains all the collected metrics.')
     p.add_argument('--transport', dest='transport', default="udp",

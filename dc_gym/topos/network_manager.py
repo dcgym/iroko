@@ -192,8 +192,8 @@ class NetworkManager():
             dc_utils.exec_process("sysctl -w net.ipv4.tcp_sack=1", host)
             dc_utils.exec_process(
                 "sysctl -w net.ipv4.tcp_syn_retries=10", host)
-            dc_utils.exec_process(
-                "sysctl -w net.core.default_qdisc=pfifo_fast", host)
+            # dc_utils.exec_process(
+            #    "sysctl -w net.core.default_qdisc=pfifo_fast", host)
             # dc_utils.exec_process("sysctl -w net.ipv4.tcp_recovery=0")
             if self.tcp_policy == "dctcp":
                 dc_utils.exec_process(
