@@ -1,6 +1,5 @@
 import os
 import ctypes
-import gevent
 import multiprocessing
 import time
 import logging
@@ -91,6 +90,7 @@ class BandwidthController(multiprocessing.Process):
         self.bw_lib.wait_for_reply(rx_ring)
 
     def broadcast_bw(self):
+
         for index, ctrl_iface in enumerate(self.host_ctrl_map):
             if self.send_cntrl_pckt(ctrl_iface, self.txrate[index]) != 0:
                 log.error("Could not send packet!")
@@ -98,16 +98,4 @@ class BandwidthController(multiprocessing.Process):
                 return
         for ctrl_iface in self.host_ctrl_map.keys():
             self.await_response(ctrl_iface)
-        time.sleep(0.001)
-
-
-# small script to test the functionality of the bw control operations
-if __name__ == "__main__":
-    test_list = {"test": "c0-eth0", "fest": "c0-eth1",
-                 "nest": "c0-eth2", "quest": "c0-eth3"}
-    ic = BandwidthController("Iroko", test_list)
-    threads = []
-    for iface in test_list.keys():
-        threads.append(gevent.spawn(ic.await_response, iface))
-        ic.send_cntrl_pckt(iface, 20000)
-    gevent.joinall(threads)
+        # time.sleep(0.001)

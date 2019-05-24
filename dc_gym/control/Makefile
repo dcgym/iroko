@@ -1,13 +1,15 @@
 CC=gcc
 CFLAGS= -Wall -O3 -g
 LFLAGS= -lnl-3 -lnl-route-3
-DEPS = raw_udp_socket.c raw_udp_socket.h
+QDISC=FQ
+QDISC_LOWER = $(shell echo $(QDISC) | tr A-Z a-z)
+DEPS = $(QDISC_LOWER).c raw_udp_socket.c raw_udp_socket.h
 LIBNAME=libbw_control.so
 
 all: bw_control node_control
 
 node_control: node_controller.c ${DEPS}
-	$(CC) $(CFLAGS) $< ${DEPS} -o node_control -I /usr/include/libnl3/ $(LFLAGS)
+	$(CC) $(CFLAGS) $< ${DEPS} -o node_control -I /usr/include/libnl3/ $(LFLAGS) -DQDISC_$(QDISC)
 
 bw_control: bw_control.c ${DEPS}
 	$(CC) $(CFLAGS) -fPIC -c raw_udp_socket.c -o raw_udp_socket.o $(LFLAGS)

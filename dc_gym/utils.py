@@ -17,23 +17,38 @@ def shmem_to_nparray(shmem_array, dtype):
     return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
 
 
-def start_process(cmd, out_file=subprocess.STDOUT):
+def exec_process(cmd, host=None, out_file=subprocess.STDOUT):
+    if host is not None:
+        host_pid = host.pid
+        mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
+        return exec_process(mn_cmd, out_file=out_file)
     log.debug("Executing %s " % cmd)
     if out_file is subprocess.STDOUT:
-        return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        result = subprocess.run(
+            cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.stdout:
+            log.debug("Process output: %s" % result.stdout)
+        if result.stderr and result.returncode != 0:
+            log.error(result.stderr)
+        return
+    err = out_file + ".err"
+    out = out_file + ".out"
+    with open(out, "w+") as f_out, open(err, "w+") as f_err:
+        return subprocess.run(cmd.split(), stdout=f_out, stderr=f_err)
+
+
+def start_process(cmd, host=None, out_file=subprocess.STDOUT):
+    if host is not None:
+        host_pid = host.pid
+        mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
+        return start_process(mn_cmd, out_file=out_file)
+    log.debug("Starting %s " % cmd)
+    if out_file is subprocess.STDOUT:
+        return subprocess.Popen(cmd.split())
     err = out_file + ".err"
     out = out_file + ".out"
     with open(out, "w+") as f_out, open(err, "w+") as f_err:
         return subprocess.Popen(cmd.split(), stdout=f_out, stderr=f_err)
-
-
-def start_mn_process(cmd, host, out_file=subprocess.STDOUT):
-    if host is not None:
-        host_pid = host.pid
-        mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
-        return start_process(mn_cmd, out_file)
-    return start_process(cmd, out_file)
 
 
 def list_processes(pattern):
@@ -47,6 +62,8 @@ def list_processes(pattern):
 
 
 def kill_processes(procs, use_sigkill=False):
+    if type(procs) is not list:
+        procs = [procs]
     for proc in procs:
         # kill process, 15 is SIGTERM, 9 is SIGKILL
         try:

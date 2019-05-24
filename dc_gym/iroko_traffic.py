@@ -69,7 +69,7 @@ class TrafficGen():
         for host in hosts:
             out_file = "%s/%s_server" % (out_dir, host.name)
             server_cmd = traffic_gen
-            s_proc = dc_utils.start_mn_process(server_cmd, host, out_file)
+            s_proc = dc_utils.start_process(server_cmd, host, out_file)
             self.service_procs.append(s_proc)
 
     def _start_controllers(self, hosts, out_dir):
@@ -89,7 +89,7 @@ class TrafficGen():
             ctrl_cmd += "-n %s " % iface_net
             ctrl_cmd += "-c %s " % ifaces_ctrl
             ctrl_cmd += "-r %d " % self.net_man.topo.conf["max_capacity"]
-            c_proc = dc_utils.start_mn_process(ctrl_cmd, host, out_file)
+            c_proc = dc_utils.start_process(ctrl_cmd, host, out_file)
             self.service_procs.append(c_proc)
 
     def _start_client(self, traffic_gen, host, out_dir, dst_hosts):
@@ -110,7 +110,7 @@ class TrafficGen():
         traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
-        t_proc = dc_utils.start_mn_process(traffic_cmd, host, out_file)
+        t_proc = dc_utils.start_process(traffic_cmd, host, out_file)
         self.traffic_procs.append(t_proc)
 
     def _start_pkt_capture_tshark(self, out_dir):
@@ -128,7 +128,7 @@ class TrafficGen():
         dmp_cmd += "-q "                        # do not log.info to stdout
         dmp_cmd += "-n "                        # do not resolve hosts
         dmp_cmd += "-F pcapng "                # format of the capture file
-        dmp_proc = dc_utils.start_process(dmp_cmd, out_file=dmp_file)
+        dmp_proc = dc_utils.exec_process(dmp_cmd, out_file=dmp_file)
         self.service_procs.append(dmp_proc)
 
     def _start_pkt_capture_tcpdump(self, host, out_dir):
@@ -143,7 +143,7 @@ class TrafficGen():
         dmp_cmd += "%s " % self.transport  # filter for transport protocol
         dmp_cmd += "-Z root "
         dmp_cmd += "-s96 "      # Capture only headers
-        dmp_proc = dc_utils.start_mn_process(dmp_cmd, host, dmp_file)
+        dmp_proc = dc_utils.start_process(dmp_cmd, host, dmp_file)
         self.service_procs.append(dmp_proc)
 
     def _start_generators(self, hosts, input_file, traffic_gen, out_dir):

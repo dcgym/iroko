@@ -87,12 +87,12 @@ class IrokoTopo(BaseTopo):
                 cmd += "%s," % prot
                 cmd += "nw_dst=%s," % host_ip
                 cmd += "actions=output:%d" % port
-                dc_utils.start_process(cmd)
+                dc_utils.exec_process(cmd)
             cmd = ovs_flow_cmd
             cmd += "table=0,idle_timeout=0,hard_timeout=0,priority=10,"
             cmd += "%s," % prot
             cmd += "nw_dst=10.2.0.0/16,actions=output:1"
-            dc_utils.start_process(cmd)
+            dc_utils.exec_process(cmd)
 
             # East Switch
             ovs_flow_cmd = "ovs-ofctl add-flow %s " % self.switch_e
@@ -106,12 +106,12 @@ class IrokoTopo(BaseTopo):
                 cmd += "%s," % prot
                 cmd += "nw_dst=%s," % host_ip
                 cmd += "actions=output:%d" % port
-                dc_utils.start_process(cmd)
+                dc_utils.exec_process(cmd)
             cmd = ovs_flow_cmd
             cmd += "table=0,idle_timeout=0,hard_timeout=0,priority=10,"
             cmd += "%s," % prot
             cmd += "nw_dst=10.1.0.0/16,actions=output:1"
-            dc_utils.start_process(cmd)
+            dc_utils.exec_process(cmd)
 
     def _config_topo(self):
         # Set hosts IP addresses.

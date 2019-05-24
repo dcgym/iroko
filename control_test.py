@@ -59,7 +59,7 @@ def connect_controller(net, host):
 
 def launch_ctrl(host, capacity):
     capacity = capacity * 1e6
-    ctrl_cmd = "dc_gym/control/node_control "
+    ctrl_cmd = f"{FILE_DIR}/dc_gym/control/node_control "
     ctrl_cmd += "-n %s " % host.intfList()[0]
     ctrl_cmd += "-c %s " % host.intfList()[1]
     ctrl_cmd += "-r %d " % capacity
@@ -67,14 +67,14 @@ def launch_ctrl(host, capacity):
 
 
 def launch_goben_server(host):
-    traffic_cmd = "dc_gym/goben "
+    traffic_cmd = f"{FILE_DIR}/dc_gym/goben "
     return dc_utils.start_mn_process(traffic_cmd, host)
 
 
 def launch_goben_client(src_host, dst_host, in_rate):
     in_rate = in_rate / 1e6  # Goben operates on mbps
     # start the actual client
-    traffic_cmd = "dc_gym/goben --silent "
+    traffic_cmd = f"{FILE_DIR}/dc_gym/goben --silent "
     traffic_cmd += "-totalDuration %s " % "inf"  # infinite
     traffic_cmd += "-hosts %s " % dst_host.IP()
     traffic_cmd += "-maxSpeed %d " % in_rate  # mbit
@@ -84,7 +84,6 @@ def launch_goben_client(src_host, dst_host, in_rate):
 
 
 def init_rate_control(ctrl_iface, rate):
-    log.info(f"Setting rate to {rate}")
     # Initialize the action array shared with the control manager
     tx_rate = Array(ctypes.c_ulong, 1)
     tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
@@ -96,7 +95,7 @@ def init_rate_control(ctrl_iface, rate):
 
 def adjust_rate(ctrl_iface, rate=1e6):
     log.info(f"Setting rate to {rate}")
-    bw_lib = ctypes.CDLL("dc_gym/control/libbw_control.so")
+    bw_lib = ctypes.CDLL(f"{FILE_DIR}/dc_gym/control/libbw_control.so")
     bw_lib.init_ring.argtypes = [
         ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint]
     bw_lib.init_ring.restype = ctypes.POINTER(Ring)
@@ -117,7 +116,6 @@ def record_rate(in_rate, ctrl_rate, sleep, out_dir):
     # Convert to human readable format
     in_rate = in_rate / 1e6
     ctrl_rate = ctrl_rate / 1e3
-    log.info(f"Input: {in_rate} Mbps Expected: {ctrl_rate} kbps")
     log.info(f"Waiting for {sleep} seconds...")
     out_dir = "control_test"
     out_file = f"{out_dir}/{in_rate}mbps_in_{ctrl_rate}kbps_expected"
@@ -136,9 +134,9 @@ def generate_ctrl_rates(base_rate):
     return np.array(ctrl_rates) * base_rate
 
 
-def summarize(file_dir):
-    with open(f"{file_dir}/summary.txt", 'w+') as summary_f:
-        for out_file in glob.glob(f"{file_dir}/*.out"):
+def summarize(input_dir):
+    with open(f"{input_dir}/summary.txt", 'w+') as summary_f:
+        for out_file in glob.glob(f"{input_dir}/*.out"):
             file_name = os.path.splitext(out_file)[0]
             with open(out_file, 'r') as ifstat_file:
                 summary_f.write(f"\n########## {file_name} ##########\n")
@@ -151,7 +149,7 @@ def main():
     in_rates = [10e6, 100e6, 1000e6]
     ctrl_rates = []
     out_dir = "control_test"
-    sleep_per_test = 15  # seconds
+    sleep_per_test = 5  # seconds
     setLogLevel("info")
     topo = TestTopo(2)
     net = Mininet(topo=topo, controller=None)
@@ -169,9 +167,13 @@ def main():
         ctrl_rates = generate_ctrl_rates(in_rate)
         client_proc = launch_goben_client(src_host, dst_host, in_rate)
         for ctrl_rate in ctrl_rates:
+            log.info("\n#############################")
+            log.info(f"Input: {in_rate} Mbps Expected: {ctrl_rate} kbps")
             # adjust_rate(ctrl_iface, ctrl_rate)
             tx_rate[0] = ctrl_rate
+            dc_utils.start_mn_process("tc qdisc show dev h0-eth0", src_host)
             record_rate(in_rate, ctrl_rate, sleep_per_test, out_dir)
+            log.info("#############################")
         dc_utils.kill_processes([client_proc, bw_proc])
     dc_utils.kill_processes([server_proc, ctrl_proc])
     summarize(out_dir)

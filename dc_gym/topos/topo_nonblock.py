@@ -74,7 +74,7 @@ class IrokoTopo(BaseTopo):
                 cmd += "nw_dst=10.%d.0.%d," % (i, j)
                 cmd += "%s," % prot
                 cmd += "actions=output:%d" % k
-                dc_utils.start_process(cmd)
+                dc_utils.exec_process(cmd)
                 j += 1
                 if j == 3:
                     j = 1
