@@ -1,7 +1,7 @@
 from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
 import numpy as np
-from klepto.archives import hdfdir_archive
+
 
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
@@ -94,7 +94,7 @@ class StateManager:
 
     def _set_data_checkpoints(self):
         # define file name
-        self.stats_samples = hdfdir_archive(self.stats_file, {}, cached=True)
+        self.stats_samples = {}
         self.stats_samples["reward"] = []
         self.stats_samples["actions"] = []
         self.stats_samples["stats"] = []
@@ -138,7 +138,6 @@ class StateManager:
     def _flush(self):
         if self.stats_samples:
             log.info("Saving statistics...")
-            self.stats_samples.sync()
-            self.stats_samples.dump()
-            # np.save(self.stats_file, self.stats_samples)
+            # self.stats_samples.sync()
+            np.save(self.stats_file, self.stats_samples)
             log.info("Done saving statistics...")
