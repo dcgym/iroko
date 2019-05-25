@@ -177,8 +177,7 @@ def get_agent(agent_name):
     return agent_class
 
 
-def get_tune_experiment(config, agent, timesteps, root_dir):
-    SCHEDULE = True
+def get_tune_experiment(config, agent, timesteps, root_dir, is_schedule):
     scheduler = None
     agent_class = get_agent(agent)
     ex_conf = {}
@@ -187,7 +186,7 @@ def get_tune_experiment(config, agent, timesteps, root_dir):
     ex_conf["local_dir"] = root_dir
     ex_conf["stop"] = {"timesteps_total": timesteps}
 
-    if SCHEDULE:
+    if is_schedule:
         ex_conf["stop"] = {"time_total_s": timesteps / 2}
         ex_conf["num_samples"] = 2
         config["env_config"]["parallel_envs"] = True
@@ -257,10 +256,10 @@ def run(config, timesteps):
     log.info("Generator Finished. Simulation over. Clearing dc_env...")
 
 
-def tune_run(config, timesteps, root_dir):
+def tune_run(config, timesteps, root_dir, is_schedule):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(
-        config, agent, timesteps, root_dir)
+        config, agent, timesteps, root_dir, is_schedule)
     tune.run(experiment, config=config, scheduler=scheduler, verbose=2)
     log.info("Tune run over. Clearing dc_env...")
 
@@ -336,6 +335,8 @@ def get_args(args=None):
     p.add_argument('--transport', dest='transport', default="udp",
                    help='Choose the transport protocol of the hosts.')
     p.add_argument('--tune', action="store_true", default=False,
+                   help='Specify whether to run the tune framework')
+    p.add_argument('--schedule', action="store_true", default=False,
                    help='Specify whether to perform hyperparameter tuning')
     return p.parse_args(args)
 
@@ -368,7 +369,7 @@ def main(args=None):
 
     log.info("Starting experiment.")
     if args.tune:
-        tune_run(config, args.timesteps, args.root_output)
+        tune_run(config, args.timesteps, args.root_output, args.schedule)
     else:
         run(config, args.timesteps)
 

@@ -63,12 +63,12 @@ def launch_ctrl(host, capacity):
     ctrl_cmd += "-n %s " % host.intfList()[0]
     ctrl_cmd += "-c %s " % host.intfList()[1]
     ctrl_cmd += "-r %d " % capacity
-    return dc_utils.start_mn_process(ctrl_cmd, host)
+    return dc_utils.start_process(ctrl_cmd, host)
 
 
 def launch_goben_server(host):
     traffic_cmd = f"{FILE_DIR}/dc_gym/goben "
-    return dc_utils.start_mn_process(traffic_cmd, host)
+    return dc_utils.start_process(traffic_cmd, host)
 
 
 def launch_goben_client(src_host, dst_host, in_rate):
@@ -80,7 +80,7 @@ def launch_goben_client(src_host, dst_host, in_rate):
     traffic_cmd += "-maxSpeed %d " % in_rate  # mbit
     traffic_cmd += "-passiveServer "
     traffic_cmd += "-udp "
-    return dc_utils.start_mn_process(traffic_cmd, src_host)
+    return dc_utils.start_process(traffic_cmd, src_host)
 
 
 def init_rate_control(ctrl_iface, rate):
@@ -116,6 +116,7 @@ def record_rate(in_rate, ctrl_rate, sleep, out_dir):
     # Convert to human readable format
     in_rate = in_rate / 1e6
     ctrl_rate = ctrl_rate / 1e3
+    log.info(f"Input: {in_rate} Mbps Expected: {ctrl_rate} kbps")
     log.info(f"Waiting for {sleep} seconds...")
     out_dir = "control_test"
     out_file = f"{out_dir}/{in_rate}mbps_in_{ctrl_rate}kbps_expected"
@@ -168,10 +169,9 @@ def main():
         client_proc = launch_goben_client(src_host, dst_host, in_rate)
         for ctrl_rate in ctrl_rates:
             log.info("\n#############################")
-            log.info(f"Input: {in_rate} Mbps Expected: {ctrl_rate} kbps")
             # adjust_rate(ctrl_iface, ctrl_rate)
             tx_rate[0] = ctrl_rate
-            dc_utils.start_mn_process("tc qdisc show dev h0-eth0", src_host)
+            dc_utils.start_process("tc qdisc show dev h0-eth0", src_host)
             record_rate(in_rate, ctrl_rate, sleep_per_test, out_dir)
             log.info("#############################")
         dc_utils.kill_processes([client_proc, bw_proc])

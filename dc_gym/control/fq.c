@@ -10,7 +10,7 @@ int ctrl_set_bw(void *data, HANDLE_TYPE *ctrl_handle) {
     pkt = (ctrl_pckt *) data;
     tx_rate = pkt->tx_rate;
     // fprintf(stderr,"Host %s: tx_rate: %.3fmbit\n", iface, tx_rate / 10e5);
-    snprintf(tc_cmd, 200,"tc qdisc change dev %s root fq maxrate %.3fmbit", ctrl_handle, tx_rate / 10e5);
+    snprintf(tc_cmd, 200,"tc qdisc change dev %s root fq maxrate %.3fmbit &", ctrl_handle, tx_rate / 10e5);
     // fprintf(stderr, "Host %s: tc_cmd: %s\n", iface, tc_cmd);
     err = system(tc_cmd);
     if (err)
