@@ -1,7 +1,8 @@
 import os
 import sys
 import csv
-from time import sleep
+import time
+
 import dc_gym.utils as dc_utils
 import logging
 log = logging.getLogger(__name__)
@@ -56,13 +57,13 @@ class TrafficGen():
                 log.info(transport)
             exit(1)
 
-    def traffic_is_active(self):
+    def check_if_traffic_alive(self):
         """ Return false if any of the processes has terminated """
-        for proc in self.service_procs:
+        for proc in self.traffic_procs:
             poll = proc.poll()
-            if poll is not None:
-                return False
-        return True
+            if poll is None:
+                return True
+        return False
 
     def _start_servers(self, hosts, traffic_gen, out_dir):
         log.info("Starting servers")
@@ -103,11 +104,11 @@ class TrafficGen():
         max_rate = self.net_man.topo.conf["max_capacity"] / 1e6
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
-        traffic_cmd += "-totalDuration %s " % 2147483647  # infinite runtime
+        traffic_cmd += "-totalDuration %s " % 60
         traffic_cmd += "-hosts %s " % dst_string
         traffic_cmd += "-maxSpeed %d " % max_rate
         traffic_cmd += "-passiveServer "
-        traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
+        # traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
         t_proc = dc_utils.start_process(traffic_cmd, host, out_file)
@@ -120,14 +121,14 @@ class TrafficGen():
         for host_iface in self.net_man.host_ctrl_map:
             dmp_cmd += "-i %s " % host_iface
         dmp_cmd += "-w %s " % dmp_file
-        dmp_cmd += "-f %s " % self.transport    # filter transport protocol
-        dmp_cmd += "-b duration:300 "           # reset capture file after 300s
-        dmp_cmd += "-b filesize:%d " % 10e5     # reset capture file after 1GB
-        dmp_cmd += "-b files:1 "                # only write one capture file
-        dmp_cmd += "-B 500 "                    # mb size of the packet buffer
-        dmp_cmd += "-q "                        # do not log.info to stdout
-        dmp_cmd += "-n "                        # do not resolve hosts
-        dmp_cmd += "-F pcapng "                # format of the capture file
+        dmp_cmd += "-f %s " % self.transport  # filter transport protocol
+        dmp_cmd += "-b duration:300 "       # reset pcap file after 300s
+        dmp_cmd += "-b filesize:%d " % 10e5  # reset pcap file after 1GB
+        dmp_cmd += "-b files:1 "            # only write one capture file
+        dmp_cmd += "-B 500 "                # mb size of the packet buffer
+        dmp_cmd += "-q "                    # do not log.info to stdout
+        dmp_cmd += "-n "                    # do not resolve hosts
+        dmp_cmd += "-F pcapng "             # format of the capture file
         dmp_proc = dc_utils.exec_process(dmp_cmd, out_file=dmp_file)
         self.service_procs.append(dmp_proc)
 
@@ -190,7 +191,7 @@ class TrafficGen():
         self._start_controllers(hosts, self.out_dir)
         # self._start_pkt_capture(self.out_dir)
         # wait for load controllers to initialize
-        sleep(0.5)
+        time.sleep(0.5)
 
     def _stop_services(self):
         log.info("")

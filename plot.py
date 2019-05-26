@@ -240,10 +240,10 @@ def analyze_pcap(rl_algos, tcp_algos, plt_name, runs, data_dir):
     plt.gcf().clear()
 
 
-def find_stats_files(results_folder):
+def find_stats_files(results_folder, name):
     results = []
     for root, dirnames, filenames in os.walk(results_folder):
-        for filename in fnmatch.filter(filenames, 'statistics.npy'):
+        for filename in fnmatch.filter(filenames, f"{name}.npy"):
 
             results.append(os.path.join(root, filename))
     return results
@@ -304,7 +304,7 @@ def preprocess_data(algo, metrics, runs, transport_dir):
         results_folder = '%s/%s' % (run_dir, algo.lower())
         env_config = parse_config(results_folder, "env_config")
         stats_dict = env_config["stats_dict"]
-        stats_files = find_stats_files(results_folder)
+        stats_files = find_stats_files(results_folder, "statistics")
         stats = {metric: [] for metric in metrics}
         for stats_file in stats_files:
             if not stats_file:

@@ -222,7 +222,6 @@ def configure_ray(args):
         "topo": args.topo,
         "agent": args.agent,
         "transport": args.transport,
-        "iterations": args.timesteps,
         "tf_index": args.pattern_index,
         "topo_conf": {},
     }

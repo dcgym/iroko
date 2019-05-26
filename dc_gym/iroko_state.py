@@ -2,7 +2,6 @@ from multiprocessing import Array
 from ctypes import c_ulong, c_ubyte
 import numpy as np
 
-
 from dc_gym.monitor.iroko_monitor import BandwidthCollector
 from dc_gym.monitor.iroko_monitor import QueueCollector
 from dc_gym.monitor.iroko_monitor import FlowCollector
@@ -44,17 +43,17 @@ class StateManager:
         self._terminate_collectors()
 
         log.info("Writing collected data to disk")
-        try:
-            self._flush()
-        except Exception as e:
-            log.error("Error flushing file %s" % self.stats_file, e)
-        if self.stats_samples:
-            self.stats_samples = None
         self.stats.fill(0)
         self.prev_stats.fill(0)
 
     def close(self):
         self.stop()
+        if self.stats_samples:
+            try:
+                self._flush()
+            except Exception as e:
+                log.error("Error flushing file %s" % self.stats_file, e)
+            self.stats_samples = None
 
     def _init_stats_matrices(self, num_ports, num_hosts):
         # Set up the shared stats matrix
@@ -93,6 +92,8 @@ class StateManager:
             self.procs.append(proc)
 
     def _set_data_checkpoints(self):
+        if self.stats_samples:
+            return
         # define file name
         self.stats_samples = {}
         self.stats_samples["reward"] = []
@@ -138,6 +139,5 @@ class StateManager:
     def _flush(self):
         if self.stats_samples:
             log.info("Saving statistics...")
-            # self.stats_samples.sync()
             np.save(self.stats_file, self.stats_samples)
             log.info("Done saving statistics...")

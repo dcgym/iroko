@@ -73,7 +73,7 @@ def sigmoid(action, derivative=False):
 
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
-                 "terminating", "net_man", "input_file", "short_id",
+                 "terminated", "net_man", "input_file", "short_id",
                  "bw_ctrl"]
 
     def __init__(self, conf={}):
@@ -86,7 +86,7 @@ class DCEnv(openAIGym):
         self.traffic_gen = None
         self.bw_ctrl = None
         self.input_file = None
-        self.terminating = False
+        self.terminated = False
         # set the id of this environment
         self.short_id = dc_utils.generate_id()
         if self.conf["parallel_envs"]:
@@ -204,9 +204,9 @@ class DCEnv(openAIGym):
         return np.zeros(self.observation_space.shape)
 
     def close(self):
-        if self.terminating:
+        if self.terminated:
             return
-        self.terminating = True
+        self.terminated = True
         log.info("%s Closing environment..." % self.short_id)
         if self.state_man:
             log.info("%s Stopping all state collectors..." % self.short_id)
@@ -238,7 +238,7 @@ class DCEnv(openAIGym):
         log.debug("%s Reward: %.3f" % (self.short_id, reward))
 
         # For now we run forever
-        done = False
+        done = not self.traffic_gen.check_if_traffic_alive()
         self.steps = self.steps + 1
         return obs.flatten(), reward, done, {}
 

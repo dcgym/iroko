@@ -10,6 +10,8 @@ def fairness_reward(actions, queues=None):
     @param values: list of values
     @return fairness: JFI
     """
+    if len(actions) == 0:
+        return 1.0
     num = sum(actions) ** 2
     denom = len(actions) * sum([i ** 2 for i in actions])
     return num / float(denom)
@@ -23,7 +25,7 @@ def joint_queue_reward(actions, queues):
     queue = np.max(queues)
     action = action_reward(actions, queues)
     reward = action - 2 * (action * queue)
-    return reward
+    return reward * fairness_reward(actions[actions < 1.0])
 
 
 def step_reward(actions, queues):

@@ -151,5 +151,5 @@ dc_gym/monitor/qdisc_stats
 *.ko
 contrib/go/
 contrib/gopath/
-
 control_test/
+go/
