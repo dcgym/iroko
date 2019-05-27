@@ -25,7 +25,7 @@ def joint_queue_reward(actions, queues):
     queue = np.max(queues)
     action = action_reward(actions, queues)
     reward = action - 2 * (action * queue)
-    return reward * fairness_reward(actions[actions < 1.0])
+    return reward
 
 
 def step_reward(actions, queues):

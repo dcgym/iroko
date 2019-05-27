@@ -1,12 +1,13 @@
 import atexit
 import numpy as np
 import os
-from multiprocessing import Array
-from ctypes import c_ulong
+from multiprocessing import RawArray, RawValue
+import ctypes
 from gym import Env as openAIGym, spaces
 
 import dc_gym.utils as dc_utils
 from dc_gym.control.iroko_bw_control import BandwidthController
+from dc_gym.iroko_sampler import StatsSampler
 from dc_gym.iroko_traffic import TrafficGen
 from dc_gym.iroko_state import StateManager
 from dc_gym.utils import TopoFactory
@@ -74,7 +75,7 @@ def sigmoid(action, derivative=False):
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "terminated", "net_man", "input_file", "short_id",
-                 "bw_ctrl"]
+                 "bw_ctrl", "sampler", "reward"]
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
@@ -85,8 +86,12 @@ class DCEnv(openAIGym):
         self.state_man = None
         self.traffic_gen = None
         self.bw_ctrl = None
+        self.sampler = None
         self.input_file = None
         self.terminated = False
+        self.reward = RawValue('d', 0)
+        self.steps = 0
+
         # set the id of this environment
         self.short_id = dc_utils.generate_id()
         if self.conf["parallel_envs"]:
@@ -114,32 +119,34 @@ class DCEnv(openAIGym):
         atexit.register(self.close)
 
     def _set_gym_matrices(self, conf):
-        # set configuration for the gym environment
-        num_ports = self.topo.get_num_sw_ports()
+
+        # set the action space
         num_actions = self.topo.get_num_hosts()
-        num_features = len(self.conf["state_model"])
-        10e6 / self.topo.conf["max_capacity"]
         min_bw = 10000.0 / float(self.topo.conf["max_capacity"])
         action_min = np.empty(num_actions)
         action_min.fill(min_bw)
         action_max = np.empty(num_actions)
         action_max.fill(1.0)
-        if self.conf["collect_flows"]:
-            num_features += num_actions * 2
-        obs_min = np.empty(num_ports * num_features)
-        obs_min.fill(-np.inf)
-        obs_max = np.empty(num_ports * num_features)
-        obs_max.fill(np.inf)
         self.action_space = spaces.Box(
             low=action_min, high=action_max, dtype=np.float64)
-        self.observation_space = spaces.Box(
-            low=obs_min, high=obs_max, dtype=np.float64)
+        # Initialize the action array shared with the control manager
+        tx_rate = RawArray(ctypes.c_ulong, num_actions)
+        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
         log.info("%s Setting action space" % (self.short_id))
         log.info(f"from {action_min}")
         log.info(f"to {action_max}")
-        # Initialize the action array shared with the control manager
-        tx_rate = Array(c_ulong, num_actions)
-        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
+
+        # set the observation space
+        num_ports = self.topo.get_num_sw_ports()
+        num_features = len(self.conf["state_model"])
+        if self.conf["collect_flows"]:
+            num_features += num_actions * 2
+        obs_min = np.empty(num_actions)
+        obs_min.fill(-np.inf)
+        obs_max = np.empty(num_actions)
+        obs_max.fill(np.inf)
+        self.observation_space = spaces.Box(
+            low=obs_min, high=obs_max, dtype=np.float64)
 
     def _set_traffic_matrix(self, index):
         traffic_file = self.topo.get_traffic_pattern(index)
@@ -161,37 +168,33 @@ class DCEnv(openAIGym):
         # Init the state manager
         if not self.state_man:
             self.state_man = StateManager(self.conf,
-                                          self.topo,
+                                          self.net_man,
                                           self.conf["stats_dict"])
-        # start the manager with the virtual topology information
-        self.state_man.start(self.net_man)
+        # Init the state sampler
+        if not self.sampler:
+            stats = self.state_man.get_stats()
+            self.sampler = StatsSampler(stats, self.tx_rate,
+                                        self.reward, self.conf["output_dir"])
+            self.sampler.start()
+        # the bandwidth controller is reinitialized with every new network
+        if not self.bw_ctrl:
+            host_map = self.net_man.host_ctrl_map
+            self.bw_ctrl = BandwidthController(host_map, self.tx_rate)
+            self.bw_ctrl.start()
 
     def _start_env(self):
         log.info("%s Starting environment..." % self.short_id)
-        # Launch all managers (if they are not active already)
-        self._start_managers()
-
-        self.tx_rate.fill(self.topo.max_bps)
-
         # reset the tracking statistics
         self.steps = 0
-
-        # the bandwidth controller is reinitialized with every new network
-        host_map = self.net_man.host_ctrl_map
-        self.bw_ctrl = BandwidthController(host_map, self.tx_rate)
-        self.bw_ctrl.start()
+        self.reward = RawValue('f', 0)
+        self.tx_rate.fill(self.topo.max_bps)
+        # Launch all managers (if they are not active already)
+        self._start_managers()
         # Finally, start the traffic
         self.traffic_gen.start(self.input_file)
 
     def _stop_env(self):
         log.info("%s Stopping environment..." % self.short_id)
-        if self.state_man:
-            log.info("%s Flushing all state." % self.short_id)
-            self.state_man.stop()
-        if self.bw_ctrl:
-            log.info("%s Stopping bandwidth control." % self.short_id)
-            self.bw_ctrl.stop()
-            self.bw_ctrl = None
         if self.traffic_gen:
             log.info("%s Stopping traffic" % self.short_id)
             self.traffic_gen.stop()
@@ -211,10 +214,15 @@ class DCEnv(openAIGym):
         if self.state_man:
             log.info("%s Stopping all state collectors..." % self.short_id)
             self.state_man.close()
+            self.state_man = None
         if self.bw_ctrl:
             log.info("%s Shutting down bandwidth control..." % self.short_id)
             self.bw_ctrl.close()
             self.bw_ctrl = None
+        if self.sampler:
+            log.info("%s Shutting down data sampling." % self.short_id)
+            self.sampler.close()
+            self.sampler = None
         if self.traffic_gen:
             log.info("%s Shutting down generators..." % self.short_id)
             self.traffic_gen.close()
@@ -226,21 +234,18 @@ class DCEnv(openAIGym):
         log.info("%s Done with destroying myself." % self.short_id)
 
     def step(self, action):
-        do_sample = (self.steps % self.conf["sample_delta"]) == 0
-        action = clip_action(action, self.action_space.low,
+        action = clip_action(action,
+                             self.action_space.low,
                              self.action_space.high)
-        obs, reward = self.state_man.observe(action, do_sample)
+        obs, self.reward.value = self.state_man.observe(action)
 
         for index, a in enumerate(action):
             self.tx_rate[index] = a * self.topo.max_bps
-
         log.debug("%s Iteration %d" % (self.short_id, self.steps))
-        log.debug("%s Reward: %.3f" % (self.short_id, reward))
-
-        # For now we run forever
+        log.debug("%s Reward: %.3f" % (self.short_id, self.reward.value))
         done = not self.traffic_gen.check_if_traffic_alive()
         self.steps = self.steps + 1
-        return obs.flatten(), reward, done, {}
+        return obs.flatten(), self.reward.value, done, {}
 
     def _handle_interrupt(self, signum, frame):
         log.warn("%s \nEnvironment: Caught interrupt" % self.short_id)

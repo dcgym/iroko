@@ -4,6 +4,7 @@ import fnmatch
 import json
 import csv
 import argparse
+import math
 import numpy as np
 import pandas as pd
 import dc_gym.utils as dc_utils
@@ -116,7 +117,7 @@ def normalize_df_z_score(pd_df):
     return normalized_df
 
 
-def plot_lineplot(algos, plt_stats, timesteps, plt_name):
+def plot_lineplot(algos, plt_stats, num_samples, plt_name):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -141,14 +142,18 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
     metrics["drops"] = np_dict_to_pd(plt_stats, "drops").diff()
 
     fig, ax = plt.subplots(len(plt_metrics), 1, sharex=True, squeeze=True)
-    mean_smoothing = int(timesteps / 1000)
-    sample = int(timesteps / 10)
+    mean_smoothing = math.ceil(num_samples / 100)
+    if (num_samples > 10000):
+        sample = 10000
+    else:
+        sample = num_samples
     num_subplots = len(ax)
     marker_range = list(np.arange(
-        int(sample / 10), sample, int(sample / 10)))
-
+        math.ceil(sample / 10), sample, math.ceil(sample / 10)))
     for index, metric in enumerate(plt_metrics):
         metric_df = metrics[metric]
+        log.info("Drop overlimit rows %s." % metric)
+        metric_df = metric_df.drop(metric_df.index[num_samples:])
         log.info("Computing rolling %s." % metric)
         metric_df = compute_rolling_df_mean(metric_df, mean_smoothing)
         log.info("Normalizing %s." % metric)
@@ -164,8 +169,8 @@ def plot_lineplot(algos, plt_stats, timesteps, plt_name):
                                  style="event")
         ax[index].set_ylabel(metric)
         if index == num_subplots - 1:
-            ax[index].set_xlabel("Steps")
-        ax[index].set_xlim([0, timesteps])
+            ax[index].set_xlabel("Time")
+        ax[index].set_xlim([0, num_samples])
         ax[index].margins(y=0.15)
     ax[0].legend(bbox_to_anchor=(0.5, 1.45), loc="upper center",
                  fancybox=True, shadow=True, ncol=len(algos))
@@ -252,6 +257,7 @@ def find_stats_files(results_folder, name):
 def get_stats(statistics, stats_dict, metrics):
     stats = {}
     rewards = np.array(statistics["reward"])
+    num_samples = statistics["num_samples"]
     host_actions = np.moveaxis(statistics["actions"], 0, -1)
     port_stats = np.moveaxis(statistics["stats"], 0, -1)
     port_queues = np.array(port_stats[stats_dict["backlog"]])
@@ -286,7 +292,7 @@ def get_stats(statistics, stats_dict, metrics):
     mean_drops = port_drops.mean(axis=0)
     if mean_drops.size:
         stats["drops"] = mean_drops
-    return stats
+    return stats, num_samples
 
 
 def merge_stats(stats):
@@ -299,6 +305,7 @@ def merge_stats(stats):
 
 def preprocess_data(algo, metrics, runs, transport_dir):
     run_list = {metric: [] for metric in metrics}
+    samples = []
     for index in range(runs):
         run_dir = transport_dir + "run%d" % index
         results_folder = '%s/%s' % (run_dir, algo.lower())
@@ -316,14 +323,14 @@ def preprocess_data(algo, metrics, runs, transport_dir):
             except Exception as e:
                 log.info("Error loading file %s" % stats_file, e)
                 exit(1)
-            stats_list = get_stats(statistics, stats_dict, metrics)
+            stats_list, n_samples = get_stats(statistics, stats_dict, metrics)
+            samples.append(n_samples)
             for metric in metrics:
                 stats[metric].append(stats_list[metric])
         stats_avg = merge_stats(stats)
         for metric in metrics:
             run_list[metric].append(stats_avg[metric])
-        num_samples = env_config["iterations"] / env_config["sample_delta"]
-    return run_list, num_samples
+    return run_list, min(samples)
 
 
 def plot(data_dir, plot_dir, name):
@@ -332,17 +339,17 @@ def plot(data_dir, plot_dir, name):
     tcp_algos = test_config["tcp_algorithms"]
     algos = rl_algos + tcp_algos
     runs = test_config["runs"]
-    timesteps = test_config["timesteps"]
-    min_samples = timesteps
+    episodes = test_config["episodes"]
     transports = test_config["transport"]
     topo = test_config["topology"]
+    min_samples = np.inf
     for transport in transports:
         plt_name = "%s/" % (plot_dir)
         plt_name += "%s" % name
         dc_utils.check_dir(plt_name)
         plt_name += "/%s" % topo
         plt_name += "_%s" % transport
-        plt_name += "_%s" % timesteps
+        plt_name += "_%se" % episodes
         plt_stats = {"rewards": {}, "actions": {}, "backlog": {},
                      "bw_tx": {}, "olimit": {}, "drops": {}}
         for algo in algos:
@@ -352,6 +359,7 @@ def plot(data_dir, plot_dir, name):
                 transport_dir = data_dir + "/%s_" % (transport.lower())
             run_list, num_samples, = preprocess_data(
                 algo, plt_stats.keys(), runs, transport_dir)
+            # replace the assumed sample number with actual observed samples
             if (num_samples < min_samples):
                 min_samples = num_samples
             # average over all runs

@@ -159,7 +159,7 @@ class NetworkManager():
         # dc_utils.exec_process(tc_cmd + cmd)
 
         dc_utils.exec_process("ip link set %s txqueuelen %d" %
-                               (port, limit / avg_pkt_size))
+                              (port, limit / avg_pkt_size))
         dc_utils.exec_process("ip link set %s mtu 1500" % port)
 
     def _connect_controller(self, net):
@@ -235,6 +235,12 @@ class NetworkManager():
 
     def get_host_ports(self):
         return self.host_ctrl_map.keys()
+
+    def get_num_sw_ports(self):
+        return self.topo.get_num_sw_ports()
+
+    def get_num_hosts(self):
+        return self.topo.get_num_hosts()
 
     def start_network(self):
         # Start Mininet

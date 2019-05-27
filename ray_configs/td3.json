@@ -1,22 +1,4 @@
 {
-   "actor_hiddens":[
-       400,
-       300,
-       200,
-       200,
-       200,
-       200,
-       200
-     ],
-   "critic_hiddens":[
-       400,
-       300,
-       200,
-       200,
-       200,
-       200,
-       200
-     ],
    "optimizer_class" : "AsyncReplayOptimizer",
    "twin_q" : true
 }

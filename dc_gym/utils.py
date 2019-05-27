@@ -14,7 +14,11 @@ sys.path.insert(0, FILE_DIR)
 
 
 def shmem_to_nparray(shmem_array, dtype):
-    return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
+    from multiprocessing import Array
+    if isinstance(shmem_array, type(Array)):
+        return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
+    else:
+        return np.frombuffer(shmem_array, dtype=dtype)
 
 
 def exec_process(cmd, host=None, out_file=subprocess.STDOUT):

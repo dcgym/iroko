@@ -31,7 +31,7 @@ ALGOS = RL_ALGOS + TCP_ALGOS
 TRANSPORT = ["udp", "tcp"]
 TF_PATTERNS = [0]
 RUNS = 3
-STEPS = 500000
+EPISODES = 50
 TOPO = "dumbbell"
 TUNE = True
 RESTORE = False
@@ -51,7 +51,7 @@ def generate_testname(output_dir):
 def dump_config(path, pattern):
     test_config = {}
     test_config["transport"] = TRANSPORT
-    test_config["timesteps"] = STEPS
+    test_config["episodes"] = EPISODES
     test_config["runs"] = RUNS
     test_config["topology"] = TOPO
     test_config["tcp_algorithms"] = TCP_ALGOS
@@ -67,7 +67,7 @@ def dump_config(path, pattern):
 def launch_test(algo, results_subdir, transport, pattern):
     # cmd = "sudo python3 run_ray.py "
     cmd = "-a %s " % algo
-    cmd += "-t %d " % STEPS
+    cmd += "-e %d " % EPISODES
     cmd += "--output %s " % results_subdir
     cmd += "--topo %s " % TOPO
     if TUNE:

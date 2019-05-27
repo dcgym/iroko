@@ -43,7 +43,9 @@ class MaxAgent(Trainer):
         return self._agent_name
 
     def _train(self):
+        rewards = []
         steps = 0
+        obs = self.env.reset()
         done = False
         reward = 0.0
         while not done:
@@ -51,11 +53,11 @@ class MaxAgent(Trainer):
             obs, r, done, info = self.env.step(action)
             reward += r
             steps += 1
-            if steps >= self.config["env_config"]["iterations"]:
-                done = True
+        rewards.append(reward)
         return {
-            "episode_reward_mean": reward,
+            "episode_reward_mean": sum(rewards) / len(rewards),
             "timesteps_this_iter": steps,
+            "episodes_this_iter": 1,
         }
 
 
@@ -72,7 +74,9 @@ class RandomAgent(Trainer):
         return self._agent_name
 
     def _train(self):
+        rewards = []
         steps = 0
+        obs = self.env.reset()
         done = False
         reward = 0.0
         while not done:
@@ -80,11 +84,11 @@ class RandomAgent(Trainer):
             obs, r, done, info = self.env.step(action)
             reward += r
             steps += 1
-            if steps >= self.config["env_config"]["iterations"]:
-                done = True
+        rewards.append(reward)
         return {
-            "episode_reward_mean": reward,
+            "episode_reward_mean": sum(rewards) / len(rewards),
             "timesteps_this_iter": steps,
+            "episodes_this_iter": 1,
         }
 
 
@@ -184,10 +188,10 @@ def get_tune_experiment(config, agent, timesteps, root_dir, is_schedule):
     ex_conf["name"] = agent
     ex_conf["run"] = agent_class
     ex_conf["local_dir"] = root_dir
-    ex_conf["stop"] = {"timesteps_total": timesteps}
+    ex_conf["stop"] = {"episodes_total": timesteps}
 
     if is_schedule:
-        ex_conf["stop"] = {"time_total_s": timesteps / 2}
+        ex_conf["stop"] = {"time_total_s": 300}
         ex_conf["num_samples"] = 2
         config["env_config"]["parallel_envs"] = True
         # custom changes to experiment
@@ -205,8 +209,9 @@ def configure_ray(args):
             config = json.load(fp)
     except IOError:
         # File does not exist, just initialize an empty configuration.
-        log.info("Agent configuration does not exist, starting with default.")
-    config = {}
+        log.info("Agent configuration does not exist," +
+                 " starting with default.")
+        config = {}
     # Add the dynamic environment configuration
     config["env"] = "dc_env"
     config["clip_actions"] = True
@@ -222,7 +227,6 @@ def configure_ray(args):
         "topo": args.topo,
         "agent": args.agent,
         "transport": args.transport,
-        "iterations": args.timesteps,
         "tf_index": args.pattern_index,
         "topo_conf": {},
     }
@@ -240,26 +244,26 @@ def configure_ray(args):
 
     if config["num_workers"] > 1:
         config["env_config"]["parallel_envs"] = True
-    if args.timesteps > 50000:
-        config["env_config"]["sample_delta"] = int(args.timesteps / 50000)
     return config
 
 
-def run(config, timesteps):
+def run_ray(config, total_episodes):
     agent_class = get_agent(config["env_config"]["agent"])
     agent = agent_class(config=config, env="dc_env")
     steps = 0
-    while steps < timesteps:
+    episodes = 0
+    while episodes < total_episodes:
         output = agent.train()
         steps += output["timesteps_this_iter"]
-        log.info("Current timesteps %d" % steps)
+        episodes += output["episodes_this_iter"]
+        log.info("Episode: %d Total timesteps: %d" % (episodes, steps))
     log.info("Generator Finished. Simulation over. Clearing dc_env...")
 
 
-def tune_run(config, timesteps, root_dir, is_schedule):
+def tune_run(config, episodes, root_dir, is_schedule):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(
-        config, agent, timesteps, root_dir, is_schedule)
+        config, agent, episodes, root_dir, is_schedule)
     tune.run(experiment, config=config, scheduler=scheduler, verbose=2)
     log.info("Tune run over. Clearing dc_env...")
 
@@ -307,19 +311,19 @@ def wait_for_ovs():
 
 def get_args(args=None):
     p = argparse.ArgumentParser()
-    p.add_argument('--env', '-e', dest='env',
-                   default='iroko', help='The platform to run.')
-    p.add_argument('--topo', dest='topo',
+    p.add_argument('--topo', '-t', dest='topo',
                    default='dumbbell', help='The topology to operate on.')
     p.add_argument('--num_hosts', dest='num_hosts',
                    default='4', help='The number of hosts in the topology.')
     p.add_argument('--agent', '-a', dest='agent', default="PG",
                    help='must be string of either: PPO, DDPG, PG,'
                    ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
-    p.add_argument('--timesteps', '-t', dest='timesteps',
+    p.add_argument('--episodes', '-e', dest='episodes',
+                   type=int, default=5,
+                   help='Total number of episodes to train the RL agent.')
+    p.add_argument('--iterations', '-i', dest='timesteps',
                    type=int, default=10000,
-                   help='total number of timesteps to train rl agent, '
-                   'if tune specified is wall clock time')
+                   help='Total number of episodes to train the RL agent.')
     p.add_argument('--pattern', '-p', dest='pattern_index',
                    type=int, default=0,
                    help='Traffic pattern we are testing.')
@@ -332,6 +336,8 @@ def get_args(args=None):
                    'check point number')
     p.add_argument('--output', dest='root_output', default=ROOT_OUTPUT_DIR,
                    help='Folder which contains all the collected metrics.')
+    p.add_argument('--env', dest='env',
+                   default='iroko', help='The platform to run.')
     p.add_argument('--transport', dest='transport', default="udp",
                    help='Choose the transport protocol of the hosts.')
     p.add_argument('--tune', action="store_true", default=False,
@@ -369,9 +375,9 @@ def main(args=None):
 
     log.info("Starting experiment.")
     if args.tune:
-        tune_run(config, args.timesteps, args.root_output, args.schedule)
+        tune_run(config, args.episodes, args.root_output, args.schedule)
     else:
-        run(config, args.timesteps)
+        run_ray(config, args.episodes)
 
     # Wait until the topology is torn down completely
     # The flaky Mininet stop() call necessitates this
