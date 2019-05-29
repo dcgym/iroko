@@ -91,23 +91,23 @@ class StateManager:
     def get_stats(self):
         return self.stats
 
-    def observe(self, curr_action):
+    def observe(self):
         obs = []
         # retrieve the current deltas before updating total values
         self._compute_deltas(self.prev_stats, self.stats)
         self.prev_stats = self.stats.copy()
         # Create the data matrix for the agent based on the collected stats
         for index in range(self.num_ports):
-            state = []
             for key in self.stats_keys:
                 if (key.startswith("d_")):
-                    state.append(self.deltas[self.stats_dict[key[2:]]][index])
+                    # remove the first two chars and get the actual key
+                    obs.append(self.deltas[self.stats_dict[key[2:]]][index])
                 else:
-                    state.append(self.stats[self.stats_dict[key]][index])
+                    obs.append(self.stats[self.stats_dict[key]][index])
             if self.collect_flows:
-                state.extend(self.flow_stats[index])
-            obs.append(np.array(state))
-        # Compute the reward
-        reward = self.dopamin.get_reward(self.stats, curr_action)
+                obs.extend(self.flow_stats[index])
+        return obs
 
-        return curr_action, reward
+    def get_reward(self, curr_action):
+        # Compute the reward
+        return self.dopamin.get_reward(self.stats, curr_action)

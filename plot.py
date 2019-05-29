@@ -5,6 +5,7 @@ import json
 import csv
 import argparse
 import math
+import shelve
 import numpy as np
 import pandas as pd
 import dc_gym.utils as dc_utils
@@ -163,7 +164,7 @@ def plot_lineplot(algos, plt_stats, num_samples, plt_name):
             plt_legend = "brief"
         else:
             plt_legend = False
-        ax[index] = sns.lineplot(data=metric_df.sample(sample),
+        ax[index] = sns.lineplot(data=metric_df,
                                  ax=ax[index], legend=plt_legend,
                                  markers=True, markevery=marker_range,
                                  style="event")
@@ -319,7 +320,8 @@ def preprocess_data(algo, metrics, runs, transport_dir):
                 exit(1)
             log.info("Loading %s..." % stats_file)
             try:
-                statistics = np.load(stats_file).item()
+                statistics = shelve.open(stats_file)
+                # statistics = np.load(stats_file, allow_pickle=True).item()
             except Exception as e:
                 log.info("Error loading file %s" % stats_file, e)
                 exit(1)

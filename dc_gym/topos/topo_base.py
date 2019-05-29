@@ -79,3 +79,6 @@ class BaseTopo(Topo):
 
     def get_num_hosts(self):
         return self.conf["num_hosts"]
+
+    def get_name(self):
+        return self.name

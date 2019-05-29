@@ -1,3 +1,5 @@
 {
-
+    "model" : {
+        "use_lstm" : true
+    }
 }

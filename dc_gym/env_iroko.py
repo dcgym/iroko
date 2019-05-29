@@ -44,12 +44,12 @@ DEFAULT_CONF = {
     # Eligible variables are drawn from stats_dict
     # To measure the deltas between steps, prepend "d_" in front of a state.
     # For example: "d_backlog"
-    "state_model": ["backlog", "d_backlog"],
+    "state_model": ["backlog"],
     # Add the flow matrix to state?
     "collect_flows": False,
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
-    # "action", "queue","std_dev", "joint_queue", "fairness"
+    # "action", "queue","std_dev", "joint_queue", "fair_queue"
     "reward_model": ["joint_queue"],
 }
 
@@ -75,7 +75,7 @@ def sigmoid(action, derivative=False):
 class DCEnv(openAIGym):
     __slots__ = ["conf", "topo", "traffic_gen", "state_man", "steps",
                  "terminated", "net_man", "input_file", "short_id",
-                 "bw_ctrl", "sampler", "reward"]
+                 "bw_ctrl", "sampler", "reward", "active_rate"]
 
     def __init__(self, conf={}):
         self.conf = DEFAULT_CONF
@@ -90,7 +90,6 @@ class DCEnv(openAIGym):
         self.input_file = None
         self.terminated = False
         self.reward = RawValue('d', 0)
-        self.steps = 0
 
         # set the id of this environment
         self.short_id = dc_utils.generate_id()
@@ -107,11 +106,12 @@ class DCEnv(openAIGym):
         # set the dimensions of the state matrix
         self._set_gym_matrices(self.conf)
         # Set the active traffic matrix
-        self._set_traffic_matrix(self.conf["tf_index"])
+        self._set_traffic_matrix(
+            self.conf["tf_index"], self.conf["input_dir"], self.topo)
 
         # each unique id has its own sub folder
         if self.conf["parallel_envs"]:
-            self.conf["output_dir"] += "/%s" % self.short_id
+            self.conf["output_dir"] += f"/{self.short_id}"
         # check if the directory we are going to work with exists
         dc_utils.check_dir(self.conf["output_dir"])
 
@@ -129,29 +129,30 @@ class DCEnv(openAIGym):
         action_max.fill(1.0)
         self.action_space = spaces.Box(
             low=action_min, high=action_max, dtype=np.float64)
-        # Initialize the action array shared with the control manager
+        # Initialize the action arrays shared with the control manager
         tx_rate = RawArray(ctypes.c_ulong, num_actions)
-        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.int64)
+        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.float64)
+        active_rate = RawArray(ctypes.c_ulong, num_actions)
+        self.active_rate = dc_utils.shmem_to_nparray(active_rate, np.float64)
         log.info("%s Setting action space" % (self.short_id))
-        log.info(f"from {action_min}")
-        log.info(f"to {action_max}")
+        log.info("from %s" % action_min)
+        log.info("to %s" % action_max)
 
         # set the observation space
         num_ports = self.topo.get_num_sw_ports()
         num_features = len(self.conf["state_model"])
         if self.conf["collect_flows"]:
             num_features += num_actions * 2
-        obs_min = np.empty(num_actions)
+        obs_min = np.empty(num_ports * num_features + num_actions)
         obs_min.fill(-np.inf)
-        obs_max = np.empty(num_actions)
+        obs_max = np.empty(num_ports * num_features + num_actions)
         obs_max.fill(np.inf)
         self.observation_space = spaces.Box(
             low=obs_min, high=obs_max, dtype=np.float64)
 
-    def _set_traffic_matrix(self, index):
-        traffic_file = self.topo.get_traffic_pattern(index)
-        self.input_file = "%s/%s/%s" % (
-            self.conf["input_dir"], self.conf["topo"], traffic_file)
+    def _set_traffic_matrix(self, index, input_dir, topo):
+        traffic_file = topo.get_traffic_pattern(index)
+        self.input_file = f"{input_dir}/{topo.get_name()}/{traffic_file}"
 
     def _start_managers(self):
         # actually generate a topology if it does not exist yet
@@ -179,16 +180,15 @@ class DCEnv(openAIGym):
         # the bandwidth controller is reinitialized with every new network
         if not self.bw_ctrl:
             host_map = self.net_man.host_ctrl_map
-            self.bw_ctrl = BandwidthController(host_map, self.tx_rate)
+            self.bw_ctrl = BandwidthController(
+                host_map, self.tx_rate, self.active_rate, self.topo.max_bps)
             self.bw_ctrl.start()
 
     def _start_env(self):
         log.info("%s Starting environment..." % self.short_id)
-        # reset the tracking statistics
-        self.steps = 0
-        self.reward = RawValue('f', 0)
-        self.tx_rate.fill(self.topo.max_bps)
         # Launch all managers (if they are not active already)
+        # This lazy initialization ensures that the environment object can be
+        # created without initializing the virtual network
         self._start_managers()
         # Finally, start the traffic
         self.traffic_gen.start(self.input_file)
@@ -234,18 +234,18 @@ class DCEnv(openAIGym):
         log.info("%s Done with destroying myself." % self.short_id)
 
     def step(self, action):
-        action = clip_action(action,
-                             self.action_space.low,
-                             self.action_space.high)
-        obs, self.reward.value = self.state_man.observe(action)
-
-        for index, a in enumerate(action):
-            self.tx_rate[index] = a * self.topo.max_bps
-        log.debug("%s Iteration %d" % (self.short_id, self.steps))
-        log.debug("%s Reward: %.3f" % (self.short_id, self.reward.value))
+        # Truncate actions to legal values
+        action = np.clip(action, self.action_space.low, self.action_space.high)
+        # Retrieve observation and reward
+        obs = self.state_man.observe()
+        self.reward.value = self.state_man.get_reward(action)
+        # Retrieve the bandwidth enforced by bandwidth control
+        obs.extend(self.active_rate)
+        # Update the array with the bandwidth control
+        self.tx_rate[:] = action
+        # The environment is finished when the traffic generators have stopped
         done = not self.traffic_gen.check_if_traffic_alive()
-        self.steps = self.steps + 1
-        return obs.flatten(), self.reward.value, done, {}
+        return obs, self.reward.value, done, {}
 
     def _handle_interrupt(self, signum, frame):
         log.warn("%s \nEnvironment: Caught interrupt" % self.short_id)

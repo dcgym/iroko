@@ -187,7 +187,7 @@ def get_tune_experiment(config, agent, timesteps, root_dir, is_schedule):
     ex_conf = {}
     ex_conf["name"] = agent
     ex_conf["run"] = agent_class
-    ex_conf["local_dir"] = root_dir
+    ex_conf["local_dir"] = config["env_config"]["output_dir"]
     ex_conf["stop"] = {"episodes_total": timesteps}
 
     if is_schedule:
@@ -266,13 +266,6 @@ def tune_run(config, episodes, root_dir, is_schedule):
         config, agent, episodes, root_dir, is_schedule)
     tune.run(experiment, config=config, scheduler=scheduler, verbose=2)
     log.info("Tune run over. Clearing dc_env...")
-
-
-def check_file(pattern):
-    for fname in glob.glob(pattern, recursive=True):
-        if os.path.isfile(fname):
-            return True
-    return False
 
 
 def kill_ray():

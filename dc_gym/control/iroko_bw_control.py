@@ -1,11 +1,15 @@
 import os
 import ctypes
 import multiprocessing
-import time
 import logging
 log = logging.getLogger(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SRC_PORT = 20135
+DST_PORT = 20130
+PACKET_RX_RING = 5
+PACKET_TX_RING = 13
 
 
 class Ring(ctypes.Structure):
@@ -13,16 +17,16 @@ class Ring(ctypes.Structure):
 
 
 class BandwidthController(multiprocessing.Process):
-    SRC_PORT = 20135
-    DST_PORT = 20130
-    PACKET_RX_RING = 5
-    PACKET_TX_RING = 13
+    __slots__ = ["tx_rate", "active_rate", "max_rate", "name", "host_ctrl_map",
+                 "ring_list", "bw_lib", "kill"]
 
-    def __init__(self, host_ctrl_map, txrate):
+    def __init__(self, host_ctrl_map, tx_rate, active_rate, max_rate):
+        self.name = "PolicyEnforcer"
         multiprocessing.Process.__init__(self)
         self.host_ctrl_map = host_ctrl_map
-        self.name = "PolicyEnforcer"
-        self.txrate = txrate
+        self.tx_rate = tx_rate
+        self.active_rate = active_rate
+        self.max_rate = max_rate
         # self.sock_map = self.bind_sockets(host_ctrl_map)
         self.bw_lib = self.init_backend()
         self.ring_list = self.init_transmissions_rings(host_ctrl_map)
@@ -63,11 +67,9 @@ class BandwidthController(multiprocessing.Process):
         for sw_iface, ctrl_iface in host_ctrl_map.items():
             ring_list[sw_iface] = {}
             rx_ring = self.bw_lib.init_ring(
-                ctrl_iface.encode("ascii"), self.SRC_PORT,
-                self.PACKET_RX_RING)
+                ctrl_iface.encode("ascii"), SRC_PORT, PACKET_RX_RING)
             tx_ring = self.bw_lib.init_ring(
-                ctrl_iface.encode("ascii"), self.SRC_PORT,
-                self.PACKET_TX_RING)
+                ctrl_iface.encode("ascii"), SRC_PORT, PACKET_TX_RING)
             ring_list[sw_iface]["rx"] = rx_ring
             ring_list[sw_iface]["tx"] = tx_ring
         return ring_list
@@ -77,10 +79,11 @@ class BandwidthController(multiprocessing.Process):
             self.bw_lib.teardown_ring(ring_pair["rx"])
             self.bw_lib.teardown_ring(ring_pair["tx"])
 
-    def send_cntrl_pckt(self, iface, txrate):
+    def send_cntrl_pckt(self, iface, tx_rate):
         # Get the tx ring to transmit a packet
         tx_ring = self.ring_list[iface]["tx"]
-        ret = self.bw_lib.send_bw(int(txrate), tx_ring, self.DST_PORT)
+        full_rate = tx_rate * self.max_rate
+        ret = self.bw_lib.send_bw(int(full_rate), tx_ring, DST_PORT)
         return ret
 
     def await_response(self, iface):
@@ -90,12 +93,12 @@ class BandwidthController(multiprocessing.Process):
         self.bw_lib.wait_for_reply(rx_ring)
 
     def broadcast_bw(self):
-
         for index, ctrl_iface in enumerate(self.host_ctrl_map):
-            if self.send_cntrl_pckt(ctrl_iface, self.txrate[index]) != 0:
+            if self.send_cntrl_pckt(ctrl_iface, self.active_rate[index]) != 0:
                 log.error("Could not send packet!")
                 self.kill.set()
                 return
         for ctrl_iface in self.host_ctrl_map.keys():
             self.await_response(ctrl_iface)
-        # time.sleep(0.001)
+        # update the active rate
+        self.active_rate[:] = self.tx_rate

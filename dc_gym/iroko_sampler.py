@@ -1,8 +1,8 @@
 import os
-import numpy as np
 import multiprocessing
 import time
 import logging
+import shelve
 log = logging.getLogger(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -13,11 +13,11 @@ class StatsSampler(multiprocessing.Process):
     def __init__(self, stats, actions, reward, output_dir):
         multiprocessing.Process.__init__(self)
         self.name = "SampleCollector"
-        self.stats_file = "%s/statistics" % output_dir
+        self.stat_file = f"{output_dir}/statistics.npy"
         self.stats = stats
         self.actions = actions
         self.reward = reward
-        self.stats_samples = None
+        self.stat_shelve = None
         self._set_data_checkpoints()
         self.kill = multiprocessing.Event()
 
@@ -32,14 +32,15 @@ class StatsSampler(multiprocessing.Process):
         self._clean()
 
     def _set_data_checkpoints(self):
-        if self.stats_samples:
+        if self.stat_shelve:
             return
         # define file name
-        self.stats_samples = {}
-        self.stats_samples["reward"] = []
-        self.stats_samples["actions"] = []
-        self.stats_samples["stats"] = []
-        self.stats_samples["num_samples"] = 0
+        self.stat_shelve = {}
+        self.stat_shelve = shelve.open(self.stat_file, 'c', writeback=True)
+        self.stat_shelve["reward"] = []
+        self.stat_shelve["actions"] = []
+        self.stat_shelve["stats"] = []
+        self.stat_shelve["num_samples"] = 0
 
     def stop(self):
         log.info("%s: Received termination signal! Exiting.." % self.name)
@@ -47,25 +48,26 @@ class StatsSampler(multiprocessing.Process):
 
     def close(self):
         self.stop()
+        self.stat_shelve.close()
 
     def _clean(self):
-        if self.stats_samples:
+        if self.stat_shelve:
             try:
                 self._flush()
             except Exception as e:
-                log.error("Error flushing file %s" % self.stats_file, e)
-            self.stats_samples = None
+                log.error("Error flushing file %s" % self.stat_file, e)
+            self.stat_shelve = None
         pass
 
     def _checkpoint(self):
         # Save collected data
-        self.stats_samples["stats"].append(self.stats.copy())
-        self.stats_samples["reward"].append(self.reward.value)
-        self.stats_samples["actions"].append(self.actions.copy())
-        self.stats_samples["num_samples"] += 1
+        self.stat_shelve["stats"].append(self.stats.copy())
+        self.stat_shelve["reward"].append(self.reward.value)
+        self.stat_shelve["actions"].append(self.actions.copy())
+        self.stat_shelve["num_samples"] += 1
 
     def _flush(self):
-        if self.stats_samples:
+        if self.stat_shelve:
             log.info("Writing collected data to disk")
-            np.save(self.stats_file, self.stats_samples)
+            self.stat_shelve.sync()
             log.info("Done saving statistics...")

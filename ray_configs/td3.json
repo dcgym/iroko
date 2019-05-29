@@ -1,4 +1,4 @@
 {
-   "optimizer_class" : "AsyncReplayOptimizer",
-   "twin_q" : true
+   "twin_q" : true,
+   "optimizer_class": "AsyncReplayOptimizer"
 }
