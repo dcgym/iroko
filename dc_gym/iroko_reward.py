@@ -23,16 +23,16 @@ def action_reward(actions, queues=None):
 
 def fair_queue_reward(actions, queues):
     queue = np.max(queues)
-    action = action_reward(actions, queues)
+    action = np.mean(actions)
     fairness = fairness_reward(actions[actions < 1.0])
-    reward = action - 3 * (action * queue) + (fairness * (1 - queue))
+    reward = action - queue * action + (fairness * (1 - queue))
     return reward
 
 
 def joint_queue_reward(actions, queues):
     queue = np.max(queues)
-    action = action_reward(actions, queues)
-    reward = action - 2 * (action * queue)
+    action = np.mean(actions)
+    reward = action - queue * action
     return reward
 
 

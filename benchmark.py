@@ -24,7 +24,7 @@ PLOT_DIR = exec_dir + '/plots'
 
 # RL Algorithms: PPO, APPO, DDPG, TD3, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["APPO", "TD3"]
+RL_ALGOS = ["APPO", "TD3", "A2C"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp
@@ -33,9 +33,8 @@ TF_PATTERNS = [0]
 RUNS = 3
 EPISODES = 60
 TOPO = "dumbbell"
+NETWORK_RATES = [10, 1000]
 TUNE = True
-RESTORE = False
-RESTORE_PATH = file_dir + "./"
 
 
 def generate_testname(output_dir):
@@ -56,6 +55,7 @@ def dump_config(path, pattern):
     test_config["topology"] = TOPO
     test_config["tcp_algorithms"] = TCP_ALGOS
     test_config["rl_algorithms"] = RL_ALGOS
+    test_config["rates"] = NETWORK_RATES
     test_config["pattern"] = pattern
     # Get a string formatted time stamp
     ts = time.time()
@@ -64,7 +64,7 @@ def dump_config(path, pattern):
     dc_utils.dump_json(path=path, name="bench_config", data=test_config)
 
 
-def launch_test(algo, results_subdir, transport, pattern):
+def launch_test(algo, results_subdir, transport, rate, pattern):
     # cmd = "sudo python3 run_ray.py "
     cmd = "-a %s " % algo
     cmd += "-e %d " % EPISODES
@@ -72,8 +72,7 @@ def launch_test(algo, results_subdir, transport, pattern):
     cmd += "--topo %s " % TOPO
     if TUNE:
         cmd += "--tune "
-    if RESTORE:
-        cmd += "--restore %s " % RESTORE_PATH
+    cmd += "--rate %d " % rate
     # always use TCP if we are dealing with a TCP algorithm
     cmd += "--transport %s " % transport
     cmd += "--pattern %d " % pattern
@@ -82,27 +81,32 @@ def launch_test(algo, results_subdir, transport, pattern):
     run_ray.main(cmd.split())
 
 
-def run_tests():
+def run_tests(results_dir, pattern, rate):
+    for index in range(RUNS):
+        for transport in TRANSPORT:
+            results_subdir = "%s/%s_run%d" % (results_dir,
+                                              transport, index)
+            for algo in RL_ALGOS:
+                launch_test(algo, results_subdir, transport, rate, pattern)
+        for algo in TCP_ALGOS:
+            results_subdir = "%s/%s_run%d" % (results_dir, "tcp", index)
+            launch_test(algo, results_subdir, "tcp", rate, pattern)
+
+
+def init():
     for pattern in TF_PATTERNS:
-        testname = generate_testname(OUTPUT_DIR)
-        results_dir = "%s/%s" % (OUTPUT_DIR, testname)
-        log.info("Saving results to %s" % results_dir)
-        dc_utils.check_dir(results_dir)
-        log.info("Dumping configuration in %s" % results_dir)
-        dump_config(results_dir, pattern)
-        for index in range(RUNS):
-            for transport in TRANSPORT:
-                results_subdir = "%s/%s_run%d" % (results_dir,
-                                                  transport, index)
-                for algo in RL_ALGOS:
-                    launch_test(algo, results_subdir, transport, pattern)
-            for algo in TCP_ALGOS:
-                results_subdir = "%s/%s_run%d" % (results_dir, "tcp", index)
-                launch_test(algo, results_subdir, "tcp", pattern)
-        # Plot the results and save the graphs under the given test name
-        plot(results_dir, PLOT_DIR, testname)
+        for rate in NETWORK_RATES:
+            testname = generate_testname(OUTPUT_DIR)
+            results_dir = "%s/%s" % (OUTPUT_DIR, testname)
+            log.info("Saving results to %s" % results_dir)
+            dc_utils.check_dir(results_dir)
+            log.info("Dumping configuration in %s" % results_dir)
+            dump_config(results_dir, pattern)
+            run_tests(results_dir, pattern, rate)
+            # Plot the results and save the graphs under the given test name
+            plot(results_dir, PLOT_DIR, testname)
 
 
 if __name__ == '__main__':
     # Start pre-defined tests
-    run_tests()
+    init()

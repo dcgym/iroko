@@ -228,7 +228,7 @@ def configure_ray(args):
         "agent": args.agent,
         "transport": args.transport,
         "tf_index": args.pattern_index,
-        "topo_conf": {},
+        "topo_conf": {"max_capacity": args.rate * 1e6},
     }
 
     # customized configurations
@@ -304,35 +304,28 @@ def wait_for_ovs():
 
 def get_args(args=None):
     p = argparse.ArgumentParser()
-    p.add_argument('--topo', '-t', dest='topo',
+    p.add_argument('--topo', '-t', dest='topo', type=str.lower,
                    default='dumbbell', help='The topology to operate on.')
-    p.add_argument('--num_hosts', dest='num_hosts',
+    p.add_argument('--num_hosts', dest='num_hosts', type=int,
                    default='4', help='The number of hosts in the topology.')
-    p.add_argument('--agent', '-a', dest='agent', default="PG",
+    p.add_argument('--agent', '-a', dest='agent', default="PG", type=str.lower,
                    help='must be string of either: PPO, DDPG, PG,'
-                   ' DCTCP, TCP_NV, PCC, or TCP', type=str.lower)
-    p.add_argument('--episodes', '-e', dest='episodes',
-                   type=int, default=5,
+                   ' DCTCP, TCP_NV, PCC, or TCP')
+    p.add_argument('--episodes', '-e', dest='episodes', type=int, default=5,
                    help='Total number of episodes to train the RL agent.')
     p.add_argument('--iterations', '-i', dest='timesteps',
                    type=int, default=10000,
                    help='Total number of episodes to train the RL agent.')
-    p.add_argument('--pattern', '-p', dest='pattern_index',
-                   type=int, default=0,
-                   help='Traffic pattern we are testing.')
-    p.add_argument('--checkpoint_freq', '-cf', dest='checkpoint_freq',
-                   type=int, default=0,
-                   help='how often to checkpoint model')
-    p.add_argument('--restore', '-r', dest='restore', default=None,
-                   help='Path to checkpoint to restore (for testing), must '
-                   'end like this: <path>/checkpoint-* where star is the '
-                   'check point number')
+    p.add_argument('--pattern', '-p', dest='pattern_index', type=int,
+                   default=0, help='Traffic pattern we are testing.')
+    p.add_argument('--rate', '-r', dest='rate', default=10, type=int,
+                   help='Maximum bandwidth in mbit that each link supports. ')
     p.add_argument('--output', dest='root_output', default=ROOT_OUTPUT_DIR,
                    help='Folder which contains all the collected metrics.')
-    p.add_argument('--env', dest='env',
+    p.add_argument('--env', dest='env', type=str.lower,
                    default='iroko', help='The platform to run.')
     p.add_argument('--transport', dest='transport', default="udp",
-                   help='Choose the transport protocol of the hosts.')
+                   type=str.lower, help='The transport protocol of the hosts.')
     p.add_argument('--tune', action="store_true", default=False,
                    help='Specify whether to run the tune framework')
     p.add_argument('--schedule', action="store_true", default=False,
