@@ -12,3 +12,5 @@
     url = https://github.com/PCCproject/PCC-Kernel
     path = contrib/pcc
     ignore = dirty
+[submodule "ebpf_ctrl/libbpf"]
+	url = https://github.com/libbpf/libbpf
