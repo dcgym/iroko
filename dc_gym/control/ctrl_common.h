@@ -4,6 +4,7 @@
 #include "raw_udp_socket.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef struct ctrl_pckt {
     uint64_t tx_rate;

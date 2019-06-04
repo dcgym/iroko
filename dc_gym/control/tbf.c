@@ -11,10 +11,10 @@ static struct nl_sock *qdisc_sock;
 
 int ctrl_set_bw(void *data, HANDLE_TYPE *ctrl_handle) {
     int err = 0;
-    double tx_rate;
+    float tx_rate;
     ctrl_pckt *pkt;
-    uint64_t burst;
-    uint64_t limit;
+    uint32_t burst;
+    uint32_t limit;
 
     limit = 1530;
     burst = 5000;
@@ -25,8 +25,8 @@ int ctrl_set_bw(void *data, HANDLE_TYPE *ctrl_handle) {
     // fprintf(stderr,"tx_rate: %.3fmbit old %.3fmbit\n", tx_rate* 8 / 1e6,
     //         old_rate*8 / 1e6);
     // fprintf(stderr, "Burst %lu Limit %lu\n", burst, limit);
-    rtnl_qdisc_tbf_set_rate(ctrl_handle, (uint64_t) tx_rate, burst , 0);
-    rtnl_qdisc_tbf_set_peakrate(ctrl_handle, (uint64_t) tx_rate, burst, 0);
+    rtnl_qdisc_tbf_set_rate(ctrl_handle, (uint32_t) tx_rate, burst , 0);
+    rtnl_qdisc_tbf_set_peakrate(ctrl_handle, (uint32_t) tx_rate, burst, 0);
     // rtnl_qdisc_tbf_set_limit(ctrl_handle, limit);
     rtnl_qdisc_tbf_set_limit_by_latency(ctrl_handle, 0);
     err = rtnl_qdisc_add(qdisc_sock, ctrl_handle, NLM_F_REPLACE);
@@ -41,8 +41,8 @@ HANDLE_TYPE  *setup_qdisc(char *netdev, long rate){
     struct rtnl_qdisc *fq_qdisc;
     int if_index;
     int err = 0;
-    uint64_t burst = 12000;
-    uint64_t limit = 1550;
+    uint32_t burst = 12000;
+    uint32_t limit = 1550;
 
     fprintf(stderr, "Kernel Clock Rate: %d\n", nl_get_user_hz());
     qdisc_sock = nl_socket_alloc();
@@ -61,9 +61,9 @@ HANDLE_TYPE  *setup_qdisc(char *netdev, long rate){
         return NULL;
     }
     // fprintf(stderr, "Calculated limit: %lu \n", limit);
-    rtnl_qdisc_tbf_set_rate(fq_qdisc, (uint64_t) rate, burst , 0);
+    rtnl_qdisc_tbf_set_rate(fq_qdisc, (uint32_t) rate, burst , 0);
     rtnl_qdisc_tbf_set_limit(fq_qdisc, limit);
-    rtnl_qdisc_tbf_set_peakrate(fq_qdisc, (uint64_t) rate, burst, 0);
+    rtnl_qdisc_tbf_set_peakrate(fq_qdisc, (uint32_t) rate, burst, 0);
     err = rtnl_qdisc_add(qdisc_sock, fq_qdisc, NLM_F_CREATE);
     if (err) {
         fprintf(stderr,"Can not set TBF: %s\n", nl_geterror(err));

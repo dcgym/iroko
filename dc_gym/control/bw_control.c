@@ -41,19 +41,19 @@ void fill_frame(uint8_t *ether_frame) {
     udp_hdr->source = htons(src_port);
 }
 
-int send_bw(uint64_t allocation, struct ring *ring_tx, uint16_t dst_port) {
+int send_bw(uint32_t allocation, struct ring *ring_tx, uint16_t dst_port) {
     uint8_t ether_frame[100];
     fill_frame(ether_frame);
     struct ethhdr *eth_hdr = (struct ethhdr *)ether_frame;
     struct iphdr *ip_hdr = (struct iphdr *)((uint8_t *)eth_hdr + ETH_HLEN);
     struct udphdr *udp_hdr = (struct udphdr *)((uint8_t *) ip_hdr + IP_HDRLEN);
     // Length of UDP datagram (16 bits): UDP header + UDP data
-    udp_hdr->len = htons (UDP_HDRLEN + sizeof(uint64_t));
+    udp_hdr->len = htons (UDP_HDRLEN + sizeof(uint32_t));
     // Static UDP checksum
     udp_hdr->check = 0xFFAA;
     udp_hdr->dest = htons(dst_port);
-    memcpy (ether_frame + HDRS_LEN, &allocation, sizeof(uint64_t));
-    int pkt_len = HDRS_LEN + sizeof(uint64_t);
+    memcpy (ether_frame + HDRS_LEN, &allocation, sizeof(uint32_t));
+    int pkt_len = HDRS_LEN + sizeof(uint32_t);
     return send_pkt(ring_tx, ether_frame, pkt_len);
 }
 

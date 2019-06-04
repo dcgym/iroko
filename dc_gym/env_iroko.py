@@ -128,12 +128,13 @@ class DCEnv(openAIGym):
         action_max = np.empty(num_actions)
         action_max.fill(1.0)
         self.action_space = spaces.Box(
-            low=action_min, high=action_max, dtype=np.float64)
+            low=action_min, high=action_max, dtype=np.float32)
         # Initialize the action arrays shared with the control manager
-        tx_rate = RawArray(ctypes.c_ulong, num_actions)
-        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.float64)
-        active_rate = RawArray(ctypes.c_ulong, num_actions)
-        self.active_rate = dc_utils.shmem_to_nparray(active_rate, np.float64)
+        # Qdisc do not go beyond uint32 rate limit which is about 4Gbps
+        tx_rate = RawArray(ctypes.c_uint32, num_actions)
+        self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.float32)
+        active_rate = RawArray(ctypes.c_uint32, num_actions)
+        self.active_rate = dc_utils.shmem_to_nparray(active_rate, np.float32)
         log.info("%s Setting action space" % (self.short_id))
         log.info("from %s" % action_min)
         log.info("to %s" % action_max)

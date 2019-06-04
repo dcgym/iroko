@@ -8,14 +8,14 @@ GO_SRC="go1.12.linux-${GOARCH}.tar.gz"
 export GOPATH="$(pwd)/gopath"
 export GOROOT="$(pwd)/go"
 export PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
-GOBEN_BIN="${GOPATH}/bin/goben"
+BIN="$(pwd)/goben/goben"
 
 wget https://dl.google.com/go/${GO_SRC}
 tar -xvf ${GO_SRC}
 cd goben
-go install ./goben
+go build
 cd ..
-mv ${GOPATH}/bin/goben $(pwd)/../dc_gym
+mv ${GOBEN_BIN} $(pwd)/../dc_gym
 chmod -R 775 ${GOPATH}
 rm -rf ${GO_SRC}
 rm -rf ${GOPATH}

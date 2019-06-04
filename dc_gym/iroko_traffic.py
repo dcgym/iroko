@@ -75,7 +75,7 @@ class TrafficGen():
 
     def _start_controllers(self, hosts, out_dir):
         # The binary of the host rate limiter
-        traffic_ctrl = FILE_DIR + "/control/node_control"
+        traffic_ctrl = FILE_DIR + "/control/go_ctrl"
         if not os.path.isfile(traffic_ctrl):
             log.info("The traffic controller does not exist.\n"
                      "Run the install.sh script to compile it.")

@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-SRC_PORT = 20135
+SRC_PORT = 20130
 DST_PORT = 20130
 PACKET_RX_RING = 5
 PACKET_TX_RING = 13
@@ -57,7 +57,7 @@ class BandwidthController(multiprocessing.Process):
             ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint]
         bw_lib.init_ring.restype = ctypes.POINTER(Ring)
         bw_lib.send_bw.argtypes = [
-            ctypes.c_ulong, ctypes.POINTER(Ring), ctypes.c_ushort]
+            ctypes.c_uint32, ctypes.POINTER(Ring), ctypes.c_ushort]
         bw_lib.send_bw.restype = ctypes.c_int
         bw_lib.wait_for_reply.argtypes = [ctypes.POINTER(Ring)]
         return bw_lib

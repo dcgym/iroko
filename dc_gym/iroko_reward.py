@@ -32,7 +32,7 @@ def fair_queue_reward(actions, queues):
 def joint_queue_reward(actions, queues):
     queue = np.max(queues)
     action = np.mean(actions)
-    reward = action - queue * action
+    reward = action - 2 * (queue * action)
     return reward
 
 

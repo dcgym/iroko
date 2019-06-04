@@ -5,7 +5,7 @@
 int ctrl_set_bw(void *data, HANDLE_TYPE *ctrl_handle) {
     char tc_cmd[200];
     int err = 0;
-    double tx_rate;
+    float tx_rate;
     ctrl_pckt *pkt;
     pkt = (ctrl_pckt *) data;
     tx_rate = pkt->tx_rate;
