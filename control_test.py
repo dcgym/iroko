@@ -132,7 +132,7 @@ def record_rate(in_rate, ctrl_rate, sleep, out_dir):
 def generate_ctrl_rates(base_rate):
     ctrl_rates = []
     ctrl_rates.extend([0.0001, 0.0005, 0.001, 0.005])
-    ctrl_rates.extend([0.01, 0.05, 0.1, 0.5, 1])
+    ctrl_rates.extend([0.01, 0.05, 0.1, 0.5, 1.0])
     return np.array(ctrl_rates)
 
 
@@ -166,17 +166,16 @@ def main():
     for in_rate in in_rates:
         ctrl_proc = launch_ctrl_client(src_host, in_rate)
         tx_rate, bw_proc = init_rate_control(ctrl_iface, in_rate)
+        time.sleep(0.5)
         ctrl_rates = generate_ctrl_rates(in_rate)
         client_proc = launch_goben_client(src_host, dst_host, in_rate)
         for ctrl_rate in ctrl_rates:
-            log.info("\n#############################")
+            log.info("#############################")
             tx_rate[0] = ctrl_rate
-            time.sleep(0.5)
             dc_utils.start_process("tc qdisc show dev h0-eth0", src_host)
             record_rate(in_rate, ctrl_rate, sleep_per_test, out_dir)
             log.info("#############################")
-        dc_utils.kill_processes([client_proc])
-        dc_utils.kill_processes([ctrl_proc])
+        dc_utils.kill_processes([ctrl_proc, client_proc, bw_proc])
     dc_utils.kill_processes([server_proc])
     summarize(out_dir)
     net.stop()

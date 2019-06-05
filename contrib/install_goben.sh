@@ -16,6 +16,7 @@ cd goben
 go build
 cd ..
 mv ${GOBEN_BIN} $(pwd)/../dc_gym
+chmod 775 $(pwd)/../dc_gym/goben
 chmod -R 775 ${GOPATH}
 rm -rf ${GO_SRC}
 rm -rf ${GOPATH}

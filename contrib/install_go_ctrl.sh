@@ -16,6 +16,7 @@ cd go_ctrl
 go build
 cd ..
 mv ${BIN} $(pwd)/../dc_gym/control
+chmod 775 $(pwd)/../dc_gym/control/go_ctrl
 chmod -R 775 ${GOPATH}
 rm -rf ${GO_SRC}
 rm -rf ${GOPATH}
