@@ -1,10 +1,10 @@
 [submodule "mininet"]
-    url = https://github.com/mininet/mininet
+    url = https://github.com/dcgym/mininet
     path = contrib/mininet
     ignore = dirty
 
 [submodule "goben"]
-	url = https://github.com/dcgym/goben
+    url = https://github.com/dcgym/goben
     path = contrib/goben
     ignore = dirty
 
