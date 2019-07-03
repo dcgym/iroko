@@ -15,7 +15,6 @@ tar -xvf ${GO_SRC}
 cd goben/goben
 go build
 cd ../..
-mv ${GOBEN_BIN} $(pwd)/../dc_gym
 chmod 775 ${BIN}
 mv ${BIN} $(pwd)/../dc_gym
 chmod -R 775 ${GOPATH}

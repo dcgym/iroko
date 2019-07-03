@@ -32,7 +32,7 @@ gevent = { version = "*", python = ">=3.5"}
 
 # Ray dependencies
 opencv-python = { version = "*", python = ">=3.5"}
-tensorflow = { version = ">=1.13", python = ">=3.5"}
+tensorflow = { version = ">=1.14", python = ">=3.5"}
 lz4 = { version = "*", python = ">=3.5"}
 psutil = { version = "*", python = ">=3.5"}
 setproctitle = { version = "*", python = ">=3.5"}

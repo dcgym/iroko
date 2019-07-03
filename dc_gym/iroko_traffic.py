@@ -104,11 +104,12 @@ class TrafficGen():
         max_rate = self.net_man.topo.conf["max_capacity"] / 1e6
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
-        traffic_cmd += "-totalDuration %s " % 60
-        traffic_cmd += "-hosts %s " % dst_string
-        traffic_cmd += "-maxSpeed %d " % max_rate
-        traffic_cmd += "-passiveServer "
-        # traffic_cmd += "-csv %s/ping-%%d-%%s.csv " % out_dir
+        traffic_cmd += "--totalDuration %d " % 60
+        traffic_cmd += "--totalFlow %d " % (max_rate * 100000)
+        traffic_cmd += "--hosts %s " % dst_string
+        traffic_cmd += "--maxSpeed %d " % max_rate
+        traffic_cmd += "--passiveServer "
+        traffic_cmd += "--csv %s/%%d-%%s.csv " % out_dir
         if self.transport == "udp":
             traffic_cmd += "-udp "
         t_proc = dc_utils.start_process(traffic_cmd, host, out_file)
@@ -185,7 +186,7 @@ class TrafficGen():
                      "Run the install.sh script with the --goben"
                      " option to compile it.")
             exit(1)
-        # Suppress ouput of the traffic generators
+        # Suppress output of the traffic generators
         traffic_gen += " -silent "
         self._start_servers(hosts, traffic_gen, self.out_dir)
         self._start_controllers(hosts, self.out_dir)
