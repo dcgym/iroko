@@ -1,6 +1,5 @@
 {
    "twin_q" : true,
-   "optimizer_class": "AsyncReplayOptimizer",
    "exploration_noise_type": "gaussian",
    "smooth_target_policy": true
 }
