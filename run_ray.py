@@ -181,14 +181,14 @@ def get_agent(agent_name):
     return agent_class
 
 
-def get_tune_experiment(config, agent, timesteps, root_dir, is_schedule):
+def get_tune_experiment(config, agent, episodes, root_dir, is_schedule):
     scheduler = None
     agent_class = get_agent(agent)
     ex_conf = {}
     ex_conf["name"] = agent
     ex_conf["run"] = agent_class
     ex_conf["local_dir"] = config["env_config"]["output_dir"]
-    ex_conf["stop"] = {"episodes_total": timesteps}
+    ex_conf["stop"] = {"episodes_total": episodes}
 
     if is_schedule:
         ex_conf["stop"] = {"time_total_s": 300}
@@ -281,6 +281,7 @@ def clean():
     kill_ray()
     os.system('sudo mn -c')
     dc_utils.kill_processes_with_name("goben")
+    dc_utils.kill_processes_with_name("go_ctrl")
     dc_utils.kill_processes_with_name("node_control")
 
 
@@ -334,6 +335,14 @@ def get_args(args=None):
 
 
 def main(args=None):
+    # Fix a bug introduced by an annoying Google extension
+    import absl.logging
+    try:
+        logging.root.removeHandler(absl.logging._absl_handler)
+        absl.logging._warn_preinit_stderr = False
+    except Exception as e:
+        print("Failed to fix absl logging bug", e)
+
     logging.basicConfig(format="%(levelname)s:%(message)s",
                         level=logging.INFO)
     args = get_args(args)
@@ -354,7 +363,7 @@ def main(args=None):
     log.info("Starting Ray...")
     ts = time.time()
     ray.init(ignore_reinit_error=True,
-             logging_level=logging.WARN,
+             logging_level=logging.INFO,
              temp_dir=output_dir,
              plasma_store_socket_name="/tmp/plasma_socket%s" % ts,
              raylet_socket_name="/tmp/raylet_socket%s" % ts)

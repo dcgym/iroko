@@ -154,7 +154,7 @@ class TrafficGen():
             traffic_pattern = parse_traffic_file(input_file)
             if traffic_pattern is None:
                 log.error("No traffic pattern provided!")
-                dc_utils.kill_processes(self.service_procs)
+                dc_utils.kill_processes(self.service_procs, use_sigkill=True)
                 exit(1)
         log.info("Starting load-generators")
         if os.path.basename(input_file) == "all":
@@ -187,7 +187,7 @@ class TrafficGen():
                      " option to compile it.")
             exit(1)
         # Suppress output of the traffic generators
-        traffic_gen += " -silent "
+        traffic_gen += " --silent "
         self._start_servers(hosts, traffic_gen, self.out_dir)
         self._start_controllers(hosts, self.out_dir)
         # self._start_pkt_capture(self.out_dir)
@@ -197,7 +197,7 @@ class TrafficGen():
     def _stop_services(self):
         log.info("")
         log.info("Stopping services")
-        dc_utils.kill_processes(self.service_procs)
+        dc_utils.kill_processes(self.service_procs, use_sigkill=True)
         del self.service_procs[:]
         sys.stdout.flush()
 
@@ -209,6 +209,8 @@ class TrafficGen():
         hosts = self.net_man.get_net().hosts
         # The binary of the traffic generator
         traffic_gen = FILE_DIR + "/goben"
+        # Suppress output of the traffic generators
+        traffic_gen += " --silent "
 
         log.info("Starting traffic")
         self._start_generators(hosts, input_file, traffic_gen, self.out_dir)

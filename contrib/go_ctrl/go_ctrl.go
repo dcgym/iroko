@@ -6,6 +6,7 @@ import (
     "log"
     "os"
     "os/signal"
+    "syscall"
     "github.com/google/gopacket"
     "github.com/google/gopacket/layers"
     "github.com/google/gopacket/pcap"
@@ -95,7 +96,7 @@ func setup_qdisc(ctrl_dev string, rate uint32) (*netlink.Fq, error) {
 
 func set_exit_handler(qdisc *netlink.Fq) {
     c := make(chan os.Signal, 2)
-    signal.Notify(c, os.Interrupt)
+    signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
     go func() {
         <-c
         log.Println("Handling interrupt...")
@@ -118,7 +119,7 @@ func main() {
     flag.StringVar(&ctrl_dev, "c", "",
         "the interface attached to the control network")
     flag.IntVar(&max_rate, "r", 0,
-        "the interface attached to the control network")
+        "the maximum allowed sending rate in bps")
     flag.Parse()
     if net_dev == "" || ctrl_dev == "" {
         flag.Usage()

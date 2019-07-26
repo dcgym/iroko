@@ -8,8 +8,16 @@ from plot import plot
 
 import dc_gym.utils as dc_utils
 
-# configure logging
+
 import logging
+# Fix a bug introduced by an annoying Google extension
+import absl.logging
+try:
+    logging.root.removeHandler(absl.logging._absl_handler)
+    absl.logging._warn_preinit_stderr = False
+except Exception as e:
+    print("Failed to fix absl logging bug", e)
+# configure logging
 logging.basicConfig(format="%(levelname)s:%(message)s",
                     level=logging.INFO)
 log = logging.getLogger(__name__)

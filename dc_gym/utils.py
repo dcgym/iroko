@@ -74,7 +74,8 @@ def kill_processes(procs, use_sigkill=False):
             os.kill(proc.pid, 15)
             if use_sigkill:
                 os.kill(proc.pid, 9)
-        except OSError:
+        except OSError as e:
+            log.info("Could not kill process %d: " % proc.pid, e)
             pass
 
 
