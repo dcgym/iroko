@@ -3,30 +3,27 @@
 # exit when any command fails
 set -e
 
-# fetch submodules
-git submodule update --init --recursive
+# fetch submodules at their latest version
+git submodule update --init --recursive --remote --merge
 
 # Install essential dependencies
 sudo apt install -y build-essential
 
 # Install Python dependencies
-sudo apt install -y python3           # default ubuntu python3.x
-sudo apt install -y python3-venv      # support Python virtual environments
-sudo apt install -y python3-dev       # for python3.x installs
-
+sudo apt install -y python3             # default ubuntu python3.x
+sudo apt install -y python3-venv        # support Python virtual environments
+sudo apt install -y python3-dev         # for python3.x installs
+sudo apt install -y python3-setuptools  # unfortunately required for poetry
 
 # install Mininet dependencies
-sudo apt install -y openvswitch-switch
-sudo apt install -y cgroup-bin
-sudo apt install -y help2man
+sudo apt install -y openvswitch-switch cgroup-bin help2man
 # install Mininet
 cd contrib/mininet
 sudo make install PYTHON=python3    # install the Python3 version
 cd ../..
 
 # install traffic monitors
-sudo apt install -y tcpdump
-sudo apt install -y ifstat
+sudo apt install -y tcpdump ifstat
 
 # install the traffic generator using Go
 if  [[ $1 = "--goben" ]]; then
@@ -35,7 +32,6 @@ cd contrib
 ./install_goben.sh
 cd ..
 fi
-
 
 # install the PCC kernel module
 if  [[ $1 = "--pcc" ]]; then

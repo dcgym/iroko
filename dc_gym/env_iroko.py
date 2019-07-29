@@ -50,7 +50,7 @@ DEFAULT_CONF = {
     # Specifies which variables represent the state of the environment:
     # Eligible variables:
     # "action", "queue","std_dev", "joint_queue", "fair_queue"
-    "reward_model": ["joint_queue"],
+    "reward_model": ["step"],
 }
 
 
