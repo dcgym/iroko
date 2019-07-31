@@ -1,5 +1,10 @@
 {
-    "model" : {
-        "use_lstm" : true
+   "model": {
+        "fcnet_hiddens":[
+          400,
+          300,
+          200,
+          200
+        ]
     }
 }

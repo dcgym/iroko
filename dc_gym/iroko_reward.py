@@ -17,6 +17,23 @@ def fairness_reward(actions, queues=None):
     return num / float(denom)
 
 
+def gini_reward(actions, queues=None):
+    """Calculate the Gini coefficient of a numpy array."""
+    # based on bottom eq:
+    # http://www.statsdirect.com/help/generatedimages/equations/equation154.svg
+    # from:
+    # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
+    # All values are treated equally, arrays must be 1d:
+    # Values must be sorted:
+    actions = np.sort(actions)
+    # Number of array elements:
+    n = actions.shape[0]
+    # Index per array element:
+    index = np.arange(1, n + 1)
+    # Gini coefficient:
+    return ((np.sum((2 * index - n - 1) * actions)) / (n * np.sum(actions)))
+
+
 def action_reward(actions, queues=None):
     return np.mean(actions)
 
@@ -38,11 +55,11 @@ def joint_queue_reward(actions, queues):
 
 def step_reward(actions, queues):
     queue = np.max(queues)
-    action = np.mean(actions)
-    if queue > 0.50:
-        return (1 - action)
+    action = np.mean(actions) * (1 - gini_reward(actions))
+    if queue > 0.30:
+        return -action - queue
     else:
-        return action + (1 - queue)
+        return action - queue
 
 
 def std_dev_reward(actions, queues=None):

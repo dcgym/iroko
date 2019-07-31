@@ -1,5 +1,17 @@
 {
-   "twin_q" : true,
-   "exploration_noise_type": "gaussian",
-   "smooth_target_policy": true
+    "twin_q" : true,
+    "exploration_noise_type": "gaussian",
+    "smooth_target_policy": true,
+    "actor_hiddens":[
+             400,
+             300,
+             200,
+             200
+           ],
+    "critic_hiddens":[
+              400,
+              300,
+              200,
+              200
+            ],
 }

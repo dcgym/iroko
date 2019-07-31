@@ -235,7 +235,7 @@ def configure_ray(args):
     if args.agent.lower() == "td3":
         config["twin_q"] = True
         config['env_config']['agent'] = "ddpg"
-    if args.agent.lower() == "apex_ddpg":
+    if args.agent.lower().startswith("apex") or config["sample_async"]:
         if config["num_workers"] < 2:
             config["num_workers"] = 2
 
