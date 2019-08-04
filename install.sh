@@ -4,7 +4,7 @@
 set -e
 
 # fetch submodules at their latest version
-git submodule update --init --recursive --remote --merge
+git submodule update --init --recursive --remote
 
 # Install essential dependencies
 sudo apt install -y build-essential
