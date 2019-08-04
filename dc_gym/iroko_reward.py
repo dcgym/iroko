@@ -55,11 +55,11 @@ def joint_queue_reward(actions, queues):
 
 def step_reward(actions, queues):
     queue = np.max(queues)
-    action = np.mean(actions) * (1 - gini_reward(actions))
+    action = np.mean(actions)
     if queue > 0.30:
         return -action - queue
     else:
-        return action - queue
+        return action * (1 + (1 - gini_reward(actions))) - queue
 
 
 def std_dev_reward(actions, queues=None):

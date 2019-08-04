@@ -239,7 +239,7 @@ def configure_ray(args):
         if config["num_workers"] < 2:
             config["num_workers"] = 2
 
-    if args.agent.lower() == "a3c":
+    if args.agent.lower() == "a3c" or args.agent.lower() == "sac":
         config["env_config"]["parallel_envs"] = True
 
     if config["num_workers"] > 1:
@@ -264,7 +264,8 @@ def tune_run(config, episodes, root_dir, is_schedule):
     agent = config['env_config']['agent']
     experiment, scheduler = get_tune_experiment(
         config, agent, episodes, root_dir, is_schedule)
-    tune.run(experiment, config=config, scheduler=scheduler, verbose=2)
+    tune.run(experiment, config=config, scheduler=scheduler,
+             verbose=2, reuse_actors=True)
     log.info("Tune run over. Clearing dc_env...")
 
 
