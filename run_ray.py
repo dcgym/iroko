@@ -239,7 +239,7 @@ def configure_ray(args):
         if config["num_workers"] < 2:
             config["num_workers"] = 2
 
-    if args.agent.lower() == "a3c" or args.agent.lower() == "sac":
+    if args.agent.lower() == "a3c":
         config["env_config"]["parallel_envs"] = True
 
     if config["num_workers"] > 1:

@@ -32,13 +32,13 @@ PLOT_DIR = exec_dir + '/plots'
 
 # RL Algorithms: PPO, APPO, DDPG, TD3, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["SAC", "APPO", "APEX_DDPG", "A3C"]
+RL_ALGOS = ["APPO", "DDPG", "A2C"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp
 TRANSPORT = ["udp", "tcp"]
 TF_PATTERNS = [0]
-RUNS = 3
+RUNS = 1
 EPISODES = 60
 TOPO = "dumbbell"
 NETWORK_RATES = [10, 1000]
