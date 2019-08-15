@@ -32,7 +32,7 @@ PLOT_DIR = exec_dir + '/plots'
 
 # RL Algorithms: PPO, APPO, DDPG, TD3, PG, A2C, RND
 # TCP Algorithms: TCP, DCTCP, TCP_NV, PCC
-RL_ALGOS = ["APPO", "DDPG", "A2C"]
+RL_ALGOS = ["APPO", "TD3", "A2C"]
 TCP_ALGOS = ["DCTCP", "TCP_NV"]
 ALGOS = RL_ALGOS + TCP_ALGOS
 # Transport Protocols: tcp, udp
