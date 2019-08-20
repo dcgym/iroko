@@ -45,9 +45,10 @@ sudo apt install -y libnl-route-3-dev
 # Build the dc_gym
 curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
 source $HOME/.poetry/env
-poetry self:update            # Update Poetry
-# poetry cache:clear . --all    # Clear Poetry cache
-rm -rf poetry.lock
+poetry self:update --preview  # Update Poetry
+poetry env use python3.6      # Use 3.6 for now
+# poetry cache:clear . --all  # Clear Poetry cache
+rm -rf poetry.lock            # Bugfix
 poetry update                 # Update Poetry lock dependencies
 poetry install                # Package the dc_gym
 poetry build                  # Build distribution package

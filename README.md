@@ -6,7 +6,7 @@ Iroko is an open source project that is focused on providing openAI compliant gy
 A concrete description is available in our [short paper](https://arxiv.org/abs/1812.09975). The more elaborate motivation behind this project is explained in [this](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0378362) master's thesis.
 
 # Requirements
-The data center emulator makes heavy uses of Linux tooling and its networking features. It operates most reliably on a recent Linux kernel (`4.15+`). The supported platform is Ubuntu (at least `16.04` is required). Using the emulator requires full sudo access.
+The data center emulator makes heavy uses of Linux tooling and its networking features. It operates most reliably on a recent Linux kernel (`4.15+`) and is written in Python 3.6+. The supported platform is Ubuntu (at least `16.04` is required). Using the emulator requires full sudo access.
 
 # Package Dependencies
 - `GCC` or `Clang` and the `build-essentials` are required.

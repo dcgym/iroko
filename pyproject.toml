@@ -19,7 +19,7 @@ homepage = "https://github.com/dc_gym/iroko"
 keywords = ['tcp', 'congestion control', 'reinforcement learning', 'rl', 'data center']
 
 [tool.poetry.dependencies]
-# python = ">=3.5"  # Compatible python versions
+python = ">=3.6"  # Compatible python versions
 toml = "^0.9"
 
 # DCgym dependencies
