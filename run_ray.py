@@ -265,7 +265,7 @@ def tune_run(config, episodes, root_dir, is_schedule):
     experiment, scheduler = get_tune_experiment(
         config, agent, episodes, root_dir, is_schedule)
     tune.run(experiment, config=config, scheduler=scheduler,
-             verbose=2, reuse_actors=True)
+             verbose=2)
     log.info("Tune run over. Clearing dc_env...")
 
 
