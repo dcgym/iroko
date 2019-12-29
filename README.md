@@ -39,7 +39,7 @@ The emulator generates and measures traffic using [Goben](https://github.com/udh
 A convenient, self-contained way to install the emulator is to run the `./install.sh`. It will install most dependencies locally via [Poetry](https://github.com/sdispater/poetry).
 
 # Run
-To test the emulator you can run `sudo python3 run_basic.py`. This is the most basic usage example of the Iroko environment.
+To test the emulator you can run `sudo -E python3 run_basic.py`. This is the most basic usage example of the Iroko environment.
 
 `run_ray.py` contains examples on how to use `Ray` with this project.
 
