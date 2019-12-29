@@ -34,7 +34,7 @@ else
 fi
 
 # install Mininet dependencies
-sudo apt install -y openvswitch-switch cgroup-bin help2man
+sudo apt install -y openvswitch-switch cgroup-tools help2man
 # install Mininet
 cd contrib/mininet
 sudo make install PYTHON=$PYTHON3_CMD    # install the Python3 version
@@ -69,13 +69,13 @@ rm get-pip.py
 # Build the dc_gym
 curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | $PYTHON3_CMD
 source $HOME/.poetry/env
-poetry self:update --preview  # Update Poetry
-poetry env use $PYTHON3_CMD   # Use 3.6 for now
-# poetry cache:clear . --all  # Clear Poetry cache
-rm -rf poetry.lock            # Bugfix
-poetry update                 # Update Poetry lock dependencies
-poetry install                # Package the dc_gym
-poetry build                  # Build distribution package
+poetry self update --preview      # Update Poetry
+poetry env use $PYTHON3_CMD       # Use 3.6 for now
+yes | poetry cache clear --all .  # Clear Poetry cache
+rm -rf poetry.lock                # Bugfix
+poetry update                     # Update Poetry lock dependencies
+poetry install                    # Package the dc_gym
+poetry build                      # Build distribution package
 
 # compile the traffic control
 make -C dc_gym/monitor
@@ -86,7 +86,7 @@ $PIP_VERSION install --upgrade --user dist/*.whl
 
 
 # Install the latest ray build for $PYTHON3_CMD and 3
-$PIP_VERSION install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev3-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
+$PIP_VERSION install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.9.0.dev0-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray runtime dependencies...
 sudo apt install -y libsm6 libxext6 libxrender-dev
