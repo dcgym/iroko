@@ -1,8 +1,10 @@
-import atexit
-import numpy as np
 import os
-from multiprocessing import RawArray, RawValue
+import sys
+import atexit
 import ctypes
+import logging
+from multiprocessing import RawArray, RawValue
+import numpy as np
 from gym import Env as openAIGym, spaces
 
 import dc_gym.utils as dc_utils
@@ -14,7 +16,6 @@ from dc_gym.utils import TopoFactory
 from dc_gym.topos.network_manager import NetworkManager
 
 
-import logging
 log = logging.getLogger(__name__)
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -104,7 +105,7 @@ class DCEnv(openAIGym):
         dc_utils.dump_json(path=self.conf["output_dir"],
                            name="topo_config", data=self.topo.conf)
         # set the dimensions of the state matrix
-        self._set_gym_matrices(self.conf)
+        self._set_gym_matrices()
         # Set the active traffic matrix
         self._set_traffic_matrix(
             self.conf["tf_index"], self.conf["input_dir"], self.topo)
@@ -118,7 +119,7 @@ class DCEnv(openAIGym):
         # handle unexpected exits scenarios gracefully
         atexit.register(self.close)
 
-    def _set_gym_matrices(self, conf):
+    def _set_gym_matrices(self):
 
         # set the action space
         num_actions = self.topo.get_num_hosts()
@@ -135,9 +136,9 @@ class DCEnv(openAIGym):
         self.tx_rate = dc_utils.shmem_to_nparray(tx_rate, np.float32)
         active_rate = RawArray(ctypes.c_uint32, num_actions)
         self.active_rate = dc_utils.shmem_to_nparray(active_rate, np.float32)
-        log.info("%s Setting action space" % (self.short_id))
-        log.info("from %s" % action_min)
-        log.info("to %s" % action_max)
+        log.info("%s Setting action space", (self.short_id))
+        log.info("from %s", action_min)
+        log.info("to %s", action_max)
 
         # set the observation space
         num_ports = self.topo.get_num_sw_ports()
@@ -158,12 +159,12 @@ class DCEnv(openAIGym):
     def _start_managers(self):
         # actually generate a topology if it does not exist yet
         if not self.net_man:
-            log.info("%s Starting network manager..." % self.short_id)
+            log.info("%s Starting network manager...", self.short_id)
             self.net_man = NetworkManager(self.topo,
                                           self.conf["agent"].lower())
         # in a similar way start a traffic generator
         if not self.traffic_gen:
-            log.info("%s Starting traffic generator..." % self.short_id)
+            log.info("%s Starting traffic generator...", self.short_id)
             self.traffic_gen = TrafficGen(self.net_man,
                                           self.conf["transport"],
                                           self.conf["output_dir"])
@@ -186,7 +187,7 @@ class DCEnv(openAIGym):
             self.bw_ctrl.start()
 
     def _start_env(self):
-        log.info("%s Starting environment..." % self.short_id)
+        log.info("%s Starting environment...", self.short_id)
         # Launch all managers (if they are not active already)
         # This lazy initialization ensures that the environment object can be
         # created without initializing the virtual network
@@ -195,44 +196,44 @@ class DCEnv(openAIGym):
         self.traffic_gen.start(self.input_file)
 
     def _stop_env(self):
-        log.info("%s Stopping environment..." % self.short_id)
+        log.info("%s Stopping environment...", self.short_id)
         if self.traffic_gen:
-            log.info("%s Stopping traffic" % self.short_id)
+            log.info("%s Stopping traffic", self.short_id)
             self.traffic_gen.stop()
-        log.info("%s Done with stopping." % self.short_id)
+        log.info("%s Done with stopping.", self.short_id)
 
     def reset(self):
         self._stop_env()
         self._start_env()
-        log.info("%s Done with resetting." % self.short_id)
+        log.info("%s Done with resetting.", self.short_id)
         return np.zeros(self.observation_space.shape)
 
     def close(self):
         if self.terminated:
             return
         self.terminated = True
-        log.info("%s Closing environment..." % self.short_id)
+        log.info("%s Closing environment...", self.short_id)
         if self.state_man:
-            log.info("%s Stopping all state collectors..." % self.short_id)
+            log.info("%s Stopping all state collectors...", self.short_id)
             self.state_man.close()
             self.state_man = None
         if self.bw_ctrl:
-            log.info("%s Shutting down bandwidth control..." % self.short_id)
+            log.info("%s Shutting down bandwidth control...", self.short_id)
             self.bw_ctrl.close()
             self.bw_ctrl = None
         if self.sampler:
-            log.info("%s Shutting down data sampling." % self.short_id)
+            log.info("%s Shutting down data sampling.", self.short_id)
             self.sampler.close()
             self.sampler = None
         if self.traffic_gen:
-            log.info("%s Shutting down generators..." % self.short_id)
+            log.info("%s Shutting down generators...", self.short_id)
             self.traffic_gen.close()
             self.traffic_gen = None
         if self.net_man:
-            log.info("%s Stopping network." % self.short_id)
+            log.info("%s Stopping network.", self.short_id)
             self.net_man.stop_network()
             self.net_man = None
-        log.info("%s Done with destroying myself." % self.short_id)
+        log.info("%s Done with destroying myself.", self.short_id)
 
     def step(self, action):
         # Truncate actions to legal values
@@ -249,7 +250,7 @@ class DCEnv(openAIGym):
         return obs, self.reward.value, done, {}
 
     def _handle_interrupt(self, signum, frame):
-        log.warn("%s \nEnvironment: Caught interrupt" % self.short_id)
+        log.warning("%s \nEnvironment: Caught interrupt", self.short_id)
         atexit.unregister(self.close())
         self.close()
-        exit(1)
+        sys.exit(1)

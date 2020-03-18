@@ -104,6 +104,7 @@ class TrafficGen():
         max_rate = self.net_man.topo.conf["max_capacity"] / 1e6
         # start the actual client
         traffic_cmd = "%s " % traffic_gen
+        # FIXME: Duration is hardcoded
         traffic_cmd += "--totalDuration %d " % 60
         traffic_cmd += "--totalFlow %d " % (max_rate * 100000)
         traffic_cmd += "--hosts %s " % dst_string

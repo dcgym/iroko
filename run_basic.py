@@ -1,12 +1,13 @@
 from __future__ import print_function
 import argparse
+import logging
 import os
 
 # Iroko imports
 import dc_gym
 import dc_gym.utils as dc_utils
+
 # configure logging
-import logging
 log = logging.getLogger(__name__)
 
 
@@ -21,9 +22,9 @@ PARSER.add_argument('--env', '-e', dest='env',
                     default='iroko', help='The platform to run.')
 PARSER.add_argument('--topo', '-to', dest='topo',
                     default='dumbbell', help='The topology to operate on.')
-PARSER.add_argument('--timesteps', '-t', dest='timesteps',
-                    type=int, default=10000,
-                    help='total number of timesteps to train rl agent')
+PARSER.add_argument('--episodes', '-t', dest='episodes',
+                    type=int, default=2,
+                    help='total number of episodes to train rl agent')
 PARSER.add_argument('--output', dest='output_dir', default=OUTPUT_DIR,
                     help='Folder which contains all the collected metrics.')
 PARSER.add_argument('--transport', dest='transport', default="udp",
@@ -43,20 +44,23 @@ def test_run(input_dir, output_dir, env, topo):
         "topo": topo,
         "agent": ARGS.agent,
         "transport": ARGS.transport,
-        "iterations": ARGS.timesteps,
+        "episodes": ARGS.episodes,
         "tf_index": 0
     }
     dc_env = dc_utils.EnvFactory.create(env_config)
-    dc_env.reset()
-    for epoch in range(ARGS.timesteps):
-        action = dc_env.action_space.sample()
-        dc_env.step(action)
-    print("Generator Finished. Simulation over. Clearing dc_env...")
+    for episodes in range(ARGS.episodes):
+        dc_env.reset()
+        done = False
+        while not done:
+            action = dc_env.action_space.sample()
+            obs, reward, done, info = dc_env.step(action)
+
+    log.info("Generator Finished. Simulation over. Clearing dc_env...")
     dc_env.close()
 
 
 def clean():
-    print("Removing all traces of Mininet")
+    log.info("Removing all traces of Mininet")
     os.system('sudo mn -c')
     os.system("sudo killall -9 goben")
     os.system("sudo killall -9 node_control")

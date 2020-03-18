@@ -1,11 +1,16 @@
-import numpy as np
+from multiprocessing import Array
 import subprocess
 import os
 import sys
 import random
 import string
-
+import json
 import logging
+import pwd
+import grp
+import psutil
+import numpy as np
+
 log = logging.getLogger(__name__)
 
 cwd = os.getcwd()
@@ -14,7 +19,6 @@ sys.path.insert(0, FILE_DIR)
 
 
 def shmem_to_nparray(shmem_array, dtype):
-    from multiprocessing import Array
     if isinstance(shmem_array, type(Array)):
         return np.frombuffer(shmem_array.get_obj(), dtype=dtype)
     else:
@@ -26,12 +30,12 @@ def exec_process(cmd, host=None, out_file=subprocess.STDOUT):
         host_pid = host.pid
         mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
         return exec_process(mn_cmd, out_file=out_file)
-    log.debug("Executing %s " % cmd)
+    log.debug("Executing %s ", cmd)
     if out_file is subprocess.STDOUT:
         result = subprocess.run(
             cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.stdout:
-            log.debug("Process output: %s" % result.stdout)
+            log.debug("Process output: %s", result.stdout)
         if result.stderr and result.returncode != 0:
             log.error(result.stderr)
         return
@@ -46,7 +50,7 @@ def start_process(cmd, host=None, out_file=subprocess.STDOUT):
         host_pid = host.pid
         mn_cmd = "mnexec -a %d %s" % (host_pid, cmd)
         return start_process(mn_cmd, out_file=out_file)
-    log.debug("Starting %s " % cmd)
+    log.debug("Starting %s ", cmd)
     if out_file is subprocess.STDOUT:
         return subprocess.Popen(cmd.split())
     err = out_file + ".err"
@@ -56,17 +60,16 @@ def start_process(cmd, host=None, out_file=subprocess.STDOUT):
 
 
 def list_processes(pattern):
-    import psutil
     procs = []
     for proc in psutil.process_iter():
         if pattern in proc.name():
-            log.debug("Found %s" % proc)
+            log.debug("Found %s", proc)
             procs.append(proc)
     return procs
 
 
 def kill_processes(procs, use_sigkill=False):
-    if type(procs) is not list:
+    if not isinstance(procs, list):
         procs = [procs]
     for proc in procs:
         # kill process, 15 is SIGTERM, 9 is SIGKILL
@@ -75,8 +78,7 @@ def kill_processes(procs, use_sigkill=False):
             if use_sigkill:
                 os.kill(proc.pid, 9)
         except OSError as e:
-            log.info("Could not kill process %d: " % proc.pid, e)
-            pass
+            log.warning("Could not kill process %d: %s", proc.pid, e)
 
 
 def kill_processes_with_name(pattern, use_sigkill=False):
@@ -85,15 +87,12 @@ def kill_processes_with_name(pattern, use_sigkill=False):
 
 
 def dump_json(path, name, data):
-    import json
     check_dir(path)
     with open(f"{path}/{name}.json", 'w') as fp:
         json.dump(data, fp)
 
 
 def change_owner(directory):
-    import pwd
-    import grp
     if "SUDO_USER" in os.environ:
         user = os.environ["SUDO_USER"]
     else:
@@ -121,7 +120,7 @@ def generate_id():
 def check_dir(directory):
     # create the folder if it does not exit
     if not directory == "" and not os.path.exists(directory):
-        log.info("Folder %s does not exist! Creating..." % directory)
+        log.info("Folder %s does not exist! Creating...", directory)
         os.makedirs(directory)
         # preserve the original owner
 
@@ -133,7 +132,7 @@ def import_from(module, name):
     return getattr(module, name)
 
 
-class EnvFactory(object):
+class EnvFactory():
     """ Generator class.
      Returns a target subclass based on the provided target option."""
     @staticmethod
@@ -141,28 +140,28 @@ class EnvFactory(object):
 
         env_name = "dc_gym.env_" + config["env"]
         env_class = "DCEnv"
-        log.info("Loading environment %s " % env_name)
+        log.info("Loading environment %s ", env_name)
         try:
             BaseEnv = import_from(env_name, env_class)
         except ImportError as e:
-            log.info("Could not import requested environment: %" % e)
-            exit(1)
+            log.info("Could not import requested environment: %s", e)
+            sys.exit(1)
         return BaseEnv(config)
 
 
-class TopoFactory(object):
+class TopoFactory():
     """ Generator class.
      Returns a target subclass based on the provided target option."""
     @staticmethod
     def create(topo_name, options):
         env_name = "dc_gym.topos.topo_" + topo_name
         env_class = "IrokoTopo"
-        log.info("Loading topology %s " % env_name)
+        log.info("Loading topology %s ", env_name)
         try:
             IrokoTopo = import_from(env_name, env_class)
         except ImportError as e:
-            log.info("Could not import requested topology: %s" % e)
-            exit(1)
+            log.info("Could not import requested topology: %s", e)
+            sys.exit(1)
         topo = IrokoTopo(options)
         topo.create_topo()
         return topo
