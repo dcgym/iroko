@@ -3,7 +3,10 @@ DISCLAIMER: This project is still very early stage research. It is not stable, w
 
 Iroko is an open source project that is focused on providing openAI compliant gyms. The aim is to develop machine learning algorithms that address data center problems and to fairly evaluate solutions again traditional techniques.
 
-A concrete description is available in our [short paper](https://arxiv.org/abs/1812.09975). The more elaborate motivation behind this project is explained in [this](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0378362) master's thesis.
+A concrete description is available in our [Arxiv paper](https://arxiv.org/abs/1812.09975). A more elaborate version is presented in [this](https://open.library.ubc.ca/cIRcle/collections/ubctheses/24/items/1.0378362) master's thesis. There is also a published workshop paper on the topic:
+
+[*Iroko: A Framework to Prototype Reinforcement Learning for Data Center Traffic Control*](https://www.cs.ubc.ca/~bestchai/papers/iroko-nips18-workshop.pdf). Fabian Ruffy, Michael Przystupa, Ivan Beschastnikh. Workshop on ML for Systems at NIPS 2018.
+
 
 # Requirements
 The data center emulator makes heavy uses of Linux tooling and its networking features. It operates most reliably on a recent Linux kernel (`4.15+`) and is written in Python 3.6+. The supported platform is Ubuntu (at least `16.04` is required). Using the emulator requires full sudo access.
