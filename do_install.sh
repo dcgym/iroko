@@ -3,10 +3,10 @@
 # Exit when any command fails
 set -e
 # Make verbose
-set +x
+set -x
 
 # fetch submodules at their latest version
-git submodule update --init --recursive --remote
+git submodule update --init --recursive
 
 # Install essential dependencies
 sudo apt install -y build-essential
@@ -69,9 +69,7 @@ rm get-pip.py
 
 # Build the dc_gym
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $PYTHON3_CMD -
-PATH=$PATH:$HOME/.local/bin
-poetry env use $PYTHON3_CMD       # Use 3.6 for now
-# yes | poetry cache clear --all .  # Clear Poetry cache, this is sometimes needed
+yes | poetry cache clear --all .  # Clear Poetry cache, this is sometimes needed
 rm -rf poetry.lock                # # Bugfix for repeated install
 rm -rf dist                       # Bugfix for repeated install
 poetry update                     # Update Poetry lock dependencies
