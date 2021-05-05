@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# exit when any command fails
+# Exit when any command fails
 set -e
-
+# Make verbose
+set -x
 
 # fetch submodules at their latest version
-git submodule update --init --recursive --remote
+git submodule update --init --recursive
 
 # Install essential dependencies
 sudo apt install -y build-essential
 sudo apt install -y curl
-sudo apt-get install --reinstall python-pkg-resources
+sudo apt-get install --reinstall python3-pkg-resources
 
 # Install Python dependencies
 sudo apt install -y python3             # default ubuntu python3.x
@@ -63,30 +64,27 @@ sudo apt install -y libnl-route-3-dev
 # Install pip locally
 export PATH+=$PATH:~/.local/bin
 wget https://bootstrap.pypa.io/get-pip.py
-$PYTHON3_CMD  get-pip.py --user
+$PYTHON3_CMD get-pip.py --user
 rm get-pip.py
 
 # Build the dc_gym
-curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | $PYTHON3_CMD
-source $HOME/.poetry/env
-poetry self update --preview      # Update Poetry
-poetry env use $PYTHON3_CMD       # Use 3.6 for now
-yes | poetry cache clear --all .  # Clear Poetry cache
-rm -rf poetry.lock                # Bugfix
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $PYTHON3_CMD -
+yes | poetry cache clear --all .  # Clear Poetry cache, this is sometimes needed
+rm -rf poetry.lock                # # Bugfix for repeated install
+rm -rf dist                       # Bugfix for repeated install
 poetry update                     # Update Poetry lock dependencies
 poetry install                    # Package the dc_gym
 poetry build                      # Build distribution package
+
+# Install the dc_gym locally
+$PIP_VERSION install --upgrade --user dist/*.whl
 
 # compile the traffic control
 make -C dc_gym/monitor
 make -C dc_gym/control
 
-# Install the dc_gym locally
-$PIP_VERSION install --upgrade --user dist/*.whl
-
-
 # Install the latest ray build for $PYTHON3_CMD and 3
-$PIP_VERSION install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.9.0.dev0-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
+# $PIP_VERSION install --user -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.9.0.dev0-cp${PYTHON3_VERSION}-cp${PYTHON3_VERSION}m-manylinux1_x86_64.whl
 
 # Install unresolved Ray runtime dependencies...
 sudo apt install -y libsm6 libxext6 libxrender-dev

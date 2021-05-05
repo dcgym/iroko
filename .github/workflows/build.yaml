@@ -1,0 +1,19 @@
+name: "build"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: "0 13 * * 1"
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install
+      run: |
+        ./do_install.sh
+    - name: Simple Test Run
+      run: |
+        sudo -E python3 run_ray.py --episodes 1

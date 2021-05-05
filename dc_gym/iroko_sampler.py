@@ -9,7 +9,6 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class StatsSampler(multiprocessing.Process):
-
     def __init__(self, stats, actions, reward, output_dir):
         multiprocessing.Process.__init__(self)
         self.name = "SampleCollector"
@@ -26,7 +25,7 @@ class StatsSampler(multiprocessing.Process):
             try:
                 self._checkpoint()
             except KeyboardInterrupt:
-                log.error("%s: Caught Interrupt! Exiting..." % self.name)
+                log.error("%s: Caught Interrupt! Exiting...", self.name)
                 self.kill.set()
             time.sleep(0.1)
         self._clean()
@@ -43,7 +42,7 @@ class StatsSampler(multiprocessing.Process):
         self.stat_shelve["num_samples"] = 0
 
     def stop(self):
-        log.info("%s: Received termination signal! Exiting.." % self.name)
+        log.info("%s: Received termination signal! Exiting..", self.name)
         self.kill.set()
 
     def close(self):
@@ -55,9 +54,8 @@ class StatsSampler(multiprocessing.Process):
             try:
                 self._flush()
             except Exception as e:
-                log.error("Error flushing file %s" % self.stat_file, e)
+                log.error("Error flushing file %s:\n%s", self.stat_file, e)
             self.stat_shelve = None
-        pass
 
     def _checkpoint(self):
         # Save collected data
