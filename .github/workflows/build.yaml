@@ -12,4 +12,6 @@ jobs:
     - name: Install
       run: |
         ./do_install.sh
+    - name: Simple Test Run
+      run: |
         sudo -E python3 run_ray.py --episodes 1
