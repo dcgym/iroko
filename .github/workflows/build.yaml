@@ -12,4 +12,4 @@ jobs:
     - name: Install
       run: |
         ./do_install.sh
-        python3 run_ray.py --episodes 1
+        sudo -E python3 run_ray.py --episodes 1

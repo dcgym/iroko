@@ -23,7 +23,7 @@ python = ">=3.6.1"  # Compatible python versions
 toml = "^0.9"
 numpy = "1.17.*"
 pandas = "1.1.*"
-gym = "0.12.*"
+gym = "0.18.*"
 seaborn = "0.11.*"
 matplotlib = "3.3.**"
 gevent = "21.1.*"
