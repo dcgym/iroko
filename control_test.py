@@ -12,11 +12,9 @@ from multiprocessing import RawArray
 from dc_gym.control.iroko_bw_control import BandwidthController
 import dc_gym.utils as dc_utils
 
-
 # configure logging
 import logging
-logging.basicConfig(format="%(levelname)s:%(message)s",
-                    level=logging.INFO)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
@@ -32,7 +30,6 @@ PACKET_TX_RING = 13
 
 
 class TestTopo(Topo):
-
     def __init__(self, num_hosts=2):
         "The custom BlueBridge topo we use for testing."
 
@@ -97,18 +94,19 @@ def adjust_rate(ctrl_iface, rate=1e6):
     log.info(f"Setting rate to {rate}")
     bw_lib = ctypes.CDLL(f"{FILE_DIR}/dc_gym/control/libbw_control.so")
     bw_lib.init_ring.argtypes = [
-        ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint]
+        ctypes.c_char_p, ctypes.c_ushort, ctypes.c_uint
+    ]
     bw_lib.init_ring.restype = ctypes.POINTER(Ring)
     bw_lib.send_bw.argtypes = [
-        ctypes.c_uint32, ctypes.POINTER(Ring), ctypes.c_ushort]
+        ctypes.c_uint32,
+        ctypes.POINTER(Ring), ctypes.c_ushort
+    ]
     bw_lib.send_bw.restype = ctypes.c_int
     bw_lib.wait_for_reply.argtypes = [ctypes.POINTER(Ring)]
-    rx_ring = bw_lib.init_ring(
-        ctrl_iface.encode("ascii"), SRC_PORT,
-        PACKET_RX_RING)
-    tx_ring = bw_lib.init_ring(
-        ctrl_iface.encode("ascii"), SRC_PORT,
-        PACKET_TX_RING)
+    rx_ring = bw_lib.init_ring(ctrl_iface.encode("ascii"), SRC_PORT,
+                               PACKET_RX_RING)
+    tx_ring = bw_lib.init_ring(ctrl_iface.encode("ascii"), SRC_PORT,
+                               PACKET_TX_RING)
     bw_lib.send_bw(int(rate), tx_ring, DST_PORT)
     bw_lib.wait_for_reply(rx_ring)
 

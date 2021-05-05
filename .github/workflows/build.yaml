@@ -1,0 +1,15 @@
+name: "build"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install
+      run: |
+        ./do_install.sh
+        python3 run_ray.py --episodes 1

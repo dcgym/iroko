@@ -8,7 +8,6 @@ from plot import plot
 
 import dc_gym.utils as dc_utils
 
-
 import logging
 # Fix a bug introduced by an annoying Google extension
 import absl.logging
@@ -18,10 +17,8 @@ try:
 except Exception as e:
     print("Failed to fix absl logging bug", e)
 # configure logging
-logging.basicConfig(format="%(levelname)s:%(message)s",
-                    level=logging.INFO)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
-
 
 # set up paths
 exec_dir = os.getcwd()
@@ -39,10 +36,10 @@ ALGOS = RL_ALGOS + TCP_ALGOS
 TRANSPORT = ["udp", "tcp"]
 TF_PATTERNS = [0]
 RUNS = 1
-EPISODES = 60
+EPISODES = 5
 TOPO = "dumbbell"
 NETWORK_RATES = [10, 1000]
-TUNE = True
+TUNE = False
 
 
 def generate_testname(output_dir):
@@ -73,7 +70,6 @@ def dump_config(path, pattern):
 
 
 def launch_test(algo, results_subdir, transport, rate, pattern):
-    # cmd = "sudo python3 run_ray.py "
     cmd = "-a %s " % algo
     cmd += "-e %d " % EPISODES
     cmd += "--output %s " % results_subdir
@@ -85,15 +81,14 @@ def launch_test(algo, results_subdir, transport, rate, pattern):
     cmd += "--transport %s " % transport
     cmd += "--pattern %d " % pattern
     log.info("Calling Ray command:")
-    log.info("%s" % cmd)
+    log.info("%s", cmd)
     run_ray.main(cmd.split())
 
 
 def run_tests(results_dir, pattern, rate):
     for index in range(RUNS):
         for transport in TRANSPORT:
-            results_subdir = "%s/%s_run%d" % (results_dir,
-                                              transport, index)
+            results_subdir = "%s/%s_run%d" % (results_dir, transport, index)
             for algo in RL_ALGOS:
                 launch_test(algo, results_subdir, transport, rate, pattern)
         for algo in TCP_ALGOS:
@@ -106,9 +101,9 @@ def init():
         for rate in NETWORK_RATES:
             testname = generate_testname(OUTPUT_DIR)
             results_dir = "%s/%s" % (OUTPUT_DIR, testname)
-            log.info("Saving results to %s" % results_dir)
+            log.info("Saving results to %s", results_dir)
             dc_utils.check_dir(results_dir)
-            log.info("Dumping configuration in %s" % results_dir)
+            log.info("Dumping configuration in %s", results_dir)
             dump_config(results_dir, pattern)
             run_tests(results_dir, pattern, rate)
             # Plot the results and save the graphs under the given test name

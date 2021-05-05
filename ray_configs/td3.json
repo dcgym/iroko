@@ -1,7 +1,16 @@
 {
     "twin_q" : true,
-    "exploration_noise_type": "gaussian",
     "smooth_target_policy": true,
+    "exploration_config": {
+        "type": "OrnsteinUhlenbeckNoise",
+        "random_timesteps": 1000,
+        "ou_base_scale": 0.1,
+        "ou_theta": 0.15,
+        "ou_sigma": 0.2,
+        "initial_scale": 1.0,
+        "final_scale": 1.0,
+        "scale_timesteps": 10000
+    },
     "actor_hiddens":[
              400,
              300,
