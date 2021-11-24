@@ -145,7 +145,7 @@ func main() {
         log.Println(err)
          os.Exit(1)
     }
-
+    log.Println("Starting control loop...")
     packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
     if err := ctrl_loop(qdisc, packetSource, handle); err != nil {
         log.Println(err)

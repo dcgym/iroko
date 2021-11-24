@@ -43,6 +43,9 @@ class MaxAgent(Trainer):
     def _name(self):
         return self._agent_name
 
+    def __repr__(self):
+        return self._agent_name
+
     @override(Trainer)
     def step(self):
         rewards = []
@@ -74,6 +77,9 @@ class RandomAgent(Trainer):
         self.env.reset()
 
     def _name(self):
+        return self._agent_name
+
+    def __repr__(self):
         return self._agent_name
 
     @override(Trainer)
