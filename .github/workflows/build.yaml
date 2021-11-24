@@ -17,3 +17,7 @@ jobs:
     - name: Simple Test Run
       run: |
         sudo -E python3 run_ray.py --episodes 1
+    - name: Benchmark Run
+      run: |
+        sudo -E python3 benchmark.py --episodes 5
+
