@@ -12,15 +12,17 @@ import ray
 from ray.rllib.agents.registry import get_trainer_class
 from ray.rllib.agents.trainer import Trainer, with_common_config
 from ray.rllib.utils.annotations import override
+from ray.rllib.utils.typing import TrainerConfigDict
 from ray.tune.registry import register_env
 import ray.tune as tune
 from ray.tune.experiment import Experiment
 from ray.tune.schedulers import PopulationBasedTraining
 
 log = logging.getLogger(__name__)
+
 # Iroko imports
-import dc_gym
 import dc_gym.utils as dc_utils
+import dc_gym
 
 # set up paths
 cwd = os.getcwd()
@@ -31,20 +33,18 @@ ROOT_OUTPUT_DIR = cwd + '/results'
 
 class MaxAgent(Trainer):
     """Agent that always takes the maximum available action."""
-    _agent_name = "MaxAgent"
+    _name = "MaxAgent"
     _default_config = with_common_config({})
+
+    @classmethod
+    @override(Trainer)
+    def get_default_config(cls) -> TrainerConfigDict:
+        return with_common_config({})
 
     @override(Trainer)
     def _init(self, config, env_creator):
         self.config = config
         self.env = env_creator(config["env_config"])
-        self.env.reset()
-
-    def _name(self):
-        return self._agent_name
-
-    def __repr__(self):
-        return self._agent_name
 
     @override(Trainer)
     def step(self):
@@ -65,22 +65,28 @@ class MaxAgent(Trainer):
             "episodes_this_iter": 1,
         }
 
+    @override(Trainer)
+    def cleanup(self):
+        # TODO: Create workers so that we do not have to call cleanup manually.
+        if self.env is not None:
+            self.env.close()
+
 
 class RandomAgent(Trainer):
     """Agent that always takes the maximum available action."""
-    _agent_name = "RandomAgent"
+    _name = "RandomAgent"
     _default_config = with_common_config({})
+
+    @classmethod
+    @override(Trainer)
+    def get_default_config(cls) -> TrainerConfigDict:
+        return with_common_config({
+        })
 
     @override(Trainer)
     def _init(self, config, env_creator):
+        self.config = config
         self.env = env_creator(config["env_config"])
-        self.env.reset()
-
-    def _name(self):
-        return self._agent_name
-
-    def __repr__(self):
-        return self._agent_name
 
     @override(Trainer)
     def step(self):
@@ -100,6 +106,12 @@ class RandomAgent(Trainer):
             "agent_timesteps_total": steps,
             "episodes_this_iter": 1,
         }
+
+    @override(Trainer)
+    def cleanup(self):
+        # TODO: Create workers so that we do not have to call cleanup manually.
+        if self.env is not None:
+            self.env.close()
 
 
 def get_env(env_config):
