@@ -37,7 +37,7 @@ class MaxAgent(Trainer):
     _default_config = with_common_config({})
 
     @classmethod
-    @override(Trainer)
+    # @override(Trainer)
     def get_default_config(cls) -> TrainerConfigDict:
         return with_common_config({})
 
@@ -78,7 +78,7 @@ class RandomAgent(Trainer):
     _default_config = with_common_config({})
 
     @classmethod
-    @override(Trainer)
+    # @override(Trainer)
     def get_default_config(cls) -> TrainerConfigDict:
         return with_common_config({
         })
