@@ -68,7 +68,7 @@ $PYTHON3_CMD get-pip.py --user
 rm get-pip.py
 
 # Build the dc_gym
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $PYTHON3_CMD -
+curl -sSL https://install.python-poetry.org | $PYTHON3_CMD -
 yes | poetry cache clear --all .  # Clear Poetry cache, this is sometimes needed
 rm -rf poetry.lock                # # Bugfix for repeated install
 rm -rf dist                       # Bugfix for repeated install

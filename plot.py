@@ -17,9 +17,6 @@ log = logging.getLogger(__name__)
 PLOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/plots"
 ROOT = "candidates"
 
-PARSER = argparse.ArgumentParser()
-PARSER.add_argument('--input', '-i', dest='input_dir')
-ARGS = PARSER.parse_args()
 
 
 def parse_config(conf_dir, name):
@@ -400,10 +397,14 @@ def plot(data_dir, plot_dir, name):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', '-i', dest='input_dir')
+    args = parser.parse_args()
+
     logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
-    if ARGS.input_dir:
-        plot(ARGS.input_dir, PLOT_DIR,
-             os.path.basename(os.path.normpath(ARGS.input_dir)))
+    if args.input_dir:
+        plot(args.input_dir, PLOT_DIR,
+             os.path.basename(os.path.normpath(args.input_dir)))
         exit(0)
 
     for folder in next(os.walk(ROOT))[1]:
