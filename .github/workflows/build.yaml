@@ -8,7 +8,7 @@ on:
     - cron: "0 13 * * 1"
 jobs:
   test-run-ray:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
     - name: Install
@@ -18,7 +18,7 @@ jobs:
       run: |
         sudo -E python3 run_ray.py --episodes 1
   test-benchmark:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
     - name: Install
